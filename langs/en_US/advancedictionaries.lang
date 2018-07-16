@@ -1,0 +1,24 @@
+# Dolibarr language file - en_US - advancedictionaries
+CHARSET=UTF-8
+Module163017Name = Advanced Dictionaries
+Module163017Desc = Module who replace and extend the standard dictionaries
+
+#######################################################################
+# Permission
+#######################################################################
+Permission163028    = Read dictionaries
+Permission163029    = Create and update dictionaries lines
+Permission163030    = Delete dictionaries lines
+Permission163031    = Disabled/Enabled dictionaries lines
+
+#######################################################################
+# Configuration admin
+#######################################################################
+AdvanceDictionariesSetup                        = Configuration of the module Advanced Dictionaries
+
+AdvanceDictionariesReplaceOldDictionariesPage   = Replace old dictionaries page
+
+#######################################################################
+# General
+#######################################################################
+AdvanceDictionariesFieldRequired    = Field required

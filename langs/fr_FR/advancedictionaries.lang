@@ -1,0 +1,24 @@
+# Dolibarr language file - fr_FR - advancedictionaries
+CHARSET=UTF-8
+Module163017Name = Advanced Dictionaries
+Module163017Desc = Module remplacant et étendant les dictionnaires
+
+#######################################################################
+# Permission
+#######################################################################
+Permission163028    = Consulter les dictionnaires
+Permission163029    = Ajouter/Modifier des lignes dans les dictionaires
+Permission163030    = Supprimer des lignes dans les dictionaires
+Permission163031    = Activer/Désactiver des lignes dans les dictionaires
+
+#######################################################################
+# Configuration admin
+#######################################################################
+AdvanceDictionariesSetup                        = Configuration du module Advanced Dictionaries
+
+AdvanceDictionariesReplaceOldDictionariesPage   = Remplace l'ancienne page des dictionnaires
+
+#######################################################################
+# General
+#######################################################################
+AdvanceDictionariesFieldRequired    = Champ requis
