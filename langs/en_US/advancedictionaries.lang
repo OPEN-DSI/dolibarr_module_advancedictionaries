@@ -22,3 +22,9 @@ AdvanceDictionariesReplaceOldDictionariesPage   = Replace old dictionaries page
 # General
 #######################################################################
 AdvanceDictionariesFieldRequired    = Field required
+
+#######################################################################
+# Errors
+#######################################################################
+AdvanceDictionariesErrorFieldNotDefined    = Error : Field "%s" not defined.
+AdvanceDictionariesErrorIndexNotDefined    = Error : Index "%s" not defined.

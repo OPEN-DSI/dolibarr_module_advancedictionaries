@@ -28,6 +28,11 @@
 class Dictionary extends CommonObject
 {
     /**
+     * @var int         Version of this dictionary
+     */
+    public $version = 0;
+
+    /**
      * @var array       List of languages to load
      */
     public $langs = array();
@@ -51,6 +56,11 @@ class Dictionary extends CommonObject
      * @var int         Position of the dictionary into the family
      */
     public $familyPosition = 1;
+
+    /**
+     * @var bool        Hide this dictionary in the list
+     */
+    public $hidden = false;
 
     /**
      * @var string      Module name of which this dictionary belongs
@@ -78,6 +88,16 @@ class Dictionary extends CommonObject
     public $nameLabel = '';
 
     /**
+     * @var string      Custom name for the title in the values list screen
+     */
+    public $customTitle = '';
+
+    /**
+     * @var string      Custom back link in the values list screen
+     */
+    public $customBackLink = '';
+
+    /**
      * @var string      Name of the dictionary table without prefix (ex: c_country)
      */
     public $table_name = '';
@@ -99,6 +119,7 @@ class Dictionary extends CommonObject
      *   'options'           => array()|string, // Parameters same as extrafields (ex: 'table:label:rowid::active=1' or array(1=>'value1', 2=>'value2') )
      *                                             string: sellist, chkbxlst, link | array: select, radio, checkbox
      *                                             The key of the value must be not contains the character ',' and for chkbxlst it's a rowid
+     *   'label_separator'   => string,         // Separator when use | in the label into the options value
      *   'td_title'          => array (
      *      'moreClasses'    => string,  // Add more classes in the title balise td
      *      'moreAttributes' => string,  // Add more attributes in the title balise td
@@ -147,12 +168,23 @@ class Dictionary extends CommonObject
 
     /**
      * @var array  List of index for the database
-     * array(
+     * idx_number => array(
      *   'fields'    => array( ... ), // List of field name who constitute this index
      *   'is_unique' => '',           // Set at 1 if this index is unique
      * )
      */
     public $indexes = array();
+
+    /**
+     * @var array  List of fields/indexes added, updated or deleted for a version
+     * array(
+     *   'version' => array(
+     *     'fields' => array('field_name'=>'a', 'field_name'=>'u', 'field_name'=>'d', ...), // List of field name who is added(a) or updated(u) or deleted(d) for a version
+     *     'indexes' => array('idx_number'=>'a', 'idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is added(a) or updated(u) or deleted(d) for a version
+     *   ),
+     * )
+     */
+    public $updates = array();
 
     /**
      * @var string  Name of the rowid field
@@ -249,72 +281,12 @@ class Dictionary extends CommonObject
    	}
 
     /**
-   	 * Create dictionary table
-   	 *
-   	 * @return int             <0 if not ok, >0 if ok
-   	 */
-   	function createTables()
-    {
-        if (!empty($this->table_name) && !empty($this->fields)) {
-            $error = 0;
-            $this->db->begin();
-
-            // Create dictionary table
-            $sql = 'CREATE TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $this->rowid_field . ' INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY';
-            foreach ($this->fields as $field) {
-                $sql .= $this->createTableFieldInstructionSQL($field);
-            }
-            $sql .= ', ' . $this->active_field . ' INTEGER DEFAULT 1 NOT NULL';
-            if ($this->has_entity) $sql .= ', ' . $this->entity_field . ' INTEGER DEFAULT 1 NOT NULL';
-            $sql .= ') ENGINE=innodb';
-
-            $resql = $this->db->query($sql);
-            if (!$resql) {
-                if ($this->db->lasterrno != 'DB_ERROR_TABLE_ALREADY_EXISTS') {
-                    $error++;
-                    $this->error = $this->db->lasterror();
-                }
-            }
-
-            if (!$error) {
-                // Create indexes of the tables
-                $res = $this->createIndexesTable();
-                if ($res < 0) {
-                    $error++;
-                }
-            }
-
-            if (!$error) {
-                // Create sub dictionary table
-                foreach ($this->fields as $field) {
-                    $res = $this->createSubTable($field);
-                    if ($res < 0) {
-                        $error++;
-                        break;
-                    }
-                }
-            }
-
-            if (!$error) {
-                $this->db->commit();
-                return 1;
-            } else {
-                $this->db->rollback();
-                return -1;
-            }
-        }
-
-        $this->error = 'Empty table name or fields list';
-        return -2;
-    }
-
-    /**
-   	 * Create table field instruction
+   	 * Definition table field instruction
    	 *
      * @param   array   $field      Description of the field
-   	 * @return  string              Create table field instruction
+   	 * @return  string              Definition table field instruction
    	 */
-   	protected function createTableFieldInstructionSQL($field)
+   	protected function definitionTableFieldInstructionSQL($field)
     {
         if (!empty($field)) {
             $lengthdb = '';
@@ -376,7 +348,7 @@ class Dictionary extends CommonObject
                     $lengthdb='11';
                     break;
                 case 'custom':
-                    return $this->createTableCustomFieldInstructionSQL($field);
+                    return $this->definitionTableCustomFieldInstructionSQL($field);
                 default: // chkbxlst, unknown
                     return '';
             }
@@ -386,20 +358,89 @@ class Dictionary extends CommonObject
             $nulldb = !empty($field['is_require']) ? ' NOT NULL' : ' NULL';
             $defaultdb = !empty($field['database']['default']) ? " DEFAULT '" . $this->db->escape($field['database']['default']) . "'" : '';
 
-            return ', ' . $field['name'] . ' ' . $typedb . (!empty($lengthdb) ? '('.$lengthdb.')' : '') . $nulldb . $defaultdb;
+            return $field['name'] . ' ' . $typedb . (!empty($lengthdb) ? '('.$lengthdb.')' : '') . $nulldb . $defaultdb;
         }
 
         return '';
     }
 
     /**
-   	 * Create table field instruction
+   	 * Definition table field instruction
    	 *
      * @param   array   $field      Description of the field
-   	 * @return  string              Create table field instruction
+   	 * @return  string              Definition table field instruction
    	 */
-    protected function createTableCustomFieldInstructionSQL($field) {
+    protected function definitionTableCustomFieldInstructionSQL($field) {
         return '';
+    }
+
+    /**
+   	 * Create dictionary table
+   	 *
+   	 * @return int             <0 if not ok, >0 if ok
+   	 */
+   	function createTables()
+    {
+        if (!empty($this->table_name) && !empty($this->fields)) {
+            $error = 0;
+            $this->db->begin();
+
+            // Create dictionary table
+            $sql = 'CREATE TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $this->rowid_field . ' INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY';
+            foreach ($this->fields as $field) {
+                $instructionSQL = $this->definitionTableFieldInstructionSQL($field);
+                $sql .= !empty($instructionSQL) ? ', ' . $instructionSQL : '';
+            }
+            $sql .= ', ' . $this->active_field . ' INTEGER DEFAULT 1 NOT NULL';
+            if ($this->has_entity) $sql .= ', ' . $this->entity_field . ' INTEGER DEFAULT 1 NOT NULL';
+            $sql .= ') ENGINE=innodb';
+
+            $resql = $this->db->query($sql);
+            if (!$resql) {
+                if ($this->db->lasterrno != 'DB_ERROR_TABLE_ALREADY_EXISTS') {
+                    $error++;
+                    $this->error = $this->db->lasterror();
+                }
+            }
+
+            if (!$error) {
+                // Create indexes of the tables
+                $res = $this->createIndexesTable();
+                if ($res < 0) {
+                    $error++;
+                }
+            }
+
+            if (!$error) {
+                // Create sub dictionary table
+                foreach ($this->fields as $field) {
+                    $res = $this->createSubTable($field);
+                    if ($res < 0) {
+                        $error++;
+                        break;
+                    }
+                }
+            }
+
+            if (!$error) {
+                // Update dictionary table
+                $res = $this->updateTables();
+                if ($res < 0) {
+                    $error++;
+                }
+            }
+
+            if (!$error) {
+                $this->db->commit();
+                return 1;
+            } else {
+                $this->db->rollback();
+                return -1;
+            }
+        }
+
+        $this->error = 'Empty table name or fields list';
+        return -2;
     }
 
     /**
@@ -411,7 +452,31 @@ class Dictionary extends CommonObject
     {
         // Create indexes of the table
         foreach ($this->indexes as $idx => $index) {
-            $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' ADD ' . (!empty($index['is_unique']) ? 'UNIQUE ' : '') . 'INDEX idx_' . $this->table_name . '_' . $idx . ' (';
+            if ($this->createIndexTable($idx) < 0)
+                return -1;
+        }
+
+        return 1;
+    }
+
+    /**
+   	 * Create index of the table
+   	 *
+     * @param   int   $idx_number       Number of the index
+     * @return  int                     <0 if not ok, >0 if ok
+   	 */
+   	protected function createIndexTable($idx_number)
+    {
+        global $langs;
+
+        if (!isset($this->indexes[$idx_number])) {
+            $this->error = $langs->trans('AdvanceDictionariesErrorIndexNotDefined', $idx_number);
+            return -1;
+        }
+
+        $index = $this->indexes[$idx_number];
+
+        $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' ADD ' . (!empty($index['is_unique']) ? 'UNIQUE ' : '') . 'INDEX idx_' . $this->table_name . '_' . $idx_number . ' (';
             foreach ($index['fields'] as $field) {
                 $sql .= $field . ', ';
             }
@@ -427,6 +492,24 @@ class Dictionary extends CommonObject
                     return -1;
                 }
             }
+
+        return 1;
+    }
+
+    /**
+   	 * Delete index of the table
+   	 *
+     * @param   int   $idx_number       Number of the index
+     * @return  int                     <0 if not ok, >0 if ok
+   	 */
+   	protected function deleteIndexTable($idx_number)
+    {
+        $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP INDEX idx_' . $this->table_name . '_' . $idx_number;
+
+        $resql = $this->db->query($sql);
+        if (!$resql) {
+            $this->error = $this->db->lasterror();
+            return -1;
         }
 
         return 1;
@@ -488,9 +571,106 @@ class Dictionary extends CommonObject
    	 *
    	 * @return int             <0 if not ok, >0 if ok
    	 */
-   	function updateTables()
+    protected function updateTables()
     {
-        // Todo to make
+        global $conf, $langs;
+
+        $version_variable_name = strtoupper('ADVANCEDICTIONARIES_DICTIONARY_'.$this->name.'_VERSION');
+        $current_version = isset($conf->global->$version_variable_name) ? $conf->global->$version_variable_name : 0;
+
+        // TODO prevoir les mise a jour avec les sous tables
+
+        foreach ($this->updates as $version => $datas)
+        {
+            if ($version > $current_version) {
+                // Fields
+                if (is_array($datas['fields'])) {
+                    foreach ($datas['fields'] as $field_name => $type) {
+                        switch ($type) {
+                            case 'a':
+                                if (!isset($this->fields[$field_name])) {
+                                    $this->error = $langs->trans('AdvanceDictionariesErrorFieldNotDefined', $field_name);
+                                    return -1;
+                                }
+
+                                // Insert column of dictionary table
+                                $instructionSQL = $this->definitionTableFieldInstructionSQL($this->fields[$field_name]);
+                                if (!empty($instructionSQL)) {
+                                    $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' ADD COLUMN ' . $instructionSQL;
+                                    $resql = $this->db->query($sql);
+                                    if (!$resql) {
+                                        $this->error = $this->db->lasterror();
+                                        return -1;
+                                    }
+                                }
+                                break;
+                            case 'u':
+                                if (!isset($this->fields[$field_name])) {
+                                    $this->error = $langs->trans('AdvanceDictionariesErrorFieldNotDefined', $field_name);
+                                    return -1;
+                                }
+
+                                // Update column of dictionary table
+                                $instructionSQL = $this->definitionTableFieldInstructionSQL($this->fields[$field_name]);
+                                if (!empty($instructionSQL)) {
+                                    $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' MODIFY COLUMN ' . $instructionSQL;
+                                    $resql = $this->db->query($sql);
+                                    if (!$resql) {
+                                        $this->error = $this->db->lasterror();
+                                        return -1;
+                                    }
+                                }
+                                break;
+                            case 'd':
+                                // Delete column of dictionary table
+                                $instructionSQL = $this->definitionTableFieldInstructionSQL($this->fields[$field_name]);
+                                if (!empty($instructionSQL)) {
+                                    $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP COLUMN ' . $field_name;
+                                    $resql = $this->db->query($sql);
+                                    if (!$resql) {
+                                        $this->error = $this->db->lasterror();
+                                        return -1;
+                                    }
+                                } else {
+                                    $result = $this->deleteSubTable($this->fields[$field_name]);
+                                    if ($result < 0) {
+                                        return -1;
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                }
+
+                // Indexes
+                if (is_array($datas['indexes'])) {
+                    foreach ($datas['indexes'] as $idx_number => $type) {
+                        switch ($type) {
+                            //case 'a':
+                                //// Insert index of dictionary table
+                                //if ($this->createIndexTable($idx_number) < 0)
+                                //    return -1;
+                                //break;
+                            case 'u':
+                                // Udpate index of dictionary table
+                                if ($this->deleteIndexTable($idx_number) < 0)
+                                    return -1;
+                                if ($this->createIndexTable($idx_number) < 0)
+                                    return -1;
+                                break;
+                            case 'd':
+                                // Delete index of dictionary table
+                                if ($this->deleteIndexTable($idx_number) < 0)
+                                    return -1;
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+
+        dolibarr_set_const($this->db, $version_variable_name, $this->version, 'chaine', 0, '', $conf->entity);
+
         return 1;
     }
 
@@ -1488,8 +1668,8 @@ class Dictionary extends CommonObject
                         break;
                     case 'int':
                     case 'double':
-                    case 'price':
                     case 'boolean':
+                    case 'price':
                         $value_key = price2num(GETPOST($fieldHtmlName, 'int'));
                         break;
                     case 'date':
@@ -2440,18 +2620,21 @@ class DictionaryLine extends CommonObjectLine
                                 $insert_values = array();
                                 if (is_array($value)) {
                                     $value_arr = $value;
-                                } else {
+                                } elseif (!empty($value)) {
                                     $value_arr = explode(',', (string)$value);
                                 }
                                 foreach ($value_arr as $value_id) {
                                     $insert_values[] = '(' . $this->id . ', ' . $value_id . ')';
                                 }
+
+                                if (count($insert_values) > 0) {
                                 $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . '(fk_line, fk_target) VALUES' . implode(',', $insert_values);
                                 $resql = $this->db->query($sql);
                                 if (!$resql) {
                                     $error++;
                                     $errors[] = $this->db->lasterror();
                                 }
+                            }
                             }
                             break;
                         case 'custom':
@@ -2555,23 +2738,25 @@ class DictionaryLine extends CommonObjectLine
                             if (!$resql) {
                                 $error++;
                                 $errors[] = $this->db->lasterror();
-                            } else {
+                            } elseif(!empty($value)) {
                                 // Insert association line for the multi-select list
                                 $insert_values = array();
                                 if (is_array($value)) {
                                     $value_arr = $value;
-                                } else {
+                                } elseif (!empty($value)) {
                                     $value_arr = explode(',', (string)$value);
                                 }
                                 foreach ($value_arr as $value_id) {
                                     $insert_values[] = '(' . $this->id . ', ' . $value_id . ')';
                                 }
+                                if (count($insert_values) > 0) {
                                 $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . '(fk_line, fk_target) VALUES' . implode(',', $insert_values);
                                 $resql = $this->db->query($sql);
                                 if (!$resql) {
                                     $error++;
                                     $errors[] = $this->db->lasterror();
                                 }
+                            }
                             }
                             break;
                         case 'custom':
@@ -3061,17 +3246,20 @@ class DictionaryLine extends CommonObjectLine
                         $fields_label = explode('|', $InfoFieldList[1]);
 
                         if (is_array($fields_label) && count($fields_label) > 1) {
+                            $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
+                            $labelstoshow = array();
                             foreach ($fields_label as $field_toshow) {
                                 $translabel = '';
                                 if (!empty($obj->$field_toshow)) {
                                     $translabel = $langs->trans($obj->$field_toshow);
                                 }
                                 if ($translabel != $field_toshow) {
-                                    $value .= dol_trunc($translabel, 18) . ' ';
+                                    $labelstoshow[] = dol_trunc($translabel, 18);
                                 } else {
-                                    $value .= $obj->$field_toshow . ' ';
+                                    $labelstoshow[] = $obj->$field_toshow;
                                 }
                             }
+                            $value .= implode($label_separator, $labelstoshow);
                         } else {
                             $translabel = '';
                             if (!empty($obj->{$InfoFieldList[1]})) {
@@ -3106,7 +3294,11 @@ class DictionaryLine extends CommonObjectLine
                     if (is_array($value)) {
                         $value_arr = $value;
                     } else {
+                        if ($value === NULL) {
+                            $value_arr = array('NULL');
+                    } else {
                         $value_arr = explode(',', (string)$value);
+                    }
                     }
 
                     // 0 : tableName
@@ -3148,17 +3340,17 @@ class DictionaryLine extends CommonObjectLine
                             $fields_label = explode('|', $InfoFieldList[1]);
                             if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
                                 if (is_array($fields_label) && count($fields_label) > 1) {
+                                    $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
+                                    $labelstoshow = array();
                                     foreach ($fields_label as $field_toshow) {
-                                        $translabel = '';
-                                        if (!empty($obj->$field_toshow)) {
                                             $translabel = $langs->trans($obj->$field_toshow);
-                                        }
-                                        if ($translabel != $field_toshow) {
-                                            $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . dol_trunc($translabel, 18) . '</li>';
+                                        if ($translabel != $obj->$field_toshow) {
+                                            $labelstoshow[] = dol_trunc($translabel, 18);
                                         } else {
-                                            $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . $obj->$field_toshow . '</li>';
+                                            $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
                                         }
                                     }
+                                    $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . implode($label_separator, $labelstoshow) . '</li>';
                                 } else {
                                     $translabel = '';
                                     if (!empty($obj->{$InfoFieldList[1]})) {
@@ -3286,11 +3478,11 @@ class DictionaryLine extends CommonObjectLine
             $moreAttributes = !empty($moreAttributes) ? ' ' . $moreAttributes : '';
 
             if (!empty($hidden)) {
-                $out = '<input type="hidden" value="' . $value . '" name="' . $fieldHtmlName . '" id="' . $fieldHtmlName . '"/>';
+                $out = '<input type="hidden" value="' . $value . '" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" id="' . $fieldHtmlName . '"/>';
             } else {
                 switch ($field['type']) {
                     case 'varchar':
-                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '" maxlength="' . $size . '" value="' . dol_escape_htmltag($value) . '"' . $moreAttributes . '>';
+                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" maxlength="' . $size . '" value="' . dol_escape_htmltag($value) . '"' . $moreAttributes . '>';
                         break;
                     case 'text':
                         require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
@@ -3301,10 +3493,10 @@ class DictionaryLine extends CommonObjectLine
                     case 'phone':
                     case 'mail':
                     case 'url':
-                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '>';
+                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '>';
                         break;
                     case 'password':
-                        $out = '<input type="password" class="flat' . $moreClasses . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '>';
+                        $out = '<input type="password" class="flat' . $moreClasses . '" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '>';
                         break;
                     case 'select':
                         $out = '';
@@ -3313,7 +3505,7 @@ class DictionaryLine extends CommonObjectLine
                             $out .= ajax_combobox($fieldHtmlName, array(), 0);
                         }
 
-                        $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '" id="' . $fieldHtmlName . '"' . $moreAttributes . '>';
+                        $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" id="' . $fieldHtmlName . '"' . $moreAttributes . '>';
                         $out .= '<option value="-1">&nbsp;</option>';
                         foreach ($field['options'] as $key => $val) {
                             if ((string)$key == '') continue;
@@ -3332,7 +3524,7 @@ class DictionaryLine extends CommonObjectLine
                             $out .= ajax_combobox($fieldHtmlName, array(), 0);
                         }
 
-                        $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '" id="' . $fieldHtmlName . '"' . $moreAttributes . '>';
+                        $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" id="' . $fieldHtmlName . '"' . $moreAttributes . '>';
                         $InfoFieldList = explode(":", (string)$field['options']);
                         // 0 : tableName
                         // 1 : label field name
@@ -3401,31 +3593,35 @@ class DictionaryLine extends CommonObjectLine
                             $num = $this->db->num_rows($resql);
                             $i = 0;
                             while ($i < $num) {
-                                $labeltoshow = '';
                                 $obj = $this->db->fetch_object($resql);
 
                                 // Several field into label (eq table:code|libelle:rowid)
+                                $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
                                 $fields_label = explode('|', $InfoFieldList[1]);
                                 $notrans = false;
                                 if (is_array($fields_label)) {
                                     $notrans = true;
+                                    $labelstoshow = array();
                                     foreach ($fields_label as $field_toshow) {
-                                        $labeltoshow .= $obj->$field_toshow . ' ';
+                                        $labelstoshow[] = $obj->$field_toshow;
                                     }
+                                    $labeltoshow = implode($label_separator, $labelstoshow);
                                 } else {
                                     $labeltoshow = $obj->{$InfoFieldList[1]};
                                 }
                                 $labeltoshow = dol_trunc($labeltoshow, 45);
 
                                 if ($value == $obj->rowid) {
+                                    $labelstoshow = array();
                                     foreach ($fields_label as $field_toshow) {
                                         $translabel = $langs->trans($obj->$field_toshow);
                                         if ($translabel != $obj->$field_toshow) {
-                                            $labeltoshow = dol_trunc($translabel, 18) . ' ';
+                                            $labelstoshow[] = dol_trunc($translabel, 18);
                                         } else {
-                                            $labeltoshow = dol_trunc($obj->$field_toshow, 18) . ' ';
+                                            $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
                                         }
                                     }
+                                    $labeltoshow = implode($label_separator, $labelstoshow);
                                     $out .= '<option value="' . $obj->rowid . '" selected>' . $labeltoshow . '</option>';
                                 } else {
                                     if (!$notrans) {
@@ -3462,7 +3658,7 @@ class DictionaryLine extends CommonObjectLine
                     case 'radio':
                         $out = '';
                         foreach ($field['options'] as $keyopt => $val) {
-                            $out .= '<input class="flat' . $moreClasses . '" type="radio" name="' . $fieldHtmlName . '"' . $moreAttributes;
+                            $out .= '<input class="flat' . $moreClasses . '" type="radio" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"' . $moreAttributes;
                             $out .= ' value="' . $keyopt . '"';
                             $out .= ' id="' . $fieldHtmlName . '_' . $keyopt . '"';
                             $out .= ($value == $keyopt ? 'checked' : '');
@@ -3562,27 +3758,32 @@ class DictionaryLine extends CommonObjectLine
                                 $obj = $this->db->fetch_object($resql);
 
                                 // Several field into label (eq table:code|libelle:rowid)
+                                $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
                                 $fields_label = explode('|', $InfoFieldList[1]);
                                 $notrans = false;
                                 if (is_array($fields_label)) {
                                     $notrans = true;
+                                    $labelstoshow = array();
                                     foreach ($fields_label as $field_toshow) {
-                                        $labeltoshow .= $obj->$field_toshow . ' ';
+                                        $labelstoshow[] = $obj->$field_toshow;
                                     }
+                                    $labeltoshow = implode($label_separator, $labelstoshow);
                                 } else {
                                     $labeltoshow = $obj->{$InfoFieldList[1]};
                                 }
                                 $labeltoshow = dol_trunc($labeltoshow, 45);
 
                                 if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
+                                    $labelstoshow = array();
                                     foreach ($fields_label as $field_toshow) {
                                         $translabel = $langs->trans($obj->$field_toshow);
                                         if ($translabel != $obj->$field_toshow) {
-                                            $labeltoshow = dol_trunc($translabel, 18) . ' ';
+                                            $labelstoshow[] = dol_trunc($translabel, 18);
                                         } else {
-                                            $labeltoshow = dol_trunc($obj->$field_toshow, 18) . ' ';
+                                            $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
                                         }
                                     }
+                                    $labeltoshow = implode($label_separator, $labelstoshow);
 
                                     $data[$obj->rowid] = $labeltoshow;
 
@@ -3626,19 +3827,19 @@ class DictionaryLine extends CommonObjectLine
                     case 'int':
                         $tmp = explode(',', $size);
                         $newsize = $tmp[0] + $tmp[1] + 1;
-                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '" maxlength="' . $newsize . '" value="' . $value . '"' . $moreAttributes . '>';
+                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" maxlength="' . $newsize . '" value="' . $value . '"' . $moreAttributes . '>';
                         break;
                     case 'double':
                         if (!empty($value)) {        // $value in memory is a php numeric, we format it into user number format.
                             $value = price($value);
                         }
-                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '> ';
+                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '> ';
                         break;
                     case 'price':
                         if (!empty($value)) {        // $value in memory is a php numeric, we format it into user number format.
                             $value = price($value);
                         }
-                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '> ' . $langs->getCurrencySymbol($conf->currency);
+                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '> ' . $langs->getCurrencySymbol($conf->currency);
                         break;
                     case 'link':
                         // 0 : ObjectName
@@ -3655,7 +3856,7 @@ class DictionaryLine extends CommonObjectLine
                                     if ($object->element == 'societe') $valuetoshow = $object->name;  // Special case for thirdparty because ->ref is not name but id (because name is not unique)
                                 }
                             }
-                            $out = '<input type="text" class="flat' . $moreClasses . '" name="' . $fieldHtmlName . '" value="' . $valuetoshow . '"' . $moreAttributes . '>';
+                            $out = '<input type="text" class="flat' . $moreClasses . '" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $valuetoshow . '"' . $moreAttributes . '>';
                         } else {
                             dol_syslog('Error bad setup of extrafield', LOG_WARNING);
                             $out = 'Error bad setup of extrafield';
@@ -3676,7 +3877,7 @@ class DictionaryLine extends CommonObjectLine
                         $out = $form->select_date($value, $fieldHtmlName, $showtime, $showtime, $required, '', 1, 1, 1, 0, 1);
                         break;
                     case 'boolean':
-                        $out = '<input type="checkbox" class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '" value="1" ' . (!empty($value) ? 'checked' : '') . $moreAttributes . '>';
+                        $out = '<input type="checkbox" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="1" ' . (!empty($value) ? 'checked' : '') . $moreAttributes . '>';
                         break;
                     case 'custom':
                         $out = $this->showInputCustomField($fieldName, $value, $keyprefix, $keysuffix, $objectid);

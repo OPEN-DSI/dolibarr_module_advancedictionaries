@@ -40,21 +40,7 @@ dol_include_once('/advancedictionaries/class/dictionary.class.php');
 
 $langs->load("advancedictionaries@advancedictionaries");
 
-$canRead = $user->rights->advancedictionaries->read;
-$canCreate = $user->rights->advancedictionaries->create;
-$canUpdate = $user->rights->advancedictionaries->create;
-$canDelete = $user->rights->advancedictionaries->delete;
-$canDisable = $user->rights->advancedictionaries->disable;
-
 if (!$canRead) accessforbidden();
-
-$action      = GETPOST('action', 'alpha');
-$confirm     = GETPOST('confirm', 'alpha');
-$id          = GETPOST('id', 'int');
-$rowid       = GETPOST('rowid', 'int');
-$prevrowid   = GETPOST('prevrowid', 'int');
-$module      = GETPOST('module', 'alpha');
-$name        = GETPOST('name', 'alpha');
 
 // Select current dictionary informations
 $dictionary = null;

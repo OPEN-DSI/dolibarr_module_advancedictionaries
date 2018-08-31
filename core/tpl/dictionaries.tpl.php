@@ -49,11 +49,14 @@ if (isset($dictionary) && $dictionary->enabled) {
     $titre.=' - '.$langs->trans($dictionary->nameLabel);
     $linkback = '<a href="' . $_SERVER['PHP_SELF'] . '">' . $langs->trans("BackToDictionaryList") . '</a>';
     if ($dictionary->titlePicto) $titlepicto = $dictionary->titlePicto;
+
+    if ($dictionary->customTitle) $titre = $dictionary->customTitle;
+    if ($dictionary->customLinkBack) $linkback = $dictionary->customLinkBack;
 }
 
 print load_fiche_titre($titre, $linkback, $titlepicto);
 
-if (!isset($dictionary) || !$dictionary->enabled)
+if (!isset($dictionary))
 {
     print $langs->trans("DictionaryDesc");
     print " ".$langs->trans("OnlyActiveElementsAreShown")."<br>\n";
@@ -64,7 +67,8 @@ print "<br>\n";
 /*
  * Show a dictionary
  */
-if (isset($dictionary) && $dictionary->enabled) {
+if (isset($dictionary)) {
+    if ($dictionary->enabled) {
     //------------------------------------------------------------------------------------------------------------------
     // Generate the add form
     //------------------------------------------------------------------------------------------------------------------
@@ -101,20 +105,23 @@ if (isset($dictionary) && $dictionary->enabled) {
         $fieldsValue = $dictionary->getFieldsValueFromForm($dictionary->edit_in_add_form && $action == 'edit' ? 'edit_' : 'add_');
 
         $has_required_fields = false;
-        $idx = 1; $numLines = count($form_lines);
+            $idx = 1;
+            $numLines = count($form_lines);
         foreach ($form_lines as $fields) {
             $numColumns = count($fields);
 
             // Line for title
             print '<tr class="liste_titre">';
             $idx_column = 1;
+                $colspan_sum = 0;
             foreach ($fields as $fieldName => $field) {
                 $label = $langs->trans($field['label']);
                 $moreClasses = !empty($field['td_title']['moreClasses']) ? ' class="' . $field['td_title']['moreClasses'] . '"' : '';
                 $moreAttributes = !empty($field['td_title']['moreAttributes']) ? ' ' . $field['td_title']['moreAttributes'] : '';
                 $align = !empty($field['td_title']['align']) ? $field['td_title']['align'] : $dictionary->getAlignFlagForField($fieldName);
+                    $colspan = !empty($field['td_input']['colspan']) ? $field['td_input']['colspan'] : 1;
 
-                print '<td align="' . $align . '"' . ($idx_column == $numColumns && $idx_column < $max_column ? ' colspan="' . ($max_column - $idx_column + 1) . '"' : '') . $moreClasses . $moreAttributes . '>';
+                    print '<td align="' . $align . '"' . ($idx_column == $numColumns && $idx_column + $colspan_sum < $max_column ? ' colspan="' . ($max_column - $idx_column - $colspan_sum + 1) . '"' : ($colspan > 1 ? ' colspan="' . $colspan . '"' : '')) . $moreClasses . $moreAttributes . '>';
                 if (!empty($field['is_require'])) {
                     $has_required_fields = true;
                     print '<span class="fieldrequired">';
@@ -129,6 +136,7 @@ if (isset($dictionary) && $dictionary->enabled) {
                     print ' *</span>';
                 }
                 print '</td>';
+                    $colspan_sum += $colspan - 1;
                 $idx_column++;
             }
             print '<td style="min-width: 26px;"></td>';
@@ -137,15 +145,18 @@ if (isset($dictionary) && $dictionary->enabled) {
             // Line to enter new values
             print '<tr class="oddeven nodrag nodrop nohover">';
             $idx_column = 1;
+                $colspan_sum = 0;
             foreach ($fields as $fieldName => $field) {
                 $moreClasses = !empty($field['td_input']['moreClasses']) ? ' class="' . $field['td_input']['moreClasses'] . '"' : '';
                 $moreAttributes = !empty($field['td_input']['moreAttributes']) ? ' ' . $field['td_input']['moreAttributes'] : '';
                 $align = !empty($field['td_input']['align']) ? $field['td_input']['align'] : $dictionary->getAlignFlagForField($fieldName);
                 if (isset($fieldsValue[$fieldName])) $dictionary_line->fields[$fieldName] = $fieldsValue[$fieldName];
+                    $colspan = !empty($field['td_input']['colspan']) ? $field['td_input']['colspan'] : 1;
 
-                print '<td align="' . $align . '"' . ($idx_column == $numColumns && $idx_column < $max_column ? ' colspan="' . ($max_column - $idx_column + 1) . '"' : '') . $moreClasses . $moreAttributes . '>';
+                    print '<td align="' . $align . '"' . ($idx_column == $numColumns && $idx_column + $colspan_sum < $max_column ? ' colspan="' . ($max_column - $idx_column - $colspan_sum + 1) . '"' : ($colspan > 1 ? ' colspan="' . $colspan . '"' : '')) . $moreClasses . $moreAttributes . '>';
                 print $dictionary_line->showInputField($fieldName, null, $dictionary->edit_in_add_form && $action == 'edit' ? 'edit_' : 'add_');
                 print '</td>';
+                    $colspan_sum += $colspan - 1;
                 $idx_column++;
             }
 
@@ -364,6 +375,9 @@ if (isset($dictionary) && $dictionary->enabled) {
     } else {
         setEventMessage($dictionary->errorsToString(), 'errors');
     }
+    } else {
+        accessforbidden();
+    }
 } else {
     /*
      * Show list of dictionary to show
@@ -384,7 +398,7 @@ if (isset($dictionary) && $dictionary->enabled) {
     $lastfamily = '';
     foreach ($dictionaries as $dictionary) {
         $var = !$var;
-        if ($dictionary->enabled) {
+        if ($dictionary->enabled && !$dictionary->hidden) {
             $langs->loadLangs($dictionary->langs);
 
             if ($lastfamily != $dictionary->family) {
