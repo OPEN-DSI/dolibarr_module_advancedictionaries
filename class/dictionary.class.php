@@ -3527,7 +3527,7 @@ class DictionaryLine extends CommonObjectLine
                     case 'text':
                         require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
                         $doleditor = new DolEditor($fieldHtmlName, $value, '', 200, 'dolibarr_notes', 'In', false,
-                            false, !empty($conf->fckeditor->enabled) && $conf->global->FCKEDITOR_ENABLE_SOCIETE, ROWS_5, '90%');
+                            false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
                         $out = $doleditor->Create(1);
                         break;
                     case 'phone':
