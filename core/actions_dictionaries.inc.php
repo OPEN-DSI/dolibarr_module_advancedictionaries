@@ -104,6 +104,8 @@ if (isset($dictionary) && $dictionary->enabled) {
  * Actions
  */
 
+$error = 0;
+
 $parameters = array();
 $reshook = $hookmanager->executeHooks('doActions', $parameters, $dictionary, $action);
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
@@ -121,10 +123,11 @@ if (empty($reshook)) {
                 exit;
             } else {
                 setEventMessages($dictionary->error, $dictionary->errors, 'errors');
+                $error++;
             }
         } // Actions edit an entry into a dictionary
-        elseif ($action == 'confirm_edit' && !isset($_POST['actioncancel']) && $rowid > 0 && $dictionary->lineCanBeUpdated && $canUpdate) {
-            $fieldsValue = $dictionary->getFieldsValueFromForm('edit_');
+        elseif ($action == 'confirm_edit' && !empty($_POST['actionedit']) && !isset($_POST['actioncancel']) && $dictionary->lineCanBeUpdated && $canUpdate) {
+            $fieldsValue = $dictionary->getFieldsValueFromForm('edit_', '' , 1);
 
             if ($dictionary->updateLine($rowid, $fieldsValue, $user) > 0) {
                 setEventMessage($langs->transnoentities("RecordSaved"));
@@ -133,18 +136,20 @@ if (empty($reshook)) {
             } else {
                 setEventMessages($dictionary->error, $dictionary->errors, 'errors');
                 $action = 'edit';
+                $error++;
             }
         } // Actions delete an entry into a dictionary
-        elseif ($action == 'confirm_delete' && $confirm == 'yes' && $rowid > 0 && $dictionary->lineCanBeDeleted && $canDelete) {
+        elseif ($action == 'confirm_delete' && $confirm == 'yes' && $dictionary->lineCanBeDeleted && $canDelete) {
             if ($dictionary->deleteLine($rowid, $user) > 0) {
                 setEventMessage($langs->transnoentities("RecordDeleted"));
                 header('Location: ' . $_SERVER['PHP_SELF'] . '?' . $param . '#rowid-' . $prevrowid);
                 exit;
             } else {
                 setEventMessages($dictionary->error, $dictionary->errors, 'errors');
+                $error++;
             }
         } // Actions activate an entry into a dictionary
-        elseif ($action == 'activate_on' && $canDisable && $rowid > 0) {
+        elseif ($action == 'activate_on' && $canDisable) {
             $res = $dictionary->activeLine($rowid, 1, $user);
             if ($res > 0) {
                 setEventMessage($langs->transnoentities("RecordSaved"));
@@ -152,9 +157,10 @@ if (empty($reshook)) {
                 exit;
             } elseif ($res < 0) {
                 setEventMessages($dictionary->error, $dictionary->errors, 'errors');
+                $error++;
             }
         } // Actions disable an entry into a dictionary
-        elseif ($action == 'activate_off' && $canDisable && $rowid > 0) {
+        elseif ($action == 'activate_off' && $canDisable) {
             $res = $dictionary->activeLine($rowid, 0, $user);
             if ($res > 0) {
                 setEventMessage($langs->transnoentities("RecordSaved"));
@@ -162,6 +168,7 @@ if (empty($reshook)) {
                 exit;
             } elseif ($res < 0) {
                 setEventMessages($dictionary->error, $dictionary->errors, 'errors');
+                $error++;
             }
         }
     }

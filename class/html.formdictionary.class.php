@@ -69,6 +69,7 @@ class FormDictionary
      * @param   string      $key                    Field name of the dictionary for the key of the line
      * @param   string      $label                  Label pattern for the label of the line (replace {{FieldName}} by this value)
      * @param   array       $filters                List of filters: array(fieldName => value), value is a array search a list of rowid
+     * @param   array       $orders                 Order by: array(fieldName => order, ...)
      * @param   string      $showempty              Add an empty field (Can be '1' or text key to use on empty line like 'SelectThirdParty')
      * @param   int         $forcecombo             Force to use combo box
      * @param   array       $events                 Ajax event options to run on change. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
@@ -84,7 +85,7 @@ class FormDictionary
      * @param   bool        $options_only           Return options only (for ajax treatment)
      * @return  string                              HTML string with select box for thirdparty.
      */
-    function select_dictionary($module, $name, $selected = '', $htmlname = 'dictionary', $key='rowid', $label='{{label}}', $filters=array(), $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
+    function select_dictionary($module, $name, $selected = '', $htmlname = 'dictionaryid', $showempty = '', $key='rowid', $label='{{label}}', $filters=array(), $orders=array('label'=>'ASC'), $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
     {
         global $conf, $langs;
 
@@ -122,7 +123,7 @@ class FormDictionary
             }
         } else {
             // Immediate load of all database
-            $out .= $this->select_dictionary_list($module, $name, $selected, $htmlname, $key, $label, $filters, $showempty, $forcecombo, $events, $usesearchtoselect, 0, $limit, $morecss, $moreparam, $options_only);
+            $out .= $this->select_dictionary_list($module, $name, $selected, $htmlname, $showempty, $key, $label, $filters, $orders, $forcecombo, $events, $usesearchtoselect, 0, $limit, $morecss, $moreparam, $options_only);
         }
 
         return $out;
@@ -139,6 +140,7 @@ class FormDictionary
      * @param   string      $key                    Field name for the key of the line
      * @param   string      $label                  Label pattern for the label of the line (replace {{FieldName}} by this value)
      * @param   array       $filters                List of filters: array(fieldName => value), value is a array search a list of rowid
+     * @param   array       $orders                 Order by: array(fieldName => order, ...)
      * @param	string	    $showempty		        Add an empty field (Can be '1' or text to use on empty line like 'SelectThirdParty')
      * @param	int		    $forcecombo		        Force to use combo box
      * @param	array	    $events			        Event options. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
@@ -150,7 +152,7 @@ class FormDictionary
      * @param   bool        $options_only           Return options only (for ajax treatment)
      * @return	string					            HTML string with
      */
-    function select_dictionary_list($module, $name, $selected='', $htmlname='socid', $key='rowid', $label='{{label}}', $filters=array(), $showempty='', $forcecombo=0, $events=array(), $usesearchtoselect=0, $outputmode=0, $limit=0, $morecss='minwidth100', $moreparam='', $options_only=false)
+    function select_dictionary_list($module, $name, $selected='', $htmlname='dictionaryid', $showempty='', $key='rowid', $label='{{label}}', $filters=array(), $orders=array(), $forcecombo=0, $events=array(), $usesearchtoselect=0, $outputmode=0, $limit=0, $morecss='minwidth100', $moreparam='', $options_only=false)
     {
         global $conf, $langs;
 
@@ -159,7 +161,7 @@ class FormDictionary
         // Get lines
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $dictionary = Dictionary::getDictionary($this->db, $module, $name);
-        $lines = $dictionary->fetch_array($key, $label, $filters, array('label' => 'ASC'), $limit);
+        $lines = $dictionary->fetch_array($key, $label, $filters, $orders, $limit);
         if (empty($dictionary->error)) {
             $out = '';
             $outarray = array();

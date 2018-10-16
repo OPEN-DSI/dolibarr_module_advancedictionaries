@@ -69,7 +69,7 @@ class ActionsAdvanceDictionaries
         if (!empty($conf->global->ADVANCEDICTIONARIES_REPLACE_OLD_DICTIONARIES_PAGE) &&
             preg_match('/\/admin\/dict.php/i', $_SERVER["PHP_SELF"])) {
             $id = GETPOST('id', 'int');
-            header("Location: " . dol_buildpath('/advancedictionaries/dictionaries.php', 2) . '?id=' . $id);
+            header("Location: " . dol_buildpath('/advancedictionaries/admin/dictionaries.php', 2) . '?id=' . $id);
             exit;
         }
 
