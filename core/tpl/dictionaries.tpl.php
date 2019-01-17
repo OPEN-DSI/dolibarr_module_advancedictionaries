@@ -82,6 +82,12 @@ if (isset($dictionary)) {
             if ($limit > 0 && $limit != $conf->liste_limit) print '<input type="hidden" name="limit" value="' . dol_escape_htmltag($limit) . '">';
             if ($search_active != 1) print '<input type="hidden" name="search_' . $dictionary->active_field . '" value="' . dol_escape_htmltag($search_active) . '">';
             if ($action == 'edit' && $dictionary->edit_in_add_form) print '<input type="hidden" name="rowid" value="' . $rowid . '">';
+            // Search fields
+            foreach ($dictionary->fields as $fieldName => $field) {
+                if (!$field['is_not_searchable']) {
+                    print '<input type="hidden" name="search_'.$fieldName.'" value="'.dol_escape_htmltag(GETPOST('search_'.$fieldName)).'">';
+                }
+            }
 
             print '<div id="addform" class="div-table-responsive-no-min">';
             print '<table class="noborder" width="100%">';
@@ -154,7 +160,9 @@ SCRIPT;
                     $colspan_sum += $colspan - 1;
                     $idx_column++;
                 }
-                print '<td style="min-width: 26px;"></td>';
+                if ($idx == 1) {
+                    print '<td style="min-width: 26px;"></td>';
+                }
                 print '</tr>';
 
                 // Line to enter new values
@@ -176,10 +184,8 @@ SCRIPT;
                 }
 
                 // Button
-                if ($numLines != $idx) {
-                    print '<td style="min-width: 26px;"></td>';
-                } else {
-                    print '<td align="center">';
+                if ($idx == 1) {
+                    print '<td align="center" rowspan="'.(($numLines * 2) - 1).'">';
                     if ($action == 'edit' && $dictionary->edit_in_add_form) {
                         print '<input type="submit" class="button" name="actionedit" value="' . $langs->trans("Edit") . '">';
                         print '<input type="submit" class="button" name="actioncancel" value="' . $langs->trans("Cancel") . '">';
@@ -245,52 +251,89 @@ SCRIPT;
             print '<div class="div-table-responsive">';
             print '<table class="noborder" width="100%">';
 
-            // Title line with search boxes
-            print '<tr class="liste_titre">';
+            // Position of field in each line
+            $form_lines = array();
+            $max_column = array();
             foreach ($dictionary->fields as $fieldName => $field) {
                 if (!$field['is_not_show']) {
+                    $position = empty($field['td_output']['positionLine']) ? 0 : $field['td_output']['positionLine'];
+                    $form_lines[$position][$fieldName] = $field;
+                    $max_column[$position] = (isset($max_column[$position]) ? $max_column[$position] : 0) + 1;
+                }
+            }
+            ksort($form_lines);
+            rsort($max_column);
+            $max_column = $max_column[0];
+
+            $idx = 1;
+            $numLines = count($form_lines);
+            foreach ($form_lines as $fields) {
+                $numColumns = count($fields);
+
+                // Title line with search boxes
+                print '<tr class="liste_titre">';
+                $idx_column = 1;
+                $colspan_sum = 0;
+                foreach ($fields as $fieldName => $field) {
                     $moreClasses = !empty($field['td_search']['moreClasses']) ? ' class="' . $field['td_search']['moreClasses'] . '"' : '';
                     $moreAttributes = !empty($field['td_search']['moreAttributes']) ? ' ' . $field['td_search']['moreAttributes'] : '';
                     $align = !empty($field['td_search']['align']) ? $field['td_search']['align'] : $dictionary->getAlignFlagForField($fieldName);
+                    $colspan = !empty($field['td_output']['colspan']) ? $field['td_output']['colspan'] : 1;
 
-                    print '<td align="' . $align . '"' . $moreClasses . $moreAttributes . '>';
+                    print '<td align="' . $align . '"' . ($idx_column == $numColumns && $idx_column + $colspan_sum < $max_column ? ' colspan="' . ($max_column - $idx_column - $colspan_sum + 1) . '"' : ($colspan > 1 ? ' colspan="' . $colspan . '"' : '')) . $moreClasses . $moreAttributes . '>';
                     if (!$field['is_not_searchable']) {
                         print $dictionary->showInputSearchField($fieldName);
                     }
                     print '</td>';
+                    $colspan_sum += $colspan - 1;
+                    $idx_column++;
                 }
-            }
-            // Fields from hook
-            $parameters = array();
-            $reshook = $hookmanager->executeHooks('printFieldListOption', $parameters, $dictionary, $action);
-            print $hookmanager->resPrint;
-            print '<td align="center">';
-            print $form->selectyesno('search_' . $dictionary->active_field, $search_active, 1, false, 1);
-            print '</td>';
-            print '<td class="liste_titre" align="right">';
-            print $form->showFilterButtons();
-            print '</td>';
-            print '</tr>';
+                // Fields from hook
+                $parameters = array('idx' => $idx, 'numLines' => $numLines);
+                $reshook = $hookmanager->executeHooks('printFieldListOption', $parameters, $dictionary, $action);
+                print $hookmanager->resPrint;
+                if ($numLines != $idx) {
+                    print '<td style="min-width: 32px;"></td>';
+                    print '<td style="min-width: 32px;"></td>';
+                } else {
+                    print '<td align="center">';
+                    print $form->selectyesno('search_' . $dictionary->active_field, $search_active, 1, false, 1);
+                    print '</td>';
+                    print '<td class="liste_titre" align="right">';
+                    print $form->showFilterButtons();
+                    print '</td>';
+                }
+                print '</tr>';
 
-            // Title of lines
-            print '<tr class="liste_titre">';
-            foreach ($dictionary->fields as $fieldName => $field) {
-                if (!$field['is_not_show']) {
+                // Title of lines
+                print '<tr class="liste_titre">';
+                $idx_column = 1;
+                $colspan_sum = 0;
+                foreach ($fields as $fieldName => $field) {
                     $moreClasses = !empty($field['td_title']['moreClasses']) ? ' class="' . $field['td_title']['moreClasses'] . '"' : '';
                     $moreAttributes = !empty($field['td_title']['moreAttributes']) ? ' ' . $field['td_title']['moreAttributes'] : '';
                     $align = !empty($field['td_title']['align']) ? $field['td_title']['align'] : $dictionary->getAlignFlagForField($fieldName);
                     $moreAttributes .= ' align="' . $align . '"';
+                    $colspan = !empty($field['td_output']['colspan']) ? $field['td_output']['colspan'] : 1;
 
-                    print getTitleFieldOfList($langs->trans($field['label']), 0, $_SERVER["PHP_SELF"], ($field['is_not_sortable'] ? '' : $fieldName), '', $param, $moreAttributes, $sortfield, $sortorder, $moreClasses);
+                    print getTitleFieldOfList($langs->trans($field['label']), 0, $_SERVER["PHP_SELF"], ($field['is_not_sortable'] ? '' : $fieldName), '', $param, ($idx_column == $numColumns && $idx_column + $colspan_sum < $max_column ? ' colspan="' . ($max_column - $idx_column - $colspan_sum + 1) . '"' : ($colspan > 1 ? ' colspan="' . $colspan . '"' : '')) . $moreAttributes, $sortfield, $sortorder, $moreClasses);
+                    $colspan_sum += $colspan - 1;
+                    $idx_column++;
                 }
+                // Fields from hook
+                $parameters = array('idx' => $idx, 'numLines' => $numLines);
+                $reshook = $hookmanager->executeHooks('printFieldListTitle', $parameters, $dictionary, $action);
+                print $hookmanager->resPrint;
+                if ($numLines != $idx) {
+                    print '<td style="min-width: 32px;"></td>';
+                    print '<td style="min-width: 32px;"></td>';
+                } else {
+                    print getTitleFieldOfList($langs->trans("Status"), 0, $_SERVER["PHP_SELF"], $dictionary->active_field, '', $param, 'width="10%" align="center"', $sortfield, $sortorder);
+                    print getTitleFieldOfList('', 0, "", "", "", "", 'width="32px"');
+                }
+                print '</tr>';
+                $idx++;
             }
-            // Fields from hook
-            $parameters = array();
-            $reshook = $hookmanager->executeHooks('printFieldListTitle', $parameters, $dictionary, $action);
-            print $hookmanager->resPrint;
-            print getTitleFieldOfList($langs->trans("Status"), 0, $_SERVER["PHP_SELF"], $dictionary->active_field, '', $param, 'width="10%" align="center"', $sortfield, $sortorder);
-            print getTitleFieldOfList('', 0, "", "", "", "", 'width="32px"');
-            print '</tr>';
 
             // Lines with values
             $var = false;
@@ -299,19 +342,26 @@ SCRIPT;
                 $var = !$var;
                 if ($action == 'edit' && !$dictionary->edit_in_add_form && $dictionary->lineCanBeUpdated && $canUpdate && $line->id == $rowid) {
                     $dictionary_line = clone $line;
-                    if ($error) $fieldsValue = $dictionary->getFieldsValueFromForm('edit_', '' , 1);
+                    if ($error) $fieldsValue = $dictionary->getFieldsValueFromForm('edit_', '', 1);
 
                     print '<input type="hidden" name="rowid" value="' . $line->id . '">';
 
-                    // Line to enter new values
-                    print '<tr class="oddeven nodrag nodrop nohover">';
-                    foreach ($dictionary->fields as $fieldName => $field) {
-                        if (!$field['is_not_show']) {
+                    $idx = 1;
+                    $numLines = count($form_lines);
+                    foreach ($form_lines as $fields) {
+                        $numColumns = count($fields);
+
+                        // Line to enter new values
+                        print '<tr class="oddeven nodrag nodrop nohover">';
+                        $idx_column = 1;
+                        $colspan_sum = 0;
+                        foreach ($fields as $fieldName => $field) {
                             $moreClasses = !empty($field['td_input']['moreClasses']) ? ' class="' . $field['td_input']['moreClasses'] . '"' : '';
                             $moreAttributes = !empty($field['td_input']['moreAttributes']) ? ' ' . $field['td_input']['moreAttributes'] : '';
                             $align = !empty($field['td_input']['align']) ? $field['td_input']['align'] : $dictionary->getAlignFlagForField($fieldName);
+                            $colspan = !empty($field['td_output']['colspan']) ? $field['td_output']['colspan'] : 1;
 
-                            print '<td align="' . $align . '"' . $moreClasses . $moreAttributes . '>';
+                            print '<td align="' . $align . '"' . ($idx_column == $numColumns && $idx_column + $colspan_sum < $max_column ? ' colspan="' . ($max_column - $idx_column - $colspan_sum + 1) . '"' : ($colspan > 1 ? ' colspan="' . $colspan . '"' : '')) . $moreClasses . $moreAttributes . '>';
                             if (!$field['is_not_addable']) {
                                 if (isset($fieldsValue[$fieldName])) $dictionary_line->fields[$fieldName] = $fieldsValue[$fieldName];
                                 print $dictionary_line->showInputField($fieldName, null, 'edit_');
@@ -319,67 +369,89 @@ SCRIPT;
                                 print $line->showOutputField($fieldName);
                             }
                             print '</td>';
+                            $colspan_sum += $colspan - 1;
+                            $idx_column++;
                         }
+
+                        // Fields from hook
+                        $parameters = array('idx' => $idx, 'numLines' => $numLines);
+                        $reshook = $hookmanager->executeHooks('printFieldListValue', $parameters, $line, $action);
+                        print $hookmanager->resPrint;
+
+                        // Button
+                        if ($numLines != $idx) {
+                            print '<td colspan="2"></td>';
+                        } else {
+                            print '<td colspan="2" align="center">';
+                            print '<input type="submit" class="button" name="actionedit" value="' . $langs->trans("Modify") . '">';
+                            print '<input type="submit" class="button" name="actioncancel" value="' . $langs->trans("Cancel") . '">';
+                            print '</td>';
+                        }
+                        print "</tr>";
+                        $idx++;
                     }
-
-                    // Fields from hook
-                    $parameters = array();
-                    $reshook = $hookmanager->executeHooks('printFieldListValue', $parameters, $line, $action);
-                    print $hookmanager->resPrint;
-
-                    // Button
-                    print '<td colspan="2" align="center">';
-                    print '<input type="submit" class="button" name="actionedit" value="' . $langs->trans("Edit") . '">';
-                    print '<input type="submit" class="button" name="actioncancel" value="' . $langs->trans("Cancel") . '">';
-                    print '</td>';
-                    print "</tr>";
                 } else {
-                    // Output line
-                    print '<tr class="' . $bc[$var] . '" id="rowid-' . $line->id . '">';
-                    foreach ($dictionary->fields as $fieldName => $field) {
-                        if (!$field['is_not_show']) {
+                    $idx = 1;
+                    $numLines = count($form_lines);
+                    foreach ($form_lines as $fields) {
+                        $numColumns = count($fields);
+
+                        // Output line
+                        print '<tr class="' . $bc[$var] . '" id="rowid-' . $line->id . '">';
+                        $idx_column = 1;
+                        $colspan_sum = 0;
+                        foreach ($fields as $fieldName => $field) {
                             $moreClasses = !empty($field['td_output']['moreClasses']) ? ' class="' . $field['td_output']['moreClasses'] . '"' : '';
                             $moreAttributes = !empty($field['td_output']['moreAttributes']) ? ' ' . $field['td_output']['moreAttributes'] : '';
                             $align = !empty($field['td_output']['align']) ? $field['td_output']['align'] : $dictionary->getAlignFlagForField($fieldName);
+                            $colspan = !empty($field['td_output']['colspan']) ? $field['td_output']['colspan'] : 1;
 
-                            print '<td align="' . $align . '"' . $moreClasses . $moreAttributes . '>';
+                            print '<td align="' . $align . '"' . ($idx_column == $numColumns && $idx_column + $colspan_sum < $max_column ? ' colspan="' . ($max_column - $idx_column - $colspan_sum + 1) . '"' : ($colspan > 1 ? ' colspan="' . $colspan . '"' : '')) . $moreClasses . $moreAttributes . '>';
                             print $line->showOutputField($fieldName);
                             print '</td>';
+                            $colspan_sum += $colspan - 1;
+                            $idx_column++;
                         }
+
+                        // Fields from hook
+                        $parameters = array('idx' => $idx, 'numLines' => $numLines);
+                        $reshook = $hookmanager->executeHooks('printFieldListValue', $parameters, $line, $action);
+                        print $hookmanager->resPrint;
+
+                        if ($numLines != $idx) {
+                            print '<td style="min-width: 26px;"></td>';
+                            print '<td style="min-width: 26px;"></td>';
+                        } else {
+                            // Active
+                            print '<td align="center" class="nowrap">';
+                            $isLineCanBeDisabled = $dictionary->isLineCanBeDisabled($line);
+                            if ($isLineCanBeDisabled === null) {
+                                print $langs->trans("AlwaysActive");
+                            } elseif ($isLineCanBeDisabled === true && $canDisable) {
+                                print '<a href="' . $_SERVER["PHP_SELF"] . '?' . $param . '&action=activate_' . ($line->active ? 'off' : 'on') . '&rowid=' . $line->id . '#rowid-' . $line->id . '">' .
+                                    img_picto($langs->trans($line->active ? 'Activated' : 'Disabled'), $line->active ? 'switch_on' : 'switch_off') . '</a>';
+                            } elseif (is_string($isLineCanBeDisabled)) {
+                                print $langs->trans($isLineCanBeDisabled);
+                            } else {
+                                print img_picto($langs->trans($line->active ? 'Activated' : 'Disabled'), $line->active ? 'switch_on' : 'switch_off');
+                            }
+                            print "</td>";
+
+                            print '<td align="center">';
+                            // Modify link
+                            if ($dictionary->lineCanBeUpdated && $canUpdate) print '<a class="reposition" href="' . $_SERVER["PHP_SELF"] . '?' . $param . '&rowid=' . $line->id . '&action=edit' . ($dictionary->edit_in_add_form ? '#addform' : '#rowid-' . $line->id) . '">' . img_edit() . '</a>';
+                            // Delete link
+                            if ($dictionary->lineCanBeDeleted && $canDelete) print '<a href="' . $_SERVER["PHP_SELF"] . '?' . $param . '&rowid=' . $line->id . '&prevrowid=' . $last_rowid . '&action=delete' . '&rowid=' . $line->id . '">' . img_delete() . '</a>';
+                            print '</td>';
+                        }
+                        print "</tr>";
+                        $idx++;
                     }
-
-                    // Fields from hook
-                    $parameters = array();
-                    $reshook = $hookmanager->executeHooks('printFieldListValue', $parameters, $line, $action);
-                    print $hookmanager->resPrint;
-
-                    // Active
-                    print '<td align="center" class="nowrap">';
-                    $isLineCanBeDisabled = $dictionary->isLineCanBeDisabled($line);
-                    if ($isLineCanBeDisabled === null) {
-                        print $langs->trans("AlwaysActive");
-                    } elseif ($isLineCanBeDisabled === true && $canDisable) {
-                        print '<a href="' . $_SERVER["PHP_SELF"] . '?' . $param . '&action=activate_' . ($line->active ? 'off' : 'on') . '&rowid=' . $line->id . '#rowid-' . $line->id . '">' .
-                            img_picto($langs->trans($line->active ? 'Activated' : 'Disabled'), $line->active ? 'switch_on' : 'switch_off') . '</a>';
-                    } elseif (is_string($isLineCanBeDisabled)) {
-                        print $langs->trans($isLineCanBeDisabled);
-                    } else {
-                        print img_picto($langs->trans($line->active ? 'Activated' : 'Disabled'), $line->active ? 'switch_on' : 'switch_off');
-                    }
-                    print "</td>";
-
-                    print '<td align="center">';
-                    // Modify link
-                    if ($dictionary->lineCanBeUpdated && $canUpdate) print '<a class="reposition" href="' . $_SERVER["PHP_SELF"] . '?' . $param . '&rowid=' . $line->id . '&action=edit' . ($dictionary->edit_in_add_form ? '#addform' : '#rowid-' . $line->id) . '">' . img_edit() . '</a>';
-                    // Delete link
-                    if ($dictionary->lineCanBeDeleted && $canDelete) print '<a href="' . $_SERVER["PHP_SELF"] . '?' . $param . '&rowid=' . $line->id . '&prevrowid=' . $last_rowid . '&action=delete' . '&rowid=' . $line->id . '">' . img_delete() . '</a>';
-                    print '</td>';
-                    print "</tr>";
                 }
                 $last_rowid = $line->id;
             }
 
-            $parameters = array();
+            $parameters = array('form_lines' => $form_lines, 'max_column' => $max_column);
             $reshook = $hookmanager->executeHooks('printFieldListFooter', $parameters, $dictionary, $action);
             print $hookmanager->resPrint;
 

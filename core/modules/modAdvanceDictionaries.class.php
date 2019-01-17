@@ -69,7 +69,7 @@ class modAdvanceDictionaries extends DolibarrModules
 		$this->editor_url = 'http://www.open-dsi.fr';
 		
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '4.0.4';
+		$this->version = '4.0.7';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
@@ -213,7 +213,7 @@ class modAdvanceDictionaries extends DolibarrModules
         $this->rights[$r][0] = 163031;	// Permission id (must not be already used)
         $this->rights[$r][1] = 'Disabled/Enabled dictionaries lines';	// Permission label
         $this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
-        $this->rights[$r][4] = 'disabled';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
+        $this->rights[$r][4] = 'disable';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
         $r++;
 
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.

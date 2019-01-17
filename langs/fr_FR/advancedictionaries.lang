@@ -26,5 +26,7 @@ AdvanceDictionariesFieldRequired    = Champ requis
 #######################################################################
 # Errors
 #######################################################################
-AdvanceDictionariesErrorFieldNotDefined    = Erreur : Champ "%s" non définie.
-AdvanceDictionariesErrorIndexNotDefined    = Erreur : Index "%s" non définie.
+AdvanceDictionariesErrorFieldNotDefined     = Erreur : Champ "%s" non définie.
+AdvanceDictionariesErrorIndexNotDefined     = Erreur : Index "%s" non définie.
+AdvanceDictionariesErrorUsedInDolibarr      = Ne peut être supprimée car elle est utilisée dans Dolibarr.
+AdvanceDictionariesErrorValueUsedInDolibarr = Ne peut être supprimée car une des valeurs de la colonne "%s" est utilisée dans Dolibarr.
