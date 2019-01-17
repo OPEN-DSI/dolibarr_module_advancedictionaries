@@ -43,8 +43,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.6...HEAD
-[4.0.6]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.6
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.7...HEAD
+[4.0.7]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.7
 [4.0.4]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.4
 [4.0.3]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.3
 [4.0.2]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.2
