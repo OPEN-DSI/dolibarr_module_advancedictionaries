@@ -3,6 +3,12 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.8] - 13-03-2019
+### Ajouter
+- Correction sur l'appel d'une hook de fetch_lines si appellé depuis une hook.
+- Ajout include manquantes
+- Ajout de l'option sur le select_dictionary et select_dictionary_lines, si le filter est null ne retourne aucunes lignes
+
 ## [4.0.7] - 07-12-2018
 ### Ajouter
 - Correction sur les filtres texte sur les champs de type 'chkbxlst'.
@@ -43,7 +49,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.7...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.8...HEAD
+[4.0.8]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.8
 [4.0.7]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.7
 [4.0.4]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.4
 [4.0.3]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.3

@@ -68,7 +68,7 @@ class FormDictionary
      * @param   string      $htmlname               Name of field in form
      * @param   string      $key                    Field name of the dictionary for the key of the line
      * @param   string      $label                  Label pattern for the label of the line (replace {{FieldName}} by this value)
-     * @param   array       $filters                List of filters: array(fieldName => value), value is a array search a list of rowid
+     * @param   array       $filters                List of filters: array(fieldName => value), value is a array search a list of rowid, if $filters = null then return no lines
      * @param   array       $orders                 Order by: array(fieldName => order, ...)
      * @param   string      $showempty              Add an empty field (Can be '1' or text key to use on empty line like 'SelectThirdParty')
      * @param   int         $forcecombo             Force to use combo box
@@ -139,7 +139,7 @@ class FormDictionary
      * @param   string	    $htmlname               Name of field in form
      * @param   string      $key                    Field name for the key of the line
      * @param   string      $label                  Label pattern for the label of the line (replace {{FieldName}} by this value)
-     * @param   array       $filters                List of filters: array(fieldName => value), value is a array search a list of rowid
+     * @param   array       $filters                List of filters: array(fieldName => value), value is a array search a list of rowid, if $filters = null then return no lines
      * @param   array       $orders                 Order by: array(fieldName => order, ...)
      * @param	string	    $showempty		        Add an empty field (Can be '1' or text to use on empty line like 'SelectThirdParty')
      * @param	int		    $forcecombo		        Force to use combo box
@@ -161,7 +161,7 @@ class FormDictionary
         // Get lines
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $dictionary = Dictionary::getDictionary($this->db, $module, $name);
-        $lines = $dictionary->fetch_array($key, $label, $filters, $orders, $limit);
+        $lines = $filters === null ? array() : $dictionary->fetch_array($key, $label, $filters, $orders, $limit);
         if (empty($dictionary->error)) {
             $out = '';
             $outarray = array();

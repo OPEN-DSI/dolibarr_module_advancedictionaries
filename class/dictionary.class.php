@@ -21,6 +21,8 @@
  * \brief       Base class for dictionaries
  */
 
+require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
+require_once DOL_DOCUMENT_ROOT . '/core/class/commonobjectline.class.php';
 
 /**
  * Class for Dictionary
@@ -1283,6 +1285,7 @@ class Dictionary extends CommonObject
         // TODO $additionalWhereStatement, $additionalHavingStatement to make
         global $hookmanager;
 
+        $hookmanager2 = clone $hookmanager; // Génère des erreurs de resultat disparaissant si appelé dans une autre hooks donc on copie la hook
         $select = array();
         $from = "";
         foreach ($this->fields as $field) {
@@ -1317,7 +1320,7 @@ class Dictionary extends CommonObject
         $sortfield = implode(',', array_keys($orders));
         $sortorder = implode(',', array_values($orders));
 
-        $hookmanager->initHooks(array('dictionarydao'));
+        $hookmanager2->initHooks(array('dictionarydao'));
 
         // TODO revoir le retour des valeurs pour le type chkbxlst quand on fournit un filtre avec tableau d'ids, seul les valeurs du tableau sont retourner et pas ttes les possibiltés avec ce filtre
 
@@ -1325,23 +1328,23 @@ class Dictionary extends CommonObject
         $sql = 'SELECT d.' . $this->rowid_field . ', ' . implode(', ', $select) . ', d.' . $this->active_field;
         if ($this->has_entity) $sql .= ', d.' . $this->entity_field;
         // Add where from hooks
-        $reshook = $hookmanager->executeHooks('printADFetchLinesSelect', $parameters, $this);
-        $sql .= $hookmanager->resPrint;
+        $reshook = $hookmanager2->executeHooks('printADFetchLinesSelect', $parameters, $this);
+        $sql .= $hookmanager2->resPrint;
         $sql .= ' FROM ' . MAIN_DB_PREFIX . $this->table_name . ' as d ' . $from;
         // Add where from hooks
-        $reshook = $hookmanager->executeHooks('printADFetchLinesFrom', $parameters, $this);
-        $sql .= $hookmanager->resPrint;
+        $reshook = $hookmanager2->executeHooks('printADFetchLinesFrom', $parameters, $this);
+        $sql .= $hookmanager2->resPrint;
         if($filter_active >= 0) $where[] = 'd.' . $this->active_field . ' = ' . $filter_active;
         if($this->is_multi_entity && $this->has_entity) $where[] = 'd.' . $this->entity_field . ' IN (' . getEntity('dictionary', 1) . ')';
         $sql .= !empty($where) ? ' WHERE ' . implode(' AND ', $where) : '';
         // Add where from hooks
-        $reshook = $hookmanager->executeHooks('printADFetchLinesWhere', $parameters, $this);
-        $sql .= $hookmanager->resPrint;
+        $reshook = $hookmanager2->executeHooks('printADFetchLinesWhere', $parameters, $this);
+        $sql .= $hookmanager2->resPrint;
         $sql .= ' GROUP BY ' . $this->rowid_field;
         $sql .= !empty($having) ? ' HAVING ' . implode(' AND ', $having) : '';
         // Add where from hooks
-        $reshook = $hookmanager->executeHooks('printADFetchLinesHaving', $parameters, $this);
-        $sql .= (empty($having) && !empty($hookmanager->resPrint) ? ' HAVING ' : '') . $hookmanager->resPrint;
+        $reshook = $hookmanager2->executeHooks('printADFetchLinesHaving', $parameters, $this);
+        $sql .= (empty($having) && !empty($hookmanager2->resPrint) ? ' HAVING ' : '') . $hookmanager2->resPrint;
         $sql .= $this->db->order($sortfield, $sortorder);
         $sql .= $this->db->plimit($limit, $offset);
 
