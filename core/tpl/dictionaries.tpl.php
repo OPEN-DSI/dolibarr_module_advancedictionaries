@@ -177,7 +177,7 @@ SCRIPT;
                     $colspan = !empty($field['td_input']['colspan']) ? $field['td_input']['colspan'] : 1;
 
                     print '<td align="' . $align . '"' . ($idx_column == $numColumns && $idx_column + $colspan_sum < $max_column ? ' colspan="' . ($max_column - $idx_column - $colspan_sum + 1) . '"' : ($colspan > 1 ? ' colspan="' . $colspan . '"' : '')) . $moreClasses . $moreAttributes . '>';
-                    print $dictionary_line->showInputField($fieldName, null, $dictionary->edit_in_add_form && $action == 'edit' ? 'edit_' : 'add_');
+                    print $dictionary_line->showInputFieldAD($fieldName, null, $dictionary->edit_in_add_form && $action == 'edit' ? 'edit_' : 'add_');
                     print '</td>';
                     $colspan_sum += $colspan - 1;
                     $idx_column++;
@@ -364,9 +364,9 @@ SCRIPT;
                             print '<td align="' . $align . '"' . ($idx_column == $numColumns && $idx_column + $colspan_sum < $max_column ? ' colspan="' . ($max_column - $idx_column - $colspan_sum + 1) . '"' : ($colspan > 1 ? ' colspan="' . $colspan . '"' : '')) . $moreClasses . $moreAttributes . '>';
                             if (!$field['is_not_addable']) {
                                 if (isset($fieldsValue[$fieldName])) $dictionary_line->fields[$fieldName] = $fieldsValue[$fieldName];
-                                print $dictionary_line->showInputField($fieldName, null, 'edit_');
+                                print $dictionary_line->showInputFieldAD($fieldName, null, 'edit_');
                             } else {
-                                print $line->showOutputField($fieldName);
+                                print $line->showOutputFieldAD($fieldName);
                             }
                             print '</td>';
                             $colspan_sum += $colspan - 1;
@@ -407,7 +407,7 @@ SCRIPT;
                             $colspan = !empty($field['td_output']['colspan']) ? $field['td_output']['colspan'] : 1;
 
                             print '<td align="' . $align . '"' . ($idx_column == $numColumns && $idx_column + $colspan_sum < $max_column ? ' colspan="' . ($max_column - $idx_column - $colspan_sum + 1) . '"' : ($colspan > 1 ? ' colspan="' . $colspan . '"' : '')) . $moreClasses . $moreAttributes . '>';
-                            print $line->showOutputField($fieldName);
+                            print $line->showOutputFieldAD($fieldName);
                             print '</td>';
                             $colspan_sum += $colspan - 1;
                             $idx_column++;

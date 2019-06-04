@@ -351,6 +351,9 @@ class Dictionary extends CommonObject
                 case 'select':
                 case 'sellist':
                 case 'radio':
+                    $typedb='varchar';
+                    $lengthdb='255';
+                    break;
                 case 'checkbox':
                     $typedb='text';
                     break;
@@ -1829,7 +1832,7 @@ class Dictionary extends CommonObject
    	 *
    	 * @param  string   $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
      * @param  string   $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
-     * @param  string   $mode           0: Add, 1: Edit
+     * @param  int      $mode           0: Add, 1: Edit
    	 * @return array                    Values of each field
    	 */
    	function getFieldsValueFromForm($keyprefix='', $keysuffix='', $mode=0)
@@ -3402,7 +3405,7 @@ class DictionaryLine extends CommonObjectLine
      * @param   string	$value          Value to show
      * @return	string					Formatted value
      */
-    function showOutputField($fieldName, $value = null)
+    function showOutputFieldAD($fieldName, $value = null)
     {
         global $langs, $conf;
 
@@ -3470,7 +3473,7 @@ class DictionaryLine extends CommonObjectLine
                         $sql .= " WHERE " . $selectkey . "='" . $this->db->escape($value) . "'";
                     }
 
-                    dol_syslog(__METHOD__ . ':showOutputField:$type=sellist', LOG_DEBUG);
+                    dol_syslog(__METHOD__ . ' type=sellist', LOG_DEBUG);
                     $resql = $this->db->query($sql);
                     if ($resql) {
                         $value = '';    // value was used, so now we reste it to use it to build final output
@@ -3506,7 +3509,7 @@ class DictionaryLine extends CommonObjectLine
                                 $value = $obj->{$InfoFieldList[1]};
                             }
                         }
-                    } else dol_syslog(__METHOD__ . '::showOutputField error ' . $this->db->lasterror(), LOG_WARNING);
+                    } else dol_syslog(__METHOD__ . ' Error ' . $this->db->lasterror(), LOG_WARNING);
                     break;
                 case 'radio':
                     $value = $field['options'][$value];
@@ -3564,7 +3567,7 @@ class DictionaryLine extends CommonObjectLine
                     }
                     $sql .= " WHERE " . $selectkey . " IN (" . implode(',', $value_arr) . ")";
 
-                    dol_syslog(__METHOD__ . ':showOutputField:$type=chkbxlst', LOG_DEBUG);
+                    dol_syslog(__METHOD__ . ' type=chkbxlst', LOG_DEBUG);
                     $resql = $this->db->query($sql);
                     if ($resql) {
                         $value = ''; // value was used, so now we reste it to use it to build final output
@@ -3602,7 +3605,7 @@ class DictionaryLine extends CommonObjectLine
                         $value = '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $toprint) . '</ul></div>';
 
                     } else {
-                        dol_syslog(__METHOD__ . '::showOutputField error ' . $this->db->lasterror(), LOG_WARNING);
+                        dol_syslog(__METHOD__ . ' Error ' . $this->db->lasterror(), LOG_WARNING);
                     }
                     break;
                 case 'int':
@@ -3642,7 +3645,7 @@ class DictionaryLine extends CommonObjectLine
                     $value = '<input type="checkbox" ' . (!empty($value) ? ' checked ' : '') . $moreAttributes . ' readonly disabled>';
                     break;
                 case 'custom':
-                    return $this->showOutputCustomField($fieldName, $value);
+                    return $this->showOutputCustomFieldAD($fieldName, $value);
                 default: // unknown
                     return '';
             }
@@ -3660,7 +3663,7 @@ class DictionaryLine extends CommonObjectLine
      * @param   string	$value          Value to show
      * @return	string					Formatted value
      */
-    protected function showOutputCustomField($fieldName, $value)
+    protected function showOutputCustomFieldAD($fieldName, $value)
     {
         return '';
     }
@@ -3675,7 +3678,7 @@ class DictionaryLine extends CommonObjectLine
    	 * @param  int     $objectid       Current object id
    	 * @return string
    	 */
-   	function showInputField($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
+   	function showInputFieldAD($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
     {
         global $conf, $langs;
 
@@ -3821,7 +3824,7 @@ class DictionaryLine extends CommonObjectLine
 
                         $sql .= ' ORDER BY ' . implode(', ', $fields_label);
 
-                        dol_syslog(get_class($this) . '::showInputField type=sellist', LOG_DEBUG);
+                        dol_syslog(get_class($this) . ' type=sellist', LOG_DEBUG);
                         $resql = $this->db->query($sql);
                         if ($resql) {
                             $out .= '<option value="-1">&nbsp;</option>';
@@ -3980,7 +3983,7 @@ class DictionaryLine extends CommonObjectLine
                         // print $sql;
 
                         $sql .= $sqlwhere;
-                        dol_syslog(get_class($this) . '::showInputField type=chkbxlst', LOG_DEBUG);
+                        dol_syslog(get_class($this) . ' type=chkbxlst', LOG_DEBUG);
                         $resql = $this->db->query($sql);
                         if ($resql) {
                             $num = $this->db->num_rows($resql);
@@ -4114,7 +4117,7 @@ class DictionaryLine extends CommonObjectLine
                         $out = '<input type="checkbox" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="1" ' . (!empty($value) ? 'checked' : '') . $moreAttributes . '>';
                         break;
                     case 'custom':
-                        $out = $this->showInputCustomField($fieldName, $value, $keyprefix, $keysuffix, $objectid);
+                        $out = $this->showInputCustomFieldAD($fieldName, $value, $keyprefix, $keysuffix, $objectid);
                         break;
                     default: // unknown
                         $out = '';
@@ -4138,7 +4141,7 @@ class DictionaryLine extends CommonObjectLine
    	 * @param  int     $objectid       Current object id
    	 * @return string
    	 */
-    protected function showInputCustomField($fieldName, $value, $keyprefix='', $keysuffix='', $objectid=0)
+    protected function showInputCustomFieldAD($fieldName, $value, $keyprefix='', $keysuffix='', $objectid=0)
     {
         return '';
     }

@@ -83,9 +83,10 @@ class FormDictionary
      * @param   int         $autofocus              Autofocus the field in form (1 auto focus, 0 not)
      * @param   array       $ajaxoptions            Options for ajax_autocompleter
      * @param   bool        $options_only           Return options only (for ajax treatment)
+     * @param   int         $ismultiselect          0=Not multiselect, 1=Multiselect
      * @return  string                              HTML string with select box for thirdparty.
      */
-    function select_dictionary($module, $name, $selected = '', $htmlname = 'dictionaryid', $showempty = '', $key='rowid', $label='{{label}}', $filters=array(), $orders=array('label'=>'ASC'), $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
+    function select_dictionary($module, $name, $selected = '', $htmlname = 'dictionaryid', $showempty = '', $key='rowid', $label='{{label}}', $filters=array(), $orders=array('label'=>'ASC'), $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false, $ismultiselect=0)
     {
         global $conf, $langs;
 
@@ -123,7 +124,7 @@ class FormDictionary
             }
         } else {
             // Immediate load of all database
-            $out .= $this->select_dictionary_list($module, $name, $selected, $htmlname, $showempty, $key, $label, $filters, $orders, $forcecombo, $events, $usesearchtoselect, 0, $limit, $morecss, $moreparam, $options_only);
+            $out .= $this->select_dictionary_list($module, $name, $selected, $htmlname, $showempty, $key, $label, $filters, $orders, $forcecombo, $events, $usesearchtoselect, 0, $limit, $morecss, $moreparam, $options_only, $ismultiselect);
         }
 
         return $out;
@@ -133,26 +134,27 @@ class FormDictionary
      *  Output html form to select a dictionary.
      *  Note, you must use the select_dictionary to get the component to select a dictionary. This function must only be called by select_dictionary.
      *
-     * @param   string      $module                 Name of the module containing the dictionary
-     * @param   string      $name                   Name of dictionary
-     * @param	string	    $selected               Preselected type
-     * @param   string	    $htmlname               Name of field in form
-     * @param   string      $key                    Field name for the key of the line
-     * @param   string      $label                  Label pattern for the label of the line (replace {{FieldName}} by this value)
-     * @param   array       $filters                List of filters: array(fieldName => value), value is a array search a list of rowid, if $filters = null then return no lines
-     * @param   array       $orders                 Order by: array(fieldName => order, ...)
-     * @param	string	    $showempty		        Add an empty field (Can be '1' or text to use on empty line like 'SelectThirdParty')
-     * @param	int		    $forcecombo		        Force to use combo box
-     * @param	array	    $events			        Event options. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
-     * @param  	int		    $usesearchtoselect	    Minimum length of input string to start autocomplete
-     * @param	int		    $outputmode		        0=HTML select string, 1=Array
-     * @param	int		    $limit			        Limit number of answers
-     * @param	string	    $morecss		        Add more css styles to the SELECT component
-     * @param   string	    $moreparam              Add more parameters onto the select tag. For example 'style="width: 95%"' to avoid select2 component to go over parent container
-     * @param   bool        $options_only           Return options only (for ajax treatment)
-     * @return	string					            HTML string with
+     * @param   string          $module                 Name of the module containing the dictionary
+     * @param   string          $name                   Name of dictionary
+     * @param	string|array	$selected               Preselected values
+     * @param   string	        $htmlname               Name of field in form
+     * @param   string          $key                    Field name for the key of the line
+     * @param   string          $label                  Label pattern for the label of the line (replace {{FieldName}} by this value)
+     * @param   array           $filters                List of filters: array(fieldName => value), value is a array search a list of rowid, if $filters = null then return no lines
+     * @param   array           $orders                 Order by: array(fieldName => order, ...)
+     * @param	string	        $showempty		        Add an empty field (Can be '1' or text to use on empty line like 'SelectThirdParty')
+     * @param	int		        $forcecombo		        Force to use combo box
+     * @param	array	        $events			        Event options. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
+     * @param  	int		        $usesearchtoselect	    Minimum length of input string to start autocomplete
+     * @param	int		        $outputmode		        0=HTML select string, 1=Array
+     * @param	int		        $limit			        Limit number of answers
+     * @param	string	        $morecss		        Add more css styles to the SELECT component
+     * @param   string	        $moreparam              Add more parameters onto the select tag. For example 'style="width: 95%"' to avoid select2 component to go over parent container
+     * @param   bool            $options_only           Return options only (for ajax treatment)
+     * @param   int             $ismultiselect          0=Not multiselect, 1=Multiselect
+     * @return	string					                HTML string with
      */
-    function select_dictionary_list($module, $name, $selected='', $htmlname='dictionaryid', $showempty='', $key='rowid', $label='{{label}}', $filters=array(), $orders=array(), $forcecombo=0, $events=array(), $usesearchtoselect=0, $outputmode=0, $limit=0, $morecss='minwidth100', $moreparam='', $options_only=false)
+    function select_dictionary_list($module, $name, $selected='', $htmlname='dictionaryid', $showempty='', $key='rowid', $label='{{label}}', $filters=array(), $orders=array(), $forcecombo=0, $events=array(), $usesearchtoselect=0, $outputmode=0, $limit=0, $morecss='minwidth100', $moreparam='', $options_only=false, $ismultiselect=0)
     {
         global $conf, $langs;
 
@@ -169,7 +171,12 @@ class FormDictionary
             // Build output string
             if ($conf->use_javascript_ajax && !$forcecombo && !$options_only) {
                 include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
-                $comboenhancement = ajax_combobox($htmlname, $events, $usesearchtoselect);
+                if ($ismultiselect) {
+                    $comboenhancement = $this->multiselect_javascript_code($selected, $htmlname, $elemtype='');
+                    $comboenhancement .= $this->add_select_events($htmlname, $events);
+                } else {
+                    $comboenhancement = ajax_combobox($htmlname, $events, $usesearchtoselect);
+                }
                 $out .= $comboenhancement;
             }
 
@@ -185,10 +192,12 @@ class FormDictionary
             }
             if ($showempty) $out .= '<option value="-1">' . $textifempty . '</option>' . "\n";
 
+            $selected = !empty($selected) ? (is_array($selected) ? $selected : explode(',', $selected)) : array();
+
             $num = count($lines);
             $i = 0;
             foreach ($lines as $k => $l) {
-                if ($selected > 0 && $selected == $k) {
+                if (in_array($k, $selected)) {
                     $out .= '<option value="' . $k . '" selected>' . $l . '</option>';
                 } else {
                     $out .= '<option value="' . $k . '">' . $l . '</option>';
@@ -211,6 +220,171 @@ class FormDictionary
             if ($outputmode) return array();
             return -1;
         }
+    }
+
+    /**
+   	 * Return list of labels (translated) of education
+   	 *
+     * @param	string	$htmlname	Name of html select field ('myid' or '.myclass')
+     * @param	array	$events		Event options. Example: array(array('action'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'done_action'=>array('disabled' => array('add-customer-contact'))))
+     *                                  'url':          string,  Url of the Ajax script
+     *                                  'action':       string,  Action name for the Ajax script
+     *                                  'params':       array(), Others parameters send for Ajax script (exclude name: id, action, htmlname), if value = '{{selector}}' get value of the 'selector' input
+     *                                  'htmlname':     string,  Id of the select updated with new options from Ajax script
+     *                                  'done_action':  array(), List of action done when new options get successfully
+     *                                      'empty_select': array(), List of html ID of select to empty
+     *                                      'disabled'    : array(), List of html ID to disable if no options
+   	 * @return  string
+   	 */
+   	function add_select_events($htmlname, $events)
+    {
+        global $conf;
+
+        $out = '';
+        if (!empty($conf->use_javascript_ajax)) {
+            $out .= '<script type="text/javascript">
+            $(document).ready(function () {
+                jQuery("#'.$htmlname.'").change(function () {
+                    var obj = '.json_encode($events).';
+                    $.each(obj, function(key,values) {
+                        if (values.action.length) {
+                            runJsCodeForEvent'.$htmlname.'(values);
+                        }
+                    });
+                });
+    
+                function runJsCodeForEvent'.$htmlname.'(obj) {
+                    console.log("Run runJsCodeForEvent'.$htmlname.'");
+                    var id = $("#'.$htmlname.'").val();
+                    var action = obj.action;
+                    var url = obj.url;
+                    var htmlname = obj.htmlname;
+                    var datas = {
+                        action: action,
+                        id: id,
+                        htmlname: htmlname,
+                    };
+                    var selector_regex = new RegExp("^\\{\\{(.*)\\}\\}$", "i");
+                    $.each(obj.params, function(key, value) {
+                        var match = null;
+                        if ($.type(value) === "string") match = value.match(selector_regex);
+                        if (match) {
+                            datas[key] = $(match[1]).val();
+                        } else {
+                            datas[key] = value;
+                        }
+                    });
+                    var input = $("select#" + htmlname);
+                    var inputautocomplete = $("#inputautocomplete"+htmlname);
+                    $.getJSON(url, datas,
+                        function(response) {
+                            input.html(response.value);
+                            if (response.num) {
+                                var selecthtml_dom = $.parseHTML(response.value);
+                                inputautocomplete.val(selecthtml_dom.innerHTML);
+                            } else {
+                                inputautocomplete.val("");
+                            }
+                                
+                            var num = response.num;
+                            $.each(obj.done_action, function(key, action) {
+                                switch (key) {
+                                    case "empty_select":
+                                        $.each(action, function(id) {
+                                            $("select#" + id).html("");
+                                        });
+                                        break;
+                                    case "disabled":
+                                        $.each(action, function(id) {
+                                            if (num > 0) {
+                                                $("#" + id).removeAttr("disabled");
+                                            } else {
+                                                $("#" + id).attr("disabled", "disabled");
+                                            }
+                                        });
+                                        break;
+                                }
+                            });
+                                
+                            input.change();	/* Trigger event change */
+                            
+                            if (response.num < 0) {
+                                console.error(response.error);
+                            }
+                        }
+                    );
+                }
+            });
+            </script>';
+        }
+
+        return $out;
+    }
+
+    /**
+     *	Return multiselect javascript code
+     *
+     *  @param	array	$selected       Preselected values
+     *  @param  string	$htmlname       Field name in form
+     *  @param	string	$elemtype		Type of element we show ('category', ...)
+     *  @return	string
+     */
+    function multiselect_javascript_code($selected, $htmlname, $elemtype='')
+    {
+        global $conf;
+
+        $out = '';
+
+        // Add code for jquery to use multiselect
+       	if (! empty($conf->global->MAIN_USE_JQUERY_MULTISELECT) || defined('REQUIRE_JQUERY_MULTISELECT'))
+       	{
+            $selected = array_values($selected);
+       		$tmpplugin=empty($conf->global->MAIN_USE_JQUERY_MULTISELECT)?constant('REQUIRE_JQUERY_MULTISELECT'):$conf->global->MAIN_USE_JQUERY_MULTISELECT;
+      			$out.='<!-- JS CODE TO ENABLE '.$tmpplugin.' for id '.$htmlname.' -->
+       			<script type="text/javascript">
+   	    			function formatResult(record) {'."\n";
+   						if ($elemtype == 'category')
+   						{
+   							$out.='	//return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> <a href="'.DOL_URL_ROOT.'/categories/viewcat.php?type=0&id=\'+record.id+\'">\'+record.text+\'</a></span>\';
+   								  	return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> \'+record.text+\'</span>\';';
+   						}
+   						else
+   						{
+   							$out.='return record.text;';
+   						}
+   			$out.= '	};
+       				function formatSelection(record) {'."\n";
+   						if ($elemtype == 'category')
+   						{
+   							$out.='	//return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> <a href="'.DOL_URL_ROOT.'/categories/viewcat.php?type=0&id=\'+record.id+\'">\'+record.text+\'</a></span>\';
+   								  	return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> \'+record.text+\'</span>\';';
+   						}
+   						else
+   						{
+   							$out.='return record.text;';
+   						}
+   			$out.= '	};
+   	    			$(document).ready(function () {
+   	    			    $(\'#'.$htmlname.'\').attr("name", "'.$htmlname.'[]");
+   	    			    $(\'#'.$htmlname.'\').attr("multiple", "multiple");
+   	    			    //$.map('.json_encode($selected).', function(val, i) {
+   	    			        $(\'#'.$htmlname.'\').val('.json_encode($selected).');
+   	    			    //});
+   	    			
+       					$(\'#'.$htmlname.'\').'.$tmpplugin.'({
+       						dir: \'ltr\',
+   							// Specify format function for dropdown item
+   							formatResult: formatResult,
+       					 	templateResult: formatResult,		/* For 4.0 */
+   							// Specify format function for selected item
+   							formatSelection: formatSelection,
+       					 	templateResult: formatSelection		/* For 4.0 */
+       					});
+       				});
+       			</script>';
+       	}
+
+       	return $out;
     }
 }
 
