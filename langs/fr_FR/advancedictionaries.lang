@@ -22,6 +22,15 @@ AdvanceDictionariesReplaceOldDictionariesPage   = Remplace l'ancienne page des d
 # General
 #######################################################################
 AdvanceDictionariesFieldRequired    = Champ requis
+AdvanceDictionariesDictionaryLines  = Lignes de dictionnaire
+
+############################################################
+### Confirm box
+############################################################
+AdvanceDictionariesAddLine              = Ajouter ligne
+AdvanceDictionariesConfirmAddLine       = Êtes-vous sûr de vouloir ajouter cette ligne ?
+AdvanceDictionariesEditLine             = Éditer ligne
+AdvanceDictionariesConfirmEditLine      = Êtes-vous sûr de vouloir éditer cette ligne ?
 
 #######################################################################
 # Errors

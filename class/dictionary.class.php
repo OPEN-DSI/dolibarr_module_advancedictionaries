@@ -122,8 +122,11 @@ class Dictionary extends CommonObject
      *                                             string: sellist, chkbxlst, link | array: select, radio, checkbox
      *                                             The key of the value must be not contains the character ',' and for chkbxlst it's a rowid
      *   'label_separator'   => string,         // Separator when use | in the label into the options value
+     *   'show_column_by_default' => bool,      // Show the column by default when show the list (Default = true)
+     *   'position_column'   => integer,        // Position of the column in the list show
+     *   'enabled_column'    => bool,           // Enable the column in the list show (Not )
      *   'td_title'          => array (
-     *      'moreClasses'    => string,  // Add more classes in the title balise td
+     *      // deprecated 'moreClasses'    => string,  // Add more classes in the title balise td
      *      'moreAttributes' => string,  // Add more attributes in the title balise td
      *      'align'          => string,  // Overwrirte the align by default
      *   ),
@@ -131,13 +134,13 @@ class Dictionary extends CommonObject
      *      'moreClasses'    => string,  // Add more classes in the output balise td
      *      'moreAttributes' => string,  // Add more attributes in the output balise td
      *      'align'          => string,  // Overwrirte the align by default
-     *      'positionLine'   => int,     // Move the input into new line in function of the position (only in add form, 0 by default)
-     *      'colspan'        => int,     // TD colspan
+     *      // deprecated 'positionLine'   => int,     // Move the input into new line in function of the position (only in add form, 0 by default)
+     *      // deprecated 'colspan'        => int,     // TD colspan
      *   ),
      *   'show_output'       => array (
      *      'moreAttributes' => string,  // Add more attributes in when show output field
      *   ),
-     *   'is_not_show'       => bool,    // Set at true if this field is not show must be set at true if you want to search or edit (don't used if is edited in add form)
+     *   // deprecated 'is_not_show'       => bool,    // Set at true if this field is not show must be set at true if you want to search or edit (don't used if is edited in add form)
      *   'is_not_searchable' => bool,    // Set at true if this field is not searchable
      *   'td_search'         => array (
      *      'moreClasses'    => string,  // Add more classes in the search input balise td
@@ -1689,10 +1692,11 @@ class Dictionary extends CommonObject
     /**
      * Return HTML string to put an search input field into a page
      *
-     * @param   string   $fieldName     Name of the field
+     * @param   string   $fieldName         Name of the field
+     * @param   array    $search_filters    List of values searched
      * @return  string
      */
-    function showInputSearchField($fieldName)
+    function showInputSearchField($fieldName, $search_filters)
     {
         if (isset($this->fields[$fieldName])) {
             $field = $this->fields[$fieldName];
@@ -1754,12 +1758,13 @@ class Dictionary extends CommonObject
                 case 'price':
                 case 'date':
                 case 'datetime':
-                    return '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '"' . $size . ' value="' . dol_escape_htmltag(GETPOST($fieldHtmlName)) . '"' . $moreAttributes . '>';
+                    return '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '"' . $size .
+                        ' value="' . dol_escape_htmltag($search_filters[$fieldName]) . '"' . $moreAttributes . '>';
                 case 'boolean':
                     require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
                     global $form;
                     if (!is_object($form)) $form = new Form($this->db);
-                    return $form->selectyesno($fieldHtmlName, GETPOST($fieldHtmlName), 1, false, 1);
+                    return $form->selectyesno($fieldHtmlName, $search_filters[$fieldName], 1, false, 1);
                 case 'custom':
                     return $this->showInputSearchCustomField($fieldName);
                 default: // unknown
@@ -1800,8 +1805,8 @@ class Dictionary extends CommonObject
                 case 'datetime':
                     $align = "center";
                 break;
-                case 'int':
-                case 'double':
+//                case 'int':
+//                case 'double':
                 case 'price':
                     $align = "right";
                     break;
@@ -3072,7 +3077,7 @@ class DictionaryLine extends CommonObjectLine
                     if (!$resql) {
                         $error++;
                         if ($this->db->lasterrno == 'DB_ERROR_CHILD_EXISTS') {
-                            $errors[] = $langs->trans('AdvanceDictionariesErrorValueUsedInDolibarr', $langs->transnoentitiesnoconv($field['label']));
+                            $errors[] = $langs->trans('AdvanceDictionariesErrorValueUsedInDolibarr', $langs->transnoentitiesnoconv($field['label'])) . ' : ' . $this->db->lasterror();
                         } else {
                             $errors[] = $this->db->lasterror();
                         }
@@ -3099,7 +3104,7 @@ class DictionaryLine extends CommonObjectLine
             if (!$resql) {
                 $error++;
                 if ($this->db->lasterrno == 'DB_ERROR_CHILD_EXISTS') {
-                    $errors[] = $langs->trans('AdvanceDictionariesErrorUsedInDolibarr');
+                    $errors[] = $langs->trans('AdvanceDictionariesErrorUsedInDolibarr') . ' : ' . $this->db->lasterror();
                 } else {
                     $errors[] = $this->db->lasterror();
                 }

@@ -3,6 +3,11 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.10] - 24-06-2019
+### Ajouter
+- Affichage d'une fenetre pour l'edition et la modification d'une ligne
+- Ajout de l'affichage de la liste des lignes au standard Dolibarr (support QuickList)
+
 ## [4.0.9] - 28-03-2019
 ### Ajouter
 - Modifie le type de donnée en base des types 'select', 'sellist' et 'radio' de text en varchar(255)
@@ -55,7 +60,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.9...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.10...HEAD
+[4.0.10]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.10
 [4.0.9]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.9
 [4.0.8]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.8
 [4.0.7]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.7

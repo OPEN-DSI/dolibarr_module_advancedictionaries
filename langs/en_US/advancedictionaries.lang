@@ -22,9 +22,20 @@ AdvanceDictionariesReplaceOldDictionariesPage   = Replace old dictionaries page
 # General
 #######################################################################
 AdvanceDictionariesFieldRequired    = Field required
+AdvanceDictionariesDictionaryLines  = Dictionary lines
+
+############################################################
+### Confirm box
+############################################################
+AdvanceDictionariesAddLine              = Add line
+AdvanceDictionariesConfirmAddLine       = Are you sure you want to add this line ?
+AdvanceDictionariesEditLine             = Edit line
+AdvanceDictionariesConfirmEditLine      = Are you sure you want to edit this line ?
 
 #######################################################################
 # Errors
 #######################################################################
-AdvanceDictionariesErrorFieldNotDefined    = Error : Field "%s" not defined.
-AdvanceDictionariesErrorIndexNotDefined    = Error : Index "%s" not defined.
+AdvanceDictionariesErrorFieldNotDefined     = Error : Field "%s" not defined.
+AdvanceDictionariesErrorIndexNotDefined     = Error : Index "%s" not defined.
+AdvanceDictionariesErrorUsedInDolibarr      = Ne peut être supprimée car elle est utilisée dans Dolibarr.
+AdvanceDictionariesErrorValueUsedInDolibarr = Ne peut être supprimée car une des valeurs de la colonne "%s" est utilisée dans Dolibarr.
