@@ -104,6 +104,7 @@ if (isset($dictionary)) {
 
             // Add input fields
             foreach ($dictionary->fields as $fieldName => $field) {
+                if (($action == 'add_line' && $field['is_not_addable']) || ($action == 'edit_line' && $field['is_not_editable'])) continue;
                 $label = $langs->trans($field['label']);
                 if (isset($fieldsValue[$fieldName])) $dictionary_line->fields[$fieldName] = $fieldsValue[$fieldName];
 
@@ -225,7 +226,7 @@ SCRIPT;
             // Title line with search boxes
             print '<tr class="liste_titre_filter">';
             foreach ($dictionary->fields as $fieldName => $field) {
-                if ($arrayfields[$fieldName]['checked']) {
+                if ($arrayfields[$fieldName]['checked'] && empty($field['is_not_show'])) {
                     $moreClasses = !empty($field['td_search']['moreClasses']) ? ' ' . $field['td_search']['moreClasses'] : '';
                     $moreAttributes = !empty($field['td_search']['moreAttributes']) ? ' ' . $field['td_search']['moreAttributes'] : '';
                     $align = !empty($field['td_search']['align']) ? $field['td_search']['align'] : $dictionary->getAlignFlagForField($fieldName);
@@ -252,12 +253,12 @@ SCRIPT;
             // Fields title
             print '<tr class="liste_titre">';
             foreach ($dictionary->fields as $fieldName => $field) {
-                if ($arrayfields[$fieldName]['checked']) {
+                if ($arrayfields[$fieldName]['checked'] && empty($field['is_not_show'])) {
                     $moreAttributes = !empty($field['td_title']['moreAttributes']) ? ' ' . $field['td_title']['moreAttributes'] : '';
                     $align = !empty($field['td_title']['align']) ? $field['td_title']['align'] : $dictionary->getAlignFlagForField($fieldName);
                     $moreAttributes .= ' align="' . $align . '"';
 
-                    print_liste_field_titre($arrayfields[$fieldName]['label'], $_SERVER["PHP_SELF"], $fieldName, '', '&' . $param2, $moreAttributes, $sortfield, $sortorder);
+                    print_liste_field_titre($arrayfields[$fieldName]['label'], $_SERVER["PHP_SELF"], $field['is_not_sortable'] ? '' : $fieldName, '', '&' . $param2, $moreAttributes, $sortfield, $sortorder);
                     print '</td>';
                 }
             }
@@ -281,7 +282,7 @@ SCRIPT;
                 // Output line
                 print '<tr class="' . $bc[$var] . '" id="rowid-' . $line->id . '">';
                 foreach ($dictionary->fields as $fieldName => $field) {
-                    if ($arrayfields[$fieldName]['checked']) {
+                    if ($arrayfields[$fieldName]['checked'] && empty($field['is_not_show'])) {
                         $moreClasses = !empty($field['td_output']['moreClasses']) ? ' class="' . $field['td_output']['moreClasses'] . '"' : '';
                         $moreAttributes = !empty($field['td_output']['moreAttributes']) ? ' ' . $field['td_output']['moreAttributes'] : '';
                         $align = !empty($field['td_output']['align']) ? $field['td_output']['align'] : $dictionary->getAlignFlagForField($fieldName);

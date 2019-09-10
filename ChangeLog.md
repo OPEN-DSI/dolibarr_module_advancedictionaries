@@ -3,6 +3,15 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.12] - 09-09-2019
+### Ajouter
+- Prise en charge des options 'is_not_show', 'is_not_addable', 'is_not_editable' et 'is_not_sortable'.
+- Correction de la récupération des valeurs de champs de type 'price' et 'double' avec une virgule.
+
+## [4.0.11] - 26-07-2019
+### Ajouter
+- Correction mineures.
+
 ## [4.0.10] - 24-06-2019
 ### Ajouter
 - Affichage d'une fenetre pour l'edition et la modification d'une ligne
@@ -60,7 +69,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.10...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.12...HEAD
+[4.0.12]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.12
+[4.0.11]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.11
 [4.0.10]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.10
 [4.0.9]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.9
 [4.0.8]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.8

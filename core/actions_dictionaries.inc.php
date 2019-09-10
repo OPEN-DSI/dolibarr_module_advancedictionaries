@@ -95,6 +95,7 @@ if (isset($dictionary) && $dictionary->enabled) {
     // Set columns
     $arrayfields = array();
     foreach ($dictionary->fields as $fieldName => $field) {
+        if (!empty($field['is_not_show'])) continue;
         $arrayfields[$fieldName] = array(
             'label' => $langs->trans($field['label']),
             'checked' => !isset($field['show_column_by_default']) ? 1 : (!empty($field['show_column_by_default']) ? 1 : 0),

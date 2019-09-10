@@ -140,7 +140,7 @@ class Dictionary extends CommonObject
      *   'show_output'       => array (
      *      'moreAttributes' => string,  // Add more attributes in when show output field
      *   ),
-     *   // deprecated 'is_not_show'       => bool,    // Set at true if this field is not show must be set at true if you want to search or edit (don't used if is edited in add form)
+     *   'is_not_show'       => bool,    // Set at true if this field is not show must be set at true if you want to search or edit (don't used if is edited in add form)
      *   'is_not_searchable' => bool,    // Set at true if this field is not searchable
      *   'td_search'         => array (
      *      'moreClasses'    => string,  // Add more classes in the search input balise td
@@ -1869,10 +1869,12 @@ class Dictionary extends CommonObject
                         $value_key = implode(',', GETPOST($fieldHtmlName, 'array'));
                         break;
                     case 'int':
-                    case 'double':
                     case 'boolean':
-                    case 'price':
                         $value_key = price2num(GETPOST($fieldHtmlName, 'int'));
+                    break;
+                    case 'double':
+                    case 'price':
+                        $value_key = price2num(GETPOST($fieldHtmlName, 'alpha'));
                         break;
                     case 'date':
                     case 'datetime':
@@ -3708,6 +3710,8 @@ class DictionaryLine extends CommonObjectLine
                     $moreClasses = ' maxwidth75';
                 } elseif (in_array($type, array('varchar', 'phone', 'mail', 'url', 'password', 'select', 'sellist', 'radio', 'checkbox', 'link', 'chkbxlst'))) {
                     $moreClasses = ' minwidth200';
+                } elseif (in_array($type, array('checkbox', 'chkbxlst'))) {
+                    $moreClasses = '';
                 } elseif ($type == 'boolean') {
                     $moreClasses = '';
                 } else {
@@ -3718,10 +3722,17 @@ class DictionaryLine extends CommonObjectLine
             }
 
             $moreAttributes = trim($field['show_input']['moreAttributes']);
+	        if (empty($moreAttributes)) {
+		        if (in_array($type, array('checkbox', 'chkbxlst'))) {
+			        $moreAttributes = ' style="width:100%;"';
+		        }
+	        } else {
+		        $moreAttributes = ' ' . $moreAttributes;
+	        }
             $moreAttributes = !empty($moreAttributes) ? ' ' . $moreAttributes : '';
 
             if (!empty($hidden)) {
-                $out = '<input type="hidden" value="' . $value . '" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" id="' . $fieldHtmlName . '"/>';
+                $out = '<input type="hidden" value="' . $value . '" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"/>';
             } else {
                 switch ($field['type']) {
                     case 'varchar':
@@ -3748,7 +3759,7 @@ class DictionaryLine extends CommonObjectLine
                             $out .= ajax_combobox($fieldHtmlName, array(), 0);
                         }
 
-                        $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" id="' . $fieldHtmlName . '"' . $moreAttributes . '>';
+                        $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"' . $moreAttributes . '>';
                         $out .= '<option value="-1">&nbsp;</option>';
                         foreach ($field['options'] as $key => $val) {
                             if ((string)$key == '') continue;
@@ -3767,7 +3778,7 @@ class DictionaryLine extends CommonObjectLine
                             $out .= ajax_combobox($fieldHtmlName, array(), 0);
                         }
 
-                        $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" id="' . $fieldHtmlName . '"' . $moreAttributes . '>';
+                        $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"' . $moreAttributes . '>';
                         $InfoFieldList = explode(":", (string)$field['options']);
                         // 0 : tableName
                         // 1 : label field name
@@ -3918,7 +3929,7 @@ class DictionaryLine extends CommonObjectLine
                         } else {
                             $value_arr = array_filter(explode(',', (string)$value), 'strlen');
                         }
-                        $out = $form->multiselectarray($fieldHtmlName, (empty($field['options']) ? null : $field['options']), $value_arr, '', 0, '', 0, '100%');
+                        $out = $form->multiselectarray($fieldHtmlName, (empty($field['options']) ? null : $field['options']), $value_arr, '', 0, $moreClasses, 0, '', $moreAttributes);
                         break;
                     case 'chkbxlst':
                         if (is_array($value)) {
@@ -4061,7 +4072,7 @@ class DictionaryLine extends CommonObjectLine
                             global $form;
                             if (!is_object($form)) $form = new Form($this->db);
 
-                            $out = $form->multiselectarray($fieldHtmlName, $data, $value_arr, '', 0, '', 0, '100%');
+                            $out = $form->multiselectarray($fieldHtmlName, $data, $value_arr, '', 0, $moreClasses, 0, '', $moreAttributes);
                         } else {
                             $out = 'Error in request ' . $sql . ' ' . $this->db->lasterror() . '. Check setup of field parameters.';
                         }
