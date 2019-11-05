@@ -104,8 +104,9 @@ if (isset($dictionary)) {
 
             // Add input fields
             foreach ($dictionary->fields as $fieldName => $field) {
-                if (($action == 'add_line' && $field['is_not_addable']) || ($action == 'edit_line' && $field['is_not_editable'])) continue;
-                $label = $langs->trans($field['label']);
+                if (($action == 'add_line' && (!empty($field['is_not_addable']) || !empty($field['is_not_show_in_add']))) ||
+                    ($action == 'edit_line' && (!empty($field['is_not_editable'])) || !empty($field['is_not_show_in_edit']))) continue;
+                $label = $langs->trans(!empty($field['label_in_add_edit']) ? $field['label_in_add_edit'] : $field['label']);
                 if (isset($fieldsValue[$fieldName])) $dictionary_line->fields[$fieldName] = $fieldsValue[$fieldName];
 
                 $input_label = '';
@@ -135,6 +136,12 @@ SCRIPT;
                 } else $input_label .= $label;
                 if (!empty($field['is_require'])) {
                     $input_label .= ' *</span>';
+                }
+
+                if (is_array($field['add_params_in_add_edit'])) {
+                    foreach ($field['add_params_in_add_edit'] as $name) {
+                        $formquestion[] = array('name' => $name);
+                    }
                 }
 
                 $formquestion[] = array('type' => 'other', 'name' => ($action == 'edit_line' ? 'edit_' : 'add_') . $fieldName, 'label' => $input_label, 'value' => $dictionary_line->showInputFieldAD($fieldName, null, $action == 'edit_line' ? 'edit_' : 'add_'));

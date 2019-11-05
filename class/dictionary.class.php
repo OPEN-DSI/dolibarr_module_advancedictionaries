@@ -107,69 +107,70 @@ class Dictionary extends CommonObject
     /**
      * @var array  Fields of the dictionary table
      * 'name' => array(
-     *   'name'              => string,         // Name of the field
-     *   'label'             => string,         // Label of the field, translated if key found
-     *   'type'              => string,         // Type of the field (varchar, text, int, double, date, datetime, boolean, price, phone, mail, url,
-     *                                                                password, select, sellist, radio, checkbox, chkbxlst, link, custom)
-     *   'database'          => array(          // Description of the field in the database always rewrite default value if set
-     *     'type'            => string,         // Data type
-     *     'length'          => string,         // Length of the data type (require)
-     *     'default'         => string,         // Default value in the database
+     *   'name'                   => string,         // Name of the field
+     *   'label'                  => string,         // Label of the field, translated if key found
+     *   'label_in_add_edit'      => string,         // Label of the field in add/edit box if defined, translated if key found
+     *   'type'                   => string,         // Type of the field (varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url,
+     *                                                                     password, select, sellist, radio, checkbox, chkbxlst, link, custom)
+     *   'database'               => array(          // Description of the field in the database always rewrite default value if set
+     *     'type'                 => string,         // Data type
+     *     'length'               => string,         // Length of the data type (require)
+     *     'default'              => string,         // Default value in the database
      *   ),
-     *   'is_require'        => bool,           // Set at true if this field is required
-     *   'is_fixed_value'    => bool,           // Set at true if this field is a set automatically
-     *   'options'           => array()|string, // Parameters same as extrafields (ex: 'table:label:rowid::active=1' or array(1=>'value1', 2=>'value2') )
-     *                                             string: sellist, chkbxlst, link | array: select, radio, checkbox
-     *                                             The key of the value must be not contains the character ',' and for chkbxlst it's a rowid
-     *   'label_separator'   => string,         // Separator when use | in the label into the options value
-     *   'show_column_by_default' => bool,      // Show the column by default when show the list (Default = true)
-     *   'position_column'   => integer,        // Position of the column in the list show
-     *   'enabled_column'    => bool,           // Enable the column in the list show (Not )
-     *   'td_title'          => array (
-     *      // deprecated 'moreClasses'    => string,  // Add more classes in the title balise td
-     *      'moreAttributes' => string,  // Add more attributes in the title balise td
-     *      'align'          => string,  // Overwrirte the align by default
+     *   'is_require'             => bool,           // Set at true if this field is required
+     *   'is_fixed_value'         => bool,           // Set at true if this field is a set automatically
+     *   'options'                => array()|string, // Parameters same as extrafields (ex: 'table:label:rowid::active=1' or array(1=>'value1', 2=>'value2') )
+     *                                                  string: sellist, chkbxlst, link | array: select, radio, checkbox
+     *                                                  The key of the value must be not contains the character ',' and for chkbxlst it's a rowid
+     *   'label_separator'        => string,         // Separator when use | in the label into the options value
+     *   'show_column_by_default' => bool,           // Show the column by default when show the list (Default = true)
+     *   'position_column'        => integer,        // Position of the column in the list show
+     *   'enabled_column'         => bool,           // Enable the column in the list show (Not )
+     *   'td_title'               => array (
+     *      'moreAttributes'      => string,         // Add more attributes in the title balise td
+     *      'align'               => string,         // Overwrirte the align by default
      *   ),
-     *   'td_output'         => array (
-     *      'moreClasses'    => string,  // Add more classes in the output balise td
-     *      'moreAttributes' => string,  // Add more attributes in the output balise td
-     *      'align'          => string,  // Overwrirte the align by default
-     *      // deprecated 'positionLine'   => int,     // Move the input into new line in function of the position (only in add form, 0 by default)
-     *      // deprecated 'colspan'        => int,     // TD colspan
+     *   'td_output'              => array (
+     *      'moreClasses'         => string,         // Add more classes in the output balise td
+     *      'moreAttributes'      => string,         // Add more attributes in the output balise td
+     *      'align'               => string,         // Overwrirte the align by default
      *   ),
-     *   'show_output'       => array (
-     *      'moreAttributes' => string,  // Add more attributes in when show output field
+     *   'show_output'            => array (
+     *      'moreAttributes'      => string,         // Add more attributes in when show output field
      *   ),
-     *   'is_not_show'       => bool,    // Set at true if this field is not show must be set at true if you want to search or edit (don't used if is edited in add form)
-     *   'is_not_searchable' => bool,    // Set at true if this field is not searchable
-     *   'td_search'         => array (
-     *      'moreClasses'    => string,  // Add more classes in the search input balise td
-     *      'moreAttributes' => string,  // Add more attributes in the search input balise td
-     *      'align'          => string,  // Overwrirte the align by default
+     *   'is_not_show'            => bool,           // Set at true if this field is not show must be set at true if you want to search or edit (don't used if is edited in add form)
+     *   'is_not_searchable'      => bool,           // Set at true if this field is not searchable
+     *   'td_search'              => array (
+     *      'moreClasses'         => string,         // Add more classes in the search input balise td
+     *      'moreAttributes'      => string,         // Add more attributes in the search input balise td
+     *      'align'               => string,         // Overwrirte the align by default
      *   ),
-     *   'show_search_input' => array (
-     *      'size'           => int,     // Size attribute of the search input field (input text)
-     *      'moreClasses'    => string,  // Add more classes in the search input field
-     *      'moreAttributes' => string,  // Add more attributes in the search input field
+     *   'show_search_input'      => array (
+     *      'size'                => int,            // Size attribute of the search input field (input text)
+     *      'moreClasses'         => string,         // Add more classes in the search input field
+     *      'moreAttributes'      => string,         // Add more attributes in the search input field
      *   ),
-     *   'is_not_addable'    => bool,    // Set at true if this field is not addable
-     *   'is_not_editable'   => bool,    // Set at true if this field is not editable
-     *   'td_input'         => array (
-     *      'moreClasses'    => string,  // Add more classes in the input balise td
-     *      'moreAttributes' => string,  // Add more attributes in the input balise td
-     *      'align'          => string,  // Overwrirte the align by default
-     *      'positionLine'   => int,     // Move the input into new line in function of the position (only in add form, 0 by default)
-     *      'colspan'        => int,     // TD colspan
+     *   'is_not_addable'         => bool,           // Set at true if this field is not addable
+     *   'is_not_editable'        => bool,           // Set at true if this field is not editable
+     *   'is_not_show_in_add'     => bool,           // Set at true if this field is not addable
+     *   'is_not_show_in_edit'    => bool,           // Set at true if this field is not editable
+     *   'td_input'               => array (
+     *      'moreClasses'         => string,         // Add more classes in the input balise td
+     *      'moreAttributes'      => string,         // Add more attributes in the input balise td
+     *      'align'               => string,         // Overwrirte the align by default
+     *      'positionLine'        => int,            // Move the input into new line in function of the position (only in add form, 0 by default)
+     *      'colspan'             => int,            // TD colspan
      *   ),
-     *   'show_input'        => array (
-     *      'moreClasses'    => string,  // Add more classes in the input field
-     *      'moreAttributes' => string,  // Add more attributes in the input field
+     *   'show_input'             => array (
+     *      'moreClasses'         => string,         // Add more classes in the input field
+     *      'moreAttributes'      => string,         // Add more attributes in the input field
      *   ),
-     *   'help'              => '',      // Help text for this field or url, translated if key found
-     *   'help_button'       => '',      // Help text for this field access by a click
-     *   'is_not_sortable'   => bool,    // Set at true if this field is not sortable
-     *   'min'               => int,     // Value minimum (include) if type is int, double or price
-     *   'max'               => int,     // Value maximum (include) if type is int, double or price
+     *   'add_params_in_add_edit' => array,          // List of additional param name in the formconfirm who is send other than who is showed
+     *   'help'                   => '',             // Help text for this field or url, translated if key found
+     *   'help_button'            => '',             // Help text for this field access by a click
+     *   'is_not_sortable'        => bool,           // Set at true if this field is not sortable
+     *   'min'                    => int,            // Value minimum (include) if type is int, float, double or price
+     *   'max'                    => int,            // Value maximum (include) if type is int, float, double or price
      * )
      */
     public $fields = array();
@@ -316,6 +317,9 @@ class Dictionary extends CommonObject
                 case 'int':
                     $typedb='int';
                     $lengthdb='11';
+                    break;
+                case 'float':
+                    $typedb='float';
                     break;
                 case 'double':
                     $typedb='double';
@@ -574,7 +578,7 @@ class Dictionary extends CommonObject
                     }
 
                     break;
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                     break;
             }
 
@@ -676,7 +680,7 @@ class Dictionary extends CommonObject
                     }
 
                     break;
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                     break;
             }
 
@@ -884,7 +888,7 @@ class Dictionary extends CommonObject
                     }
 
                     break;
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                     break;
             }
 
@@ -1247,11 +1251,13 @@ class Dictionary extends CommonObject
      * @param   array   $orders         Order by: array(fieldName => order, ...)
      * @param   int     $limit          Length of the limit
      * @param   int     $filter_active  Filter on the active field (-1: all, 0: inactive, 1:active)
+     * @param   bool    $return_array   Don't fetch lines in $this->lines
    	 * @return  array                   Lines array(key => label)
    	 */
-   	function fetch_array($key, $label, $filters=array(), $orders=array(), $limit=0, $filter_active=1)
+   	function fetch_array($key, $label, $filters=array(), $orders=array(), $limit=0, $filter_active=1, $return_array=true)
     {
-        $lines = $this->fetch_lines($filter_active, $filters, $orders, 0, $limit, false, true);
+        $lines = $this->fetch_lines($filter_active, $filters, $orders, 0, $limit, false, $return_array);
+        if (!$return_array) $lines = $this->lines;
 
         $results = array();
         if (is_array($lines)) {
@@ -1409,7 +1415,7 @@ class Dictionary extends CommonObject
                     return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.fk_target SEPARATOR \',\') AS ' . $field['name'];
                 case 'custom':
                     return $this->selectCustomFieldSqlStatement($field);
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                     return 'd.' . $field['name'] . ' AS ' . $field['name'];
             }
         }
@@ -1469,7 +1475,7 @@ class Dictionary extends CommonObject
                     return $sqlStatement;
                 case 'custom':
                     return $this->fromCustomFieldSqlStatement($field);
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                     return '';
             }
         }
@@ -1533,7 +1539,7 @@ class Dictionary extends CommonObject
                     }
                 case 'custom':
                     return $this->fromFilterCustomFieldSqlStatement($field, $value);
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                     return '';
             }
         }
@@ -1624,6 +1630,7 @@ class Dictionary extends CommonObject
                         return '';
                     }
                 case 'int':
+                case 'float':
                 case 'double':
                 case 'price':
                     return natural_search('d.' . $field['name'], $value, 1, 1);
@@ -1670,7 +1677,7 @@ class Dictionary extends CommonObject
             switch ($field['type']) {
                 case 'custom':
                     return $this->havingCustomFieldSqlStatement($field, $value);
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, chkbxlst, radio, checkbox, link, unknown
+                default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, chkbxlst, radio, checkbox, link, unknown
                     return '';
             }
         }
@@ -1721,6 +1728,7 @@ class Dictionary extends CommonObject
                         $size = 8;
                         break;
                     case 'int':
+                    case 'float':
                     case 'double':
                     case 'price':
                     case 'date':
@@ -1754,6 +1762,7 @@ class Dictionary extends CommonObject
                 case 'chkbxlst':
                 case 'link':
                 case 'int':
+                case 'float':
                 case 'double':
                 case 'price':
                 case 'date':
@@ -1806,6 +1815,7 @@ class Dictionary extends CommonObject
                     $align = "center";
                 break;
 //                case 'int':
+//                case 'float':
 //                case 'double':
                 case 'price':
                     $align = "right";
@@ -1872,6 +1882,7 @@ class Dictionary extends CommonObject
                     case 'boolean':
                         $value_key = price2num(GETPOST($fieldHtmlName, 'int'));
                     break;
+                    case 'float':
                     case 'double':
                     case 'price':
                         $value_key = price2num(GETPOST($fieldHtmlName, 'alpha'));
@@ -1953,6 +1964,7 @@ class Dictionary extends CommonObject
                     case 'checkbox':
                     case 'chkbxlst':
                     case 'int':
+                    case 'float':
                     case 'double':
                     case 'price':
                     case 'date':
@@ -2733,6 +2745,7 @@ class DictionaryLine extends CommonObjectLine
                                 $checkField = false;
                             break;
                         case 'int':
+                        case 'float':
                         case 'double':
                         case 'price':
                             if ($value === '' || (isset($field['min']) && $value < $field['min']) || (isset($field['max']) && $value > $field['max']))
@@ -2876,7 +2889,7 @@ class DictionaryLine extends CommonObjectLine
                                 $error++;
                             }
                             break;
-                        default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                        default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                             break;
                     }
                     if ($error) break;
@@ -3001,7 +3014,7 @@ class DictionaryLine extends CommonObjectLine
                                 $error++;
                             }
                             break;
-                        default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                        default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                             break;
                     }
                     if ($error) break;
@@ -3091,7 +3104,7 @@ class DictionaryLine extends CommonObjectLine
                         $error++;
                     }
                     break;
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                     break;
             }
             if ($error) break;
@@ -3259,7 +3272,7 @@ class DictionaryLine extends CommonObjectLine
                     return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.fk_target SEPARATOR \',\') AS ' . $field['name'];
                 case 'custom':
                     return $this->selectCustomFieldSqlStatement($field);
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                     return 'd.' . $field['name'] . ' AS ' . $field['name'];
             }
         }
@@ -3292,7 +3305,7 @@ class DictionaryLine extends CommonObjectLine
                         ' ON (cbl_' . $field['name'] . '.fk_line = d.' . $this->dictionary->rowid_field . ')';
                 case 'custom':
                     return $this->fromCustomFieldSqlStatement($field);
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                     return '';
             }
         }
@@ -3334,6 +3347,7 @@ class DictionaryLine extends CommonObjectLine
                 case 'radio':
                 case 'checkbox':
                 case 'int':
+                case 'float':
                 case 'double':
                 case 'price':
                 case 'link':
@@ -3386,7 +3400,7 @@ class DictionaryLine extends CommonObjectLine
                     return (!empty($value) ? 1 : 0);
                 case 'custom':
                     return $this->formatCustomFieldValueFromSQL($name, $value);
-                default: // varchar, text, int, double, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, chkbxlst, link, unknown
+                default: // varchar, text, int, float, double, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, chkbxlst, link, unknown
                     return $value;
             }
         }
@@ -3617,6 +3631,7 @@ class DictionaryLine extends CommonObjectLine
                     break;
                 case 'int':
                     break;
+                case 'float':
                 case 'double':
                     if (!empty($value)) $value = price($value);
                     break;
@@ -3706,7 +3721,7 @@ class DictionaryLine extends CommonObjectLine
                     $moreClasses = ' minwidth100imp';
                 } elseif ($type == 'datetime') {
                     $moreClasses = ' minwidth200imp';
-                } elseif (in_array($type, array('int', 'double', 'price'))) {
+                } elseif (in_array($type, array('int', 'float', 'double', 'price'))) {
                     $moreClasses = ' maxwidth75';
                 } elseif (in_array($type, array('varchar', 'phone', 'mail', 'url', 'password', 'select', 'sellist', 'radio', 'checkbox', 'link', 'chkbxlst'))) {
                     $moreClasses = ' minwidth200';
@@ -4082,6 +4097,7 @@ class DictionaryLine extends CommonObjectLine
                         $newsize = $tmp[0] + $tmp[1] + 1;
                         $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" maxlength="' . $newsize . '" value="' . $value . '"' . $moreAttributes . '>';
                         break;
+                    case 'float':
                     case 'double':
                         if (!empty($value)) {        // $value in memory is a php numeric, we format it into user number format.
                             $value = price($value);

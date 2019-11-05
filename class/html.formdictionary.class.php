@@ -104,7 +104,7 @@ class FormDictionary
             }
             // mode 1
             $urloption = 'module=' . $module . '&name=' . $name . '&htmlname=' . $htmlname . '&key=' . $key . '&label=' . $label . '&showempty=' . $showempty . '&outjson=1&' . http_build_query(array('filters' => $filters));
-            $out .= ajax_autocompleter($selected, $htmlname, dol_buildpath('/advancedictionaries/ajax/dictionary.php', 2), $urloption, $usesearchtoselect, 0, $ajaxoptions);
+            $out .= ajax_autocompleter($selected, $htmlname, dol_buildpath('/advancedictionaries/ajax/dictionary.php', 1), $urloption, $usesearchtoselect, 0, $ajaxoptions);
             $out .= '<style type="text/css">
 					.ui-autocomplete {
 						z-index: 250;
@@ -163,7 +163,7 @@ class FormDictionary
         // Get lines
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $dictionary = Dictionary::getDictionary($this->db, $module, $name);
-        $lines = $filters === null ? array() : $dictionary->fetch_array($key, $label, $filters, $orders, $limit);
+        $lines = $filters === null ? array() : $dictionary->fetch_array($key, $label, $filters, $orders, $limit, 1, false);
         if (empty($dictionary->error)) {
             $out = '';
             $outarray = array();
@@ -203,7 +203,10 @@ class FormDictionary
                     $out .= '<option value="' . $k . '">' . $l . '</option>';
                 }
 
-                array_push($outarray, array('key' => $k, 'value' => $l, 'label' => $l));
+                $tmp = array('key' => $k, 'value' => $l, 'label' => $l);
+                $tmp2 = array_intersect_key($dictionary->lines[$k]->fields, $dictionary->fields);
+                $tmp = array_merge($tmp, $tmp2);
+                array_push($outarray, $tmp);
 
                 if (($i % 10) == 0) $out .= "\n";
                 $i++;

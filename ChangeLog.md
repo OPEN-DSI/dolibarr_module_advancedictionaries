@@ -3,6 +3,12 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.13] - 28-10-2019
+### Ajouter
+- Ajout du type de champ 'float'
+- Ajout des 2 options de champ 'label_in_add_edit', 'add_params_in_add_edit', 'is_not_show_in_add' et 'is_not_show_in_edit'.
+- Correction de l'appel ajax de la liste des lines du dictionnaire
+
 ## [4.0.12] - 09-09-2019
 ### Ajouter
 - Prise en charge des options 'is_not_show', 'is_not_addable', 'is_not_editable' et 'is_not_sortable'.
@@ -69,7 +75,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.12...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.13...HEAD
+[4.0.13]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.13
 [4.0.12]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.12
 [4.0.11]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.11
 [4.0.10]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.10

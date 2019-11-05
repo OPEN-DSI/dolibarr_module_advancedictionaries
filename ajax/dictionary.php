@@ -1,7 +1,5 @@
 <?php
-/* Copyright (C) 2006      Andre Cianfarani     <acianfa@free.fr>
- * Copyright (C) 2005-2012 Regis Houssin        <regis.houssin@capnetworks.com>
- * Copyright (C) 2007-2011 Laurent Destailleur  <eldy@users.sourceforge.net>
+/* Copyright (C) 2019       Open-Dsi        <support@open-dsi.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,79 +16,71 @@
  */
 
 /**
- *       \file       htdocs/societe/ajax/company.php
- *       \brief      File to return Ajax response on thirdparty list request
+ * \file    htdocs/advancedictionaries/ajax/dictionary.php
+ * \brief   File to return Ajax response on dictionary lines request
  */
+if (! defined('NOTOKENRENEWAL')) define('NOTOKENRENEWAL', 1); // Disables token renewal
+if (! defined('NOREQUIREMENU')) define('NOREQUIREMENU', '1');
+if (! defined('NOREQUIREHTML')) define('NOREQUIREHTML', '1');
+if (! defined('NOREQUIREAJAX')) define('NOREQUIREAJAX', '1');
+//if (! defined('NOREQUIRESOC')) define('NOREQUIRESOC', '1');
+//if (! defined('NOCSRFCHECK')) define('NOCSRFCHECK', '1');
 
-if (! defined('NOTOKENRENEWAL')) define('NOTOKENRENEWAL',1); // Disables token renewal
-if (! defined('NOREQUIREMENU'))  define('NOREQUIREMENU','1');
-if (! defined('NOREQUIREHTML'))  define('NOREQUIREHTML','1');
-if (! defined('NOREQUIREAJAX'))  define('NOREQUIREAJAX','1');
-if (! defined('NOREQUIRESOC'))   define('NOREQUIRESOC','1');
-if (! defined('NOCSRFCHECK'))    define('NOCSRFCHECK','1');
-if (empty($_GET['keysearch']) && ! defined('NOREQUIREHTML'))  define('NOREQUIREHTML','1');
+$res=0;
+if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");		// For root directory
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php");	// For "custom" directory
 
-require '../../main.inc.php';
-
-$htmlname=GETPOST('htmlname','alpha');
-$filter=GETPOST('filter','alpha');
-$outjson=(GETPOST('outjson','int') ? GETPOST('outjson','int') : 0);
-$action=GETPOST('action', 'alpha');
-$id=GETPOST('id', 'int');
-$showtype=GETPOST('showtype','int');
-
+$module = GETPOST('module', 'alpha');
+$name = GETPOST('name', 'alpha');
+$htmlname = GETPOST('htmlname', 'alpha');
+$action = GETPOST('action', 'alpha');
+$id = GETPOST('id', 'int');
+$outjson = (GETPOST('outjson', 'int') ? GETPOST('outjson', 'int') : 0);
+$key = GETPOST('key', 'alpha');
+$label = GETPOST('label', 'alpha');
+$showempty = GETPOST('showempty', 'int');
+$filters = GETPOST('filters', 'array');
+$orders = GETPOST('orders', 'array');
 
 /*
  * View
  */
 
-dol_syslog(join(',', $_GET));
+top_httphead();
+$out = array();
 
-if (! empty($action) && $action == 'fetch' && ! empty($id))
-{
-	require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+if (!empty($module) && !empty($name)) {
+    if (!empty($action) && $action == 'fetch' && !empty($id)) {
+        dol_include_once('/advancedictionaries/class/dictionary.class.php');
 
-	$outjson=array();
+        $object = Dictionary::getDictionaryLine($db, $module, $name);
+        $ret = $object->fetch($id);
+        if ($ret > 0) {
+            $out = $object->fields;
+        }
+    } elseif (!empty($htmlname)) {
+        dol_include_once('/advancedictionaries/class/html.formdictionary.class.php');
+        $langs->load("main");
 
-	$object = new Societe($db);
-	$ret=$object->fetch($id);
-	if ($ret > 0)
-	{
-		$outname=$object->name;
-		$outlabel = '';
-		$outdesc = '';
-		$outtype = $object->type;
+        $match = preg_grep('/(' . $htmlname . '[0-9]+)/', array_keys($_GET));
+        sort($match);
+        $idline = (!empty($match[0]) ? $match[0] : '');
+        if (GETPOST($htmlname, 'alpha') == '' && (!$idline || !GETPOST($idline, 'alpha'))) {
+            print json_encode(array());
+            return;
+        }
 
-		$outjson = array('ref' => $outref,'name' => $outname,'desc' => $outdesc,'type' => $outtype);
-	}
+        // When used from jQuery, the search term is added as GET param "term".
+        $searchkey = (($idline && GETPOST($idline, 'alpha')) ? GETPOST($idline, 'alpha') : (GETPOST($htmlname, 'alpha') ? GETPOST($htmlname, 'alpha') : ''));
 
-	echo json_encode($outjson);
-}
-else
-{
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+        if (empty($key)) $key = 'rowid';
+        if (empty($label)) $label = '{{label}}';
+        if (empty($orders)) $orders = array('label' => 'ASC');
 
-	$langs->load("companies");
-	$langs->load("main");
-
-	top_httphead();
-
-	if (empty($htmlname)) return;
-
-	$match = preg_grep('/('.$htmlname.'[0-9]+)/',array_keys($_GET));
-	sort($match);
-	$id = (! empty($match[0]) ? $match[0] : '');
-
-	// When used from jQuery, the search term is added as GET param "term".
-	$searchkey=(($id && GETPOST($id, 'alpha'))?GETPOST($id, 'alpha'):(($htmlname && GETPOST($htmlname, 'alpha'))?GETPOST($htmlname, 'alpha'):''));
-
-	if (! $searchkey) return;
-
-	$form = new Form($db);
-	$arrayresult=$form->select_thirdparty_list(0, $htmlname, $filter, 1, $showtype, 0, null, $searchkey, $outjson);
-
-	$db->close();
-
-	if ($outjson) print json_encode($arrayresult);
+        $formdictionary = new FormDictionary($db);
+        $out = $formdictionary->select_dictionary_list($module, $name, '', $htmlname, $showempty, $key, $label, $filters, $orders, 0, array(), 0, $outjson);
+    }
 }
 
+if ($outjson) print json_encode($out);
+$db->close();
