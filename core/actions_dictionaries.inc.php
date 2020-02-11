@@ -143,73 +143,81 @@ if (isset($dictionary) && $dictionary->enabled) {
 
 if (empty($reshook)) {
     if (isset($dictionary) && $dictionary->enabled) {
-        // Actions add an entry into a dictionary
-        if ($action == 'confirm_add_line' && $confirm == 'yes' && $dictionary->lineCanBeAdded && $canCreate) {
-            $fieldsValue = $dictionary->getFieldsValueFromForm('add_');
-            $fieldsValue = array_merge($fieldsValue, $dictionary->getFixedFieldsValue());
-
-            if ($dictionary->addLine($fieldsValue, $user) > 0) {
-                setEventMessage($langs->transnoentities("RecordSaved"));
-                header('Location: ' . $_SERVER['PHP_SELF'] . '?' . $param2);
-                exit;
-            } else {
-                setEventMessages($dictionary->error, $dictionary->errors, 'errors');
-                $action = 'add_line';
-                $error++;
-            }
-        } // Actions edit an entry into a dictionary
-        elseif ($action == 'confirm_edit_line' && $confirm == 'yes' && $dictionary->lineCanBeUpdated && $canUpdate) {
-            $fieldsValue = $dictionary->getFieldsValueFromForm('edit_', '' , 1);
-
-            if ($dictionary->updateLine($rowid, $fieldsValue, $user) > 0) {
-                setEventMessage($langs->transnoentities("RecordSaved"));
-                header('Location: ' . $_SERVER['PHP_SELF'] . '?' . $param2 . '#rowid-' . $rowid);
-                exit;
-            } else {
-                setEventMessages($dictionary->error, $dictionary->errors, 'errors');
-                $action = 'edit_line';
-                $error++;
-            }
-        } // Actions delete an entry into a dictionary
-        elseif ($action == 'confirm_delete_line' && $confirm == 'yes' && $dictionary->lineCanBeDeleted && $canDelete) {
-            if ($dictionary->deleteLine($rowid, $user) > 0) {
-                setEventMessage($langs->transnoentities("RecordDeleted"));
-                header('Location: ' . $_SERVER['PHP_SELF'] . '?' . $param2 . '#rowid-' . $prevrowid);
-                exit;
-            } else {
-                setEventMessages($dictionary->error, $dictionary->errors, 'errors');
-                $error++;
-            }
-        } // Actions activate an entry into a dictionary
-        elseif ($action == 'activate_on' && $canDisable) {
-            $res = $dictionary->activeLine($rowid, 1, $user);
-            if ($res > 0) {
-                setEventMessage($langs->transnoentities("RecordSaved"));
-                header('Location: ' . $_SERVER['PHP_SELF'] . '?' . $param2 . '#rowid-' . $rowid);
-                exit;
-            } elseif ($res < 0) {
-                setEventMessages($dictionary->error, $dictionary->errors, 'errors');
-                $error++;
-            }
-        } // Actions disable an entry into a dictionary
-        elseif ($action == 'activate_off' && $canDisable) {
-            $res = $dictionary->activeLine($rowid, 0, $user);
-            if ($res > 0) {
-                setEventMessage($langs->transnoentities("RecordSaved"));
-                header('Location: ' . $_SERVER['PHP_SELF'] . '?' . $param2 . '#rowid-' . $rowid);
-                exit;
-            } elseif ($res < 0) {
-                setEventMessages($dictionary->error, $dictionary->errors, 'errors');
-                $error++;
-            }
+        $result = 0;
+        if (method_exists($dictionary, 'doActions')) {
+            $result = $dictionary->doActions();
         }
+        if ($result < 0) {
+            setEventMessages($dictionary->error, $dictionary->errors, 'errors');
+        } elseif ($result == 0) {
+            // Actions add an entry into a dictionary
+            if ($action == 'confirm_add_line' && $confirm == 'yes' && $dictionary->lineCanBeAdded && $canCreate) {
+                $fieldsValue = $dictionary->getFieldsValueFromForm('add_');
+                $fieldsValue = array_merge($fieldsValue, $dictionary->getFixedFieldsValue());
 
-        $dicLine = $dictionary->getNewDictionaryLine();
-        $objectclass=get_class($dicLine);
-       	$objectlabel='AdvanceDictionariesDictionaryLines';
-       	$permtoread = $canRead;
-       	$permtodelete = $canDelete;
-       	$uploaddir = $conf->advancedictionaries->dir_output;
-       	include DOL_DOCUMENT_ROOT.'/core/actions_massactions.inc.php';
+                if ($dictionary->addLine($fieldsValue, $user) > 0) {
+                    setEventMessage($langs->transnoentities("RecordSaved"));
+                    header('Location: ' . $_SERVER['PHP_SELF'] . '?' . $param2);
+                    exit;
+                } else {
+                    setEventMessages($dictionary->error, $dictionary->errors, 'errors');
+                    $action = 'add_line';
+                    $error++;
+                }
+            } // Actions edit an entry into a dictionary
+            elseif ($action == 'confirm_edit_line' && $confirm == 'yes' && $dictionary->lineCanBeUpdated && $canUpdate) {
+                $fieldsValue = $dictionary->getFieldsValueFromForm('edit_', '', 1);
+
+                if ($dictionary->updateLine($rowid, $fieldsValue, $user) > 0) {
+                    setEventMessage($langs->transnoentities("RecordSaved"));
+                    header('Location: ' . $_SERVER['PHP_SELF'] . '?' . $param2 . '#rowid-' . $rowid);
+                    exit;
+                } else {
+                    setEventMessages($dictionary->error, $dictionary->errors, 'errors');
+                    $action = 'edit_line';
+                    $error++;
+                }
+            } // Actions delete an entry into a dictionary
+            elseif ($action == 'confirm_delete_line' && $confirm == 'yes' && $dictionary->lineCanBeDeleted && $canDelete) {
+                if ($dictionary->deleteLine($rowid, $user) > 0) {
+                    setEventMessage($langs->transnoentities("RecordDeleted"));
+                    header('Location: ' . $_SERVER['PHP_SELF'] . '?' . $param2 . '#rowid-' . $prevrowid);
+                    exit;
+                } else {
+                    setEventMessages($dictionary->error, $dictionary->errors, 'errors');
+                    $error++;
+                }
+            } // Actions activate an entry into a dictionary
+            elseif ($action == 'activate_on' && $canDisable) {
+                $res = $dictionary->activeLine($rowid, 1, $user);
+                if ($res > 0) {
+                    setEventMessage($langs->transnoentities("RecordSaved"));
+                    header('Location: ' . $_SERVER['PHP_SELF'] . '?' . $param2 . '#rowid-' . $rowid);
+                    exit;
+                } elseif ($res < 0) {
+                    setEventMessages($dictionary->error, $dictionary->errors, 'errors');
+                    $error++;
+                }
+            } // Actions disable an entry into a dictionary
+            elseif ($action == 'activate_off' && $canDisable) {
+                $res = $dictionary->activeLine($rowid, 0, $user);
+                if ($res > 0) {
+                    setEventMessage($langs->transnoentities("RecordSaved"));
+                    header('Location: ' . $_SERVER['PHP_SELF'] . '?' . $param2 . '#rowid-' . $rowid);
+                    exit;
+                } elseif ($res < 0) {
+                    setEventMessages($dictionary->error, $dictionary->errors, 'errors');
+                    $error++;
+                }
+            }
+
+            $dicLine = $dictionary->getNewDictionaryLine();
+            $objectclass = get_class($dicLine);
+            $objectlabel = 'AdvanceDictionariesDictionaryLines';
+            $permtoread = $canRead;
+            $permtodelete = $canDelete;
+            $uploaddir = $conf->advancedictionaries->dir_output;
+            include DOL_DOCUMENT_ROOT . '/core/actions_massactions.inc.php';
+        }
     }
 }

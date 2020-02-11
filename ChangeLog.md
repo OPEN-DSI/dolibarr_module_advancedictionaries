@@ -3,6 +3,15 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.14] - 11-02-2020
+- Correction de l'affichage de l'icone de titre ('titlePicto'), du titre ('customTitle') et du lien de retour ('customBackLink') personnalisés
+- Ajout d'une nouvelle propriété pour cache le lien de retour : 'hideCustomBackLink'
+- Ajout d'une fonction 'doActions' dans la classe dictionnaire executée dans le fichier 'core/actions_dictionaries.inc.php'
+- Ajout des options sur les champs : 'unselected_values', 'translate_prefix', 'translate_suffix'
+- Ajout de l'option pour voir l'id de la ligne
+- Ajout d'une option sur l'id est un code
+- Correction et amélioration diverses
+
 ## [4.0.13] - 28-10-2019
 ### Ajouter
 - Ajout du type de champ 'float'
@@ -75,7 +84,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.13...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.14...HEAD
+[4.0.14]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.14
 [4.0.13]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.13
 [4.0.12]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.12
 [4.0.11]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.11

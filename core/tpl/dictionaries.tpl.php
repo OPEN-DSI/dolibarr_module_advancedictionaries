@@ -51,10 +51,11 @@ if (isset($dictionary) && $dictionary->enabled) {
 
     $titre.=' - '.$langs->trans($dictionary->nameLabel);
     $linkback = '<a href="' . $_SERVER['PHP_SELF'] . '">' . $langs->trans("BackToDictionaryList") . '</a>';
-    if ($dictionary->titlePicto) $titlepicto = $dictionary->titlePicto;
+    if (!empty($dictionary->titlePicto)) $titlepicto = $dictionary->titlePicto;
 
-    if ($dictionary->customTitle) $titre = $dictionary->customTitle;
-    if ($dictionary->customLinkBack) $linkback = $dictionary->customLinkBack;
+    if (!empty($dictionary->customTitle)) $titre = $langs->trans($dictionary->customTitle);
+    if (!empty($dictionary->customBackLink)) $linkback = $dictionary->customBackLink;
+    if (!empty($dictionary->hideCustomBackLink)) $linkback = '';
 }
 
 print load_fiche_titre($titre, $linkback, $titlepicto);
@@ -189,7 +190,7 @@ SCRIPT;
 
             // List of mass actions available
             $arrayofmassactions = array();
-            if ($canDelete) $arrayofmassactions['predelete'] = $langs->trans("Delete");
+            if ($dictionary->lineCanBeDeleted && $canDelete) $arrayofmassactions['predelete'] = $langs->trans("Delete");
             if (in_array($massaction, array('predelete'))) $arrayofmassactions = array();
             $massactionbutton = $form->selectMassAction('', $arrayofmassactions);
 
@@ -230,8 +231,11 @@ SCRIPT;
             print '<div class="div-table-responsive">';
             print '<table class="tagtable liste' . ($moreforfilter ? " listwithfilterbefore" : "") . '">' . "\n";
 
+            $showTechnicalId = $dictionary->showTechnicalID;
+
             // Title line with search boxes
             print '<tr class="liste_titre_filter">';
+            if ($showTechnicalId) print '<td class="liste_titre"></td>';
             foreach ($dictionary->fields as $fieldName => $field) {
                 if ($arrayfields[$fieldName]['checked'] && empty($field['is_not_show'])) {
                     $moreClasses = !empty($field['td_search']['moreClasses']) ? ' ' . $field['td_search']['moreClasses'] : '';
@@ -259,6 +263,7 @@ SCRIPT;
 
             // Fields title
             print '<tr class="liste_titre">';
+            if ($showTechnicalId) print_liste_field_titre($langs->trans("TechnicalID"), $_SERVER["PHP_SELF"], $dictionary->rowid_field, "", '&' . $param2, 'width="5%"', $sortfield, $sortorder);
             foreach ($dictionary->fields as $fieldName => $field) {
                 if ($arrayfields[$fieldName]['checked'] && empty($field['is_not_show'])) {
                     $moreAttributes = !empty($field['td_title']['moreAttributes']) ? ' ' . $field['td_title']['moreAttributes'] : '';
@@ -288,6 +293,13 @@ SCRIPT;
 
                 // Output line
                 print '<tr class="' . $bc[$var] . '" id="rowid-' . $line->id . '">';
+
+                if ($showTechnicalId) {
+                    print '<td class="nowrap">';
+                    print $line->id;
+                    print "</td>";
+                }
+
                 foreach ($dictionary->fields as $fieldName => $field) {
                     if ($arrayfields[$fieldName]['checked'] && empty($field['is_not_show'])) {
                         $moreClasses = !empty($field['td_output']['moreClasses']) ? ' class="' . $field['td_output']['moreClasses'] . '"' : '';
