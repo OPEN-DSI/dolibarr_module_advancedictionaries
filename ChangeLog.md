@@ -3,6 +3,12 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.16] - 02-03-2020
+- Corrections test sur les erreurs de duplication
+
+## [4.0.15] - 14-02-2020
+- Corrections diverses (fixe les warnings)
+
 ## [4.0.14] - 11-02-2020
 - Correction de l'affichage de l'icone de titre ('titlePicto'), du titre ('customTitle') et du lien de retour ('customBackLink') personnalisés
 - Ajout d'une nouvelle propriété pour cache le lien de retour : 'hideCustomBackLink'
@@ -84,9 +90,10 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.14...HEAD
-[4.0.14]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.14
-[4.0.13]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.13
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.16...HEAD
+[4.0.16]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.16
+[4.0.14]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.14
+[4.0.13]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.13
 [4.0.12]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.12
 [4.0.11]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.11
 [4.0.10]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.10

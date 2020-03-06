@@ -204,7 +204,7 @@ class FormDictionary
                 }
 
                 $tmp = array('key' => $k, 'value' => $l, 'label' => $l);
-                $tmp2 = array_intersect_key($dictionary->lines[$k]->fields, $dictionary->fields);
+                $tmp2 = array_intersect_key(is_array($dictionary->lines[$k]->fields) ? $dictionary->lines[$k]->fields : array(), is_array($dictionary->fields) ? $dictionary->fields : array());
                 $tmp = array_merge($tmp, $tmp2);
                 array_push($outarray, $tmp);
 

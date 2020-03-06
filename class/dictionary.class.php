@@ -446,7 +446,7 @@ class Dictionary extends CommonObject
 
             $resql = $this->db->query($sql);
             if (!$resql) {
-                if ($this->db->lasterrno != 'DB_ERROR_TABLE_ALREADY_EXISTS') {
+                if ($this->db->lasterrno() != 'DB_ERROR_TABLE_ALREADY_EXISTS') {
                     $error++;
                     $this->error = $this->db->lasterror();
                 }
@@ -547,7 +547,7 @@ class Dictionary extends CommonObject
 
         $resql = $this->db->query($sql);
         if (!$resql) {
-            if ($this->db->lasterrno != 'DB_ERROR_KEY_NAME_ALREADY_EXISTS') {
+            if ($this->db->lasterrno() != 'DB_ERROR_KEY_NAME_ALREADY_EXISTS') {
                 $this->error = $this->db->lasterror();
                 return -1;
             }
@@ -592,7 +592,7 @@ class Dictionary extends CommonObject
 
                     $resql = $this->db->query($sql);
                     if (!$resql) {
-                        if ($this->db->lasterrno != 'DB_ERROR_TABLE_ALREADY_EXISTS') {
+                        if ($this->db->lasterrno() != 'DB_ERROR_TABLE_ALREADY_EXISTS') {
                             $this->error = $this->db->lasterror();
                             return -1;
                         }
@@ -3124,7 +3124,7 @@ class DictionaryLine extends CommonObjectLine
                     $resql = $this->db->query($sql);
                     if (!$resql) {
                         $error++;
-                        if ($this->db->lasterrno == 'DB_ERROR_CHILD_EXISTS') {
+                        if ($this->db->lasterrno() == 'DB_ERROR_CHILD_EXISTS') {
                             $errors[] = $langs->trans('AdvanceDictionariesErrorValueUsedInDolibarr', $langs->transnoentitiesnoconv($field['label'])) . ' : ' . $this->db->lasterror();
                         } else {
                             $errors[] = $this->db->lasterror();
@@ -3151,7 +3151,7 @@ class DictionaryLine extends CommonObjectLine
             $resql = $this->db->query($sql);
             if (!$resql) {
                 $error++;
-                if ($this->db->lasterrno == 'DB_ERROR_CHILD_EXISTS') {
+                if ($this->db->lasterrno() == 'DB_ERROR_CHILD_EXISTS') {
                     $errors[] = $langs->trans('AdvanceDictionariesErrorUsedInDolibarr') . ' : ' . $this->db->lasterror();
                 } else {
                     $errors[] = $this->db->lasterror();
