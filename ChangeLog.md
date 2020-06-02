@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.17] - 29-04-2020
+- Ajout d'un 8eme paramètre (nom du champ content le fichier de langue a chager pour la traduction du label) dans les options du type de champ 'sellist' et 'chkbxlst'
+
 ## [4.0.16] - 02-03-2020
 - Corrections test sur les erreurs de duplication
 

@@ -127,6 +127,17 @@ class Dictionary extends CommonObject
      *   'options'                => array()|string, // Parameters same as extrafields (ex: 'table:label:rowid::active=1' or array(1=>'value1', 2=>'value2') )
      *                                                  string: sellist, chkbxlst, link | array: select, radio, checkbox
      *                                                  The key of the value must be not contains the character ',' and for chkbxlst it's a rowid
+	 * 													Parameter: 0:1:2:3:4:5:6:7
+	 *													0 : tableName
+	 *													1 : label field name
+	 *													2 : key fields name (if differ of rowid)
+	 *													3 : key field parent (for dependent lists)
+	 *													4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
+	 *													5 : ObjectName
+	 *													6 : classPath
+	 *													7 : lang
+	 *   'truncate'        	  	  => integer,        // Truncate string in "sellist", "chkbxlst" type
+	 *   'no_wysiwyg'        	  => bool,         	 // Disabled the WYSIWYG for the "text" type (Default = false)
      *   'label_separator'        => string,         // Separator when use | in the label into the options value
      *   'unselected_values'      => array,          // List of values for unselected values in select and sellist type (=array(-1) if not defined)
      *   'translate_prefix'       => string,         // Prefix for translation of the value
@@ -235,7 +246,7 @@ class Dictionary extends CommonObject
     public $has_entity = true;
 
     /**
-     * @var bool    Is multi entity (false = partaged, true = by entity)
+     * @var bool    Is multi entity (false = shared, true = by entity)
      */
     public $is_multi_entity = false;
 
@@ -3504,7 +3515,8 @@ class DictionaryLine extends CommonObjectLine
                     // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
                     // 5 : ObjectName
                     // 6 : classPath
-                    $InfoFieldList = explode(":", (string)$field['options']);
+					// 7 : lang
+					$InfoFieldList = explode(":", (string)$field['options']);
 
                     if (empty($InfoFieldList[5]) && empty($InfoFieldList[6])) {
                         $selectkey = "rowid";
@@ -3514,6 +3526,9 @@ class DictionaryLine extends CommonObjectLine
                             $selectkey = $InfoFieldList[2];
                             $keyList = $InfoFieldList[2] . ' as rowid';
                         }
+						if (!empty($InfoFieldList[7])) {
+							$keyList .= ', ' . $InfoFieldList[7] . ' as lang';
+						}
 
                         $fields_label = explode('|', $InfoFieldList[1]);
                         if (is_array($fields_label)) {
@@ -3544,7 +3559,8 @@ class DictionaryLine extends CommonObjectLine
                             // Several field into label (eq table:code|libelle:rowid)
                             $fields_label = explode('|', $InfoFieldList[1]);
 
-                            if (is_array($fields_label) && count($fields_label) > 1) {
+							if (!empty($obj->lang)) $langs->load($obj->lang);
+							if (is_array($fields_label) && count($fields_label) > 1) {
                                 $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
                                 $labelstoshow = array();
                                 foreach ($fields_label as $field_toshow) {
@@ -3553,7 +3569,7 @@ class DictionaryLine extends CommonObjectLine
                                         $translabel = $langs->trans($field['translate_prefix'] . $obj->$field_toshow . $field['translate_suffix']);
                                     }
                                     if ($translabel != $field_toshow) {
-                                        $labelstoshow[] = dol_trunc($translabel, 18);
+                                        $labelstoshow[] = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
                                     } else {
                                         $labelstoshow[] = $obj->$field_toshow;
                                     }
@@ -3565,7 +3581,7 @@ class DictionaryLine extends CommonObjectLine
                                     $translabel = $langs->trans($field['translate_prefix'] . $obj->{$InfoFieldList[1]} . $field['translate_suffix']);
                                 }
                                 if ($translabel != $obj->{$InfoFieldList[1]}) {
-                                    $value = dol_trunc($translabel, 18);
+                                    $value = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
                                 } else {
                                     $value = $obj->{$InfoFieldList[1]};
                                 }
@@ -3606,7 +3622,8 @@ class DictionaryLine extends CommonObjectLine
                     // 3 : key field parent (for dependent lists)
                     // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
                     // 5 : ObjectName
-                    // 6 : classPath
+					// 6 : classPath
+					// 7 : lang
                     $InfoFieldList = explode(":", (string)$field['options']);
 
                     if (empty($InfoFieldList[5]) && empty($InfoFieldList[6])) {
@@ -3617,6 +3634,9 @@ class DictionaryLine extends CommonObjectLine
                             $selectkey = $InfoFieldList[2];
                             $keyList = $InfoFieldList[2] . ' as rowid';
                         }
+						if (!empty($InfoFieldList[7])) {
+							$keyList .= ', ' . $InfoFieldList[7] . ' as lang';
+						}
 
                         $fields_label = explode('|', $InfoFieldList[1]);
                         if (is_array($fields_label)) {
@@ -3641,15 +3661,16 @@ class DictionaryLine extends CommonObjectLine
                                 // Several field into label (eq table:code|libelle:rowid)
                                 $fields_label = explode('|', $InfoFieldList[1]);
                                 if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
+                                	if (!empty($obj->lang)) $langs->load($obj->lang);
                                     if (is_array($fields_label) && count($fields_label) > 1) {
                                         $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
                                         $labelstoshow = array();
                                         foreach ($fields_label as $field_toshow) {
                                             $translabel = $langs->trans($field['translate_prefix'] . $obj->$field_toshow . $field['translate_prefix']);
                                             if ($translabel != $obj->$field_toshow) {
-                                                $labelstoshow[] = dol_trunc($translabel, 18);
+                                                $labelstoshow[] = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
                                             } else {
-                                                $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
+                                                $labelstoshow[] = dol_trunc($obj->$field_toshow, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
                                             }
                                         }
                                         $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . implode($label_separator, $labelstoshow) . '</li>';
@@ -3659,7 +3680,7 @@ class DictionaryLine extends CommonObjectLine
                                             $translabel = $langs->trans($field['translate_prefix'] . $obj->{$InfoFieldList[1]} . $field['translate_suffix']);
                                         }
                                         if ($translabel != $obj->{$InfoFieldList[1]}) {
-                                            $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . dol_trunc($translabel, 18) . '</li>';
+                                            $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0) . '</li>';
                                         } else {
                                             $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . $obj->{$InfoFieldList[1]} . '</li>';
                                         }
@@ -3791,419 +3812,431 @@ class DictionaryLine extends CommonObjectLine
             if (!empty($hidden)) {
                 $out = '<input type="hidden" value="' . $value . '" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"/>';
             } else {
-                switch ($field['type']) {
-                    case 'varchar':
-                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" maxlength="' . $size . '" value="' . dol_escape_htmltag($value) . '"' . $moreAttributes . '>';
-                        break;
-                    case 'text':
-                        require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
-                        $doleditor = new DolEditor($fieldHtmlName, $value, '', 200, 'dolibarr_notes', 'In', false,
-                            false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
-                        $out = $doleditor->Create(1);
-                        break;
-                    case 'phone':
-                    case 'mail':
-                    case 'url':
-                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '>';
-                        break;
-                    case 'password':
-                        $out = '<input type="password" class="flat' . $moreClasses . '" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '>';
-                        break;
-                    case 'select':
-                        $out = '';
-                        if (!empty($conf->use_javascript_ajax) && !empty($conf->global->MAIN_DICTIONARY_USE_SELECT2)) {
-                            include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
-                            $out .= ajax_combobox($fieldHtmlName, array(), 0);
-                        }
+				switch ($field['type']) {
+					case 'varchar':
+						$out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" maxlength="' . $size . '" value="' . dol_escape_htmltag($value) . '"' . $moreAttributes . '>';
+						break;
+					case 'text':
+						if (empty($field['no_wysiwyg'])) {
+							require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
+							$doleditor = new DolEditor($fieldHtmlName, $value, '', 200, 'dolibarr_notes', 'In', false,
+								false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
+							$out = $doleditor->Create(1);
+						} else {
+							$out = '<textarea id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" rows="' . ROWS_5 . '" style="margin-top: 5px; width: 90%;" class="flat">' . $value . '</textarea>';
+						}
+						break;
+					case 'phone':
+					case 'mail':
+					case 'url':
+						$out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '>';
+						break;
+					case 'password':
+						$out = '<input type="password" class="flat' . $moreClasses . '" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '>';
+						break;
+					case 'select':
+						$out = '';
+						if (!empty($conf->use_javascript_ajax) && !empty($conf->global->MAIN_DICTIONARY_USE_SELECT2)) {
+							include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
+							$out .= ajax_combobox($fieldHtmlName, array(), 0);
+						}
 
-                        $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"' . $moreAttributes . '>';
-                        $out .= '<option value="-1">&nbsp;</option>';
-                        foreach ($field['options'] as $key => $val) {
-                            if ((string)$key == '') continue;
-                            list($val, $parent) = explode('|', $val);
-                            $out .= '<option value="' . $key . '"';
-                            $out .= (((string)$value == (string)$key) ? ' selected' : '');
-                            $out .= (!empty($parent) ? ' parent="' . $parent . '"' : '');
-                            $out .= '>' . $langs->trans($field['translate_prefix'] . $val . $field['translate_suffix']) . '</option>';
-                        }
-                        $out .= '</select>';
-                        break;
-                    case 'sellist':
-                        $out = '';
-                        if (!empty($conf->use_javascript_ajax) && !empty($conf->global->MAIN_DICTIONARY_USE_SELECT2)) {
-                            include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
-                            $out .= ajax_combobox($fieldHtmlName, array(), 0);
-                        }
+						$out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"' . $moreAttributes . '>';
+						$out .= '<option value="-1">&nbsp;</option>';
+						foreach ($field['options'] as $key => $val) {
+							if ((string)$key == '') continue;
+							list($val, $parent) = explode('|', $val);
+							$out .= '<option value="' . $key . '"';
+							$out .= (((string)$value == (string)$key) ? ' selected' : '');
+							$out .= (!empty($parent) ? ' parent="' . $parent . '"' : '');
+							$out .= '>' . $langs->trans($field['translate_prefix'] . $val . $field['translate_suffix']) . '</option>';
+						}
+						$out .= '</select>';
+						break;
+					case 'sellist':
+						$out = '';
+						if (!empty($conf->use_javascript_ajax) && !empty($conf->global->MAIN_DICTIONARY_USE_SELECT2)) {
+							include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
+							$out .= ajax_combobox($fieldHtmlName, array(), 0);
+						}
 
-                        $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"' . $moreAttributes . '>';
-                        $InfoFieldList = explode(":", (string)$field['options']);
-                        // 0 : tableName
-                        // 1 : label field name
-                        // 2 : key fields name (if differ of rowid)
-                        // 3 : key field parent (for dependent lists)
-                        // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
-                        $keyList = (empty($InfoFieldList[2]) ? 'rowid' : $InfoFieldList[2] . ' as rowid');
+						$out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"' . $moreAttributes . '>';
+						$InfoFieldList = explode(":", (string)$field['options']);
+						// 0 : tableName
+						// 1 : label field name
+						// 2 : key fields name (if differ of rowid)
+						// 3 : key field parent (for dependent lists)
+						// 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
+						// 7 : lang
+						$keyList = (empty($InfoFieldList[2]) ? 'rowid' : $InfoFieldList[2] . ' as rowid');
 
-                        if (count($InfoFieldList) > 4 && !empty($InfoFieldList[4])) {
-                            if (strpos($InfoFieldList[4], 'extra.') !== false) {
-                                $keyList = 'main.' . $InfoFieldList[2] . ' as rowid';
-                            } else {
-                                $keyList = $InfoFieldList[2] . ' as rowid';
-                            }
-                        }
-                        $parentName = "";
-                        if (count($InfoFieldList) > 3 && !empty($InfoFieldList[3])) {
-                            list($parentName, $parentField) = explode('|', $InfoFieldList[3]);
-                            $keyList .= ', ' . $parentField;
-                        }
+						if (count($InfoFieldList) > 4 && !empty($InfoFieldList[4])) {
+							if (strpos($InfoFieldList[4], 'extra.') !== false) {
+								$keyList = 'main.' . $InfoFieldList[2] . ' as rowid';
+							} else {
+								$keyList = $InfoFieldList[2] . ' as rowid';
+							}
+						}
+						$parentName = "";
+						if (count($InfoFieldList) > 3 && !empty($InfoFieldList[3])) {
+							list($parentName, $parentField) = explode('|', $InfoFieldList[3]);
+							$keyList .= ', ' . $parentField;
+						}
 
-                        $fields_label = explode('|', $InfoFieldList[1]);
-                        if (is_array($fields_label)) {
-                            $keyList .= ', ';
-                            $keyList .= implode(', ', $fields_label);
-                        }
+						if (!empty($InfoFieldList[7])) {
+							$keyList .= ', ' . $InfoFieldList[7] . ' as lang';
+						}
 
-                        $sqlwhere = '';
-                        $sql = 'SELECT ' . $keyList;
-                        $sql .= ' FROM ' . MAIN_DB_PREFIX . $InfoFieldList[0];
-                        if (!empty($InfoFieldList[4])) {
-                            // can use SELECT request
-                            if (strpos($InfoFieldList[4], '$SEL$') !== false) {
-                                $InfoFieldList[4] = str_replace('$SEL$', 'SELECT', $InfoFieldList[4]);
-                            }
+						$fields_label = explode('|', $InfoFieldList[1]);
+						if (is_array($fields_label)) {
+							$keyList .= ', ';
+							$keyList .= implode(', ', $fields_label);
+						}
 
-                            // current object id can be use into filter
-                            if (strpos($InfoFieldList[4], '$ID$') !== false && !empty($objectid)) {
-                                $InfoFieldList[4] = str_replace('$ID$', $objectid, $InfoFieldList[4]);
-                            } else {
-                                $InfoFieldList[4] = str_replace('$ID$', '0', $InfoFieldList[4]);
-                            }
-                            //We have to join on extrafield table
-                            if (strpos($InfoFieldList[4], 'extra') !== false) {
-                                $sql .= ' as main, ' . MAIN_DB_PREFIX . $InfoFieldList[0] . '_extrafields as extra';
-                                $sqlwhere .= ' WHERE extra.fk_object=main.' . $InfoFieldList[2] . ' AND ' . $InfoFieldList[4];
-                            } else {
-                                $sqlwhere .= ' WHERE ' . $InfoFieldList[4];
-                            }
-                        } else {
-                            $sqlwhere .= ' WHERE 1=1';
-                        }
-                        // Some tables may have field, some other not. For the moment we disable it.
-                        if (in_array($InfoFieldList[0], array('tablewithentity'))) {
-                            $sqlwhere .= ' AND entity = ' . $conf->entity;
-                        }
-                        $sql .= $sqlwhere;
-                        //print $sql;
+						$sqlwhere = '';
+						$sql = 'SELECT ' . $keyList;
+						$sql .= ' FROM ' . MAIN_DB_PREFIX . $InfoFieldList[0];
+						if (!empty($InfoFieldList[4])) {
+							// can use SELECT request
+							if (strpos($InfoFieldList[4], '$SEL$') !== false) {
+								$InfoFieldList[4] = str_replace('$SEL$', 'SELECT', $InfoFieldList[4]);
+							}
 
-                        $sql .= ' ORDER BY ' . implode(', ', $fields_label);
+							// current object id can be use into filter
+							if (strpos($InfoFieldList[4], '$ID$') !== false && !empty($objectid)) {
+								$InfoFieldList[4] = str_replace('$ID$', $objectid, $InfoFieldList[4]);
+							} else {
+								$InfoFieldList[4] = str_replace('$ID$', '0', $InfoFieldList[4]);
+							}
+							//We have to join on extrafield table
+							if (strpos($InfoFieldList[4], 'extra') !== false) {
+								$sql .= ' as main, ' . MAIN_DB_PREFIX . $InfoFieldList[0] . ' as extra';
+								$sqlwhere .= ' WHERE extra.fk_object=main.' . $InfoFieldList[2] . ' AND ' . $InfoFieldList[4];
+							} else {
+								$sqlwhere .= ' WHERE ' . $InfoFieldList[4];
+							}
+						} else {
+							$sqlwhere .= ' WHERE 1=1';
+						}
+						// Some tables may have field, some other not. For the moment we disable it.
+						if (in_array($InfoFieldList[0], array('tablewithentity'))) {
+							$sqlwhere .= ' AND entity = ' . $conf->entity;
+						}
+						$sql .= $sqlwhere;
+						//print $sql;
 
-                        dol_syslog(get_class($this) . ' type=sellist', LOG_DEBUG);
-                        $resql = $this->db->query($sql);
-                        if ($resql) {
-                            $out .= '<option value="-1">&nbsp;</option>';
-                            $num = $this->db->num_rows($resql);
-                            $i = 0;
-                            while ($i < $num) {
-                                $obj = $this->db->fetch_object($resql);
+						$sql .= ' ORDER BY ' . implode(', ', $fields_label);
 
-                                // Several field into label (eq table:code|libelle:rowid)
-                                $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
-                                $fields_label = explode('|', $InfoFieldList[1]);
-                                $notrans = false;
-                                if (is_array($fields_label)) {
-                                    $notrans = true;
-                                    $labelstoshow = array();
-                                    foreach ($fields_label as $field_toshow) {
-                                        $labelstoshow[] = $obj->$field_toshow;
-                                    }
-                                    $labeltoshow = implode($label_separator, $labelstoshow);
-                                } else {
-                                    $labeltoshow = $obj->{$InfoFieldList[1]};
-                                }
-                                $labeltoshow = dol_trunc($labeltoshow, 45);
+						dol_syslog(get_class($this) . ' type=sellist', LOG_DEBUG);
+						$resql = $this->db->query($sql);
+						if ($resql) {
+							$out .= '<option value="-1">&nbsp;</option>';
+							$num = $this->db->num_rows($resql);
+							$i = 0;
+							while ($i < $num) {
+								$obj = $this->db->fetch_object($resql);
 
-                                if ($value == $obj->rowid) {
-                                    $labelstoshow = array();
-                                    foreach ($fields_label as $field_toshow) {
-                                        $translabel = $langs->trans($field['translate_prefix'] . $obj->$field_toshow . $field['translate_suffix']);
-                                        if ($translabel != $obj->$field_toshow) {
-                                            $labelstoshow[] = dol_trunc($translabel, 18);
-                                        } else {
-                                            $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
-                                        }
-                                    }
-                                    $labeltoshow = implode($label_separator, $labelstoshow);
-                                    $out .= '<option value="' . $obj->rowid . '" selected>' . $labeltoshow . '</option>';
-                                } else {
-                                    if (!$notrans) {
-                                        $translabel = $langs->trans($field['translate_prefix'] . $obj->{$InfoFieldList[1]} . $field['translate_suffix']);
-                                        if ($translabel != $obj->{$InfoFieldList[1]}) {
-                                            $labeltoshow = dol_trunc($translabel, 18);
-                                        } else {
-                                            $labeltoshow = dol_trunc($obj->{$InfoFieldList[1]}, 18);
-                                        }
-                                    }
-                                    if (empty($labeltoshow)) $labeltoshow = '(not defined)';
-                                    if ($value == $obj->rowid) {
-                                        $out .= '<option value="' . $obj->rowid . '" selected>' . $labeltoshow . '</option>';
-                                    }
+								// Several field into label (eq table:code|libelle:rowid)
+								if (!empty($obj->lang)) $langs->load($obj->lang);
+								$label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
+								$fields_label = explode('|', $InfoFieldList[1]);
+								$notrans = false;
+								if (is_array($fields_label) && count($fields_label) > 1) {
+									$notrans = true;
+									$labelstoshow = array();
+									foreach ($fields_label as $field_toshow) {
+										$labelstoshow[] = $obj->$field_toshow;
+									}
+									$labeltoshow = implode($label_separator, $labelstoshow);
+								} else {
+									$labeltoshow = $obj->{$InfoFieldList[1]};
+								}
 
-                                    if (!empty($InfoFieldList[3])) {
-                                        $parent = $parentName . ':' . $obj->{$parentField};
-                                    }
+								if ($value == $obj->rowid) {
+									$labelstoshow = array();
+									foreach ($fields_label as $field_toshow) {
+										$translabel = $langs->trans($field['translate_prefix'] . $obj->$field_toshow . $field['translate_suffix']);
+										if ($translabel != $obj->$field_toshow) {
+											$labelstoshow[] = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+										} else {
+											$labelstoshow[] = dol_trunc($obj->$field_toshow, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+										}
+									}
+									$labeltoshow = implode($label_separator, $labelstoshow);
+									$out .= '<option value="' . $obj->rowid . '" selected>' . $labeltoshow . '</option>';
+								} else {
+									if (!$notrans) {
+										$translabel = $langs->trans($field['translate_prefix'] . $obj->{$InfoFieldList[1]} . $field['translate_suffix']);
+										if ($translabel != $obj->{$InfoFieldList[1]}) {
+											$labeltoshow = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+										} else {
+											$labeltoshow = dol_trunc($obj->{$InfoFieldList[1]}, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+										}
+									}
+									if (empty($labeltoshow)) $labeltoshow = '(not defined)';
+									if ($value == $obj->rowid) {
+										$out .= '<option value="' . $obj->rowid . '" selected>' . $labeltoshow . '</option>';
+									}
 
-                                    $out .= '<option value="' . $obj->rowid . '"';
-                                    $out .= ($value == $obj->rowid ? ' selected' : '');
-                                    $out .= (!empty($parent) ? ' parent="' . $parent . '"' : '');
-                                    $out .= '>' . $labeltoshow . '</option>';
-                                }
+									if (!empty($InfoFieldList[3])) {
+										$parent = $parentName . ':' . $obj->{$parentField};
+									}
 
-                                $i++;
-                            }
-                            $this->db->free($resql);
-                        } else {
-                            print 'Error in request ' . $sql . ' ' . $this->db->lasterror() . '. Check setup of extra parameters.<br>';
-                        }
-                        $out .= '</select>';
-                        break;
-                    case 'radio':
-                        $out = '';
-                        foreach ($field['options'] as $keyopt => $val) {
-                            $out .= '<input class="flat' . $moreClasses . '" type="radio" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"' . $moreAttributes;
-                            $out .= ' value="' . $keyopt . '"';
-                            $out .= ' id="' . $fieldHtmlName . '_' . $keyopt . '"';
-                            $out .= ($value == $keyopt ? 'checked' : '');
-                            $out .= '/><label for="' . $fieldHtmlName . '_' . $keyopt . '">' . $langs->trans($field['translate_prefix'] . $val . $field['translate_suffix']) . '</label><br>';
-                        }
-                        break;
-                    case 'checkbox':
-                        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-                        global $form;
-                        if (!is_object($form)) $form = new Form($this->db);
+									$out .= '<option value="' . $obj->rowid . '"';
+									$out .= ($value == $obj->rowid ? ' selected' : '');
+									$out .= (!empty($parent) ? ' parent="' . $parent . '"' : '');
+									$out .= '>' . $labeltoshow . '</option>';
+								}
 
-                        if (is_array($value)) {
-                            $value_arr = $value;
-                        } else {
-                            $value_arr = array_filter(explode(',', (string)$value), 'strlen');
-                        }
-                        $options = array();
-                        if (is_array($field['options'])) {
-                            foreach ($field['options'] as $option_id => $option) {
-                                $options[$option_id] = $langs->trans($field['translate_prefix'] . $option . $field['translate_suffix']);
-                            }
-                        }
-                        $out = $form->multiselectarray($fieldHtmlName, (empty($options) ? null : $options), $value_arr, '', 0, $moreClasses, 0, '', $moreAttributes);
-                        break;
-                    case 'chkbxlst':
-                        if (is_array($value)) {
-                            $value_arr = $value;
-                        } else {
-                            $value_arr = array_filter(explode(',', (string)$value), 'strlen');
-                        }
+								$i++;
+							}
+							$this->db->free($resql);
+						} else {
+							print 'Error in request ' . $sql . ' ' . $this->db->lasterror() . '. Check setup of extra parameters.<br>';
+						}
+						$out .= '</select>';
+						break;
+					case 'radio':
+						$out = '';
+						foreach ($field['options'] as $keyopt => $val) {
+							$out .= '<input class="flat' . $moreClasses . '" type="radio" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"' . $moreAttributes;
+							$out .= ' value="' . $keyopt . '"';
+							$out .= ' id="' . $fieldHtmlName . '_' . $keyopt . '"';
+							$out .= ($value == $keyopt ? 'checked' : '');
+							$out .= '/><label for="' . $fieldHtmlName . '_' . $keyopt . '">' . $langs->trans($field['translate_prefix'] . $val . $field['translate_suffix']) . '</label><br>';
+						}
+						break;
+					case 'checkbox':
+						require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+						global $form;
+						if (!is_object($form)) $form = new Form($this->db);
 
-                        $InfoFieldList = explode(":", (string)$field['options']);
-                        // 0 : tableName
-                        // 1 : label field name
-                        // 2 : key fields name (if differ of rowid)
-                        // 3 : key field parent (for dependent lists)
-                        // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
-                        $keyList = (empty($InfoFieldList[2]) ? 'rowid' : $InfoFieldList[2] . ' as rowid');
+						if (is_array($value)) {
+							$value_arr = $value;
+						} else {
+							$value_arr = array_filter(explode(',', (string)$value), 'strlen');
+						}
+						$options = array();
+						if (is_array($field['options'])) {
+							foreach ($field['options'] as $option_id => $option) {
+								$options[$option_id] = $langs->trans($field['translate_prefix'] . $option . $field['translate_suffix']);
+							}
+						}
+						$out = $form->multiselectarray($fieldHtmlName, (empty($options) ? null : $options), $value_arr, '', 0, $moreClasses, 0, '', $moreAttributes);
+						break;
+					case 'chkbxlst':
+						if (is_array($value)) {
+							$value_arr = $value;
+						} else {
+							$value_arr = array_filter(explode(',', (string)$value), 'strlen');
+						}
 
-                        if (count($InfoFieldList) > 3 && !empty($InfoFieldList[3])) {
-                            list ($parentName, $parentField) = explode('|', $InfoFieldList[3]);
-                            $keyList .= ', ' . $parentField;
-                        }
-                        if (count($InfoFieldList) > 4 && !empty($InfoFieldList[4])) {
-                            if (strpos($InfoFieldList[4], 'extra.') !== false) {
-                                $keyList = 'main.' . $InfoFieldList[2] . ' as rowid';
-                            } else {
-                                $keyList = $InfoFieldList[2] . ' as rowid';
-                            }
-                        }
+						$InfoFieldList = explode(":", (string)$field['options']);
+						// 0 : tableName
+						// 1 : label field name
+						// 2 : key fields name (if differ of rowid)
+						// 3 : key field parent (for dependent lists)
+						// 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
+						// 7 : lang
+						$keyList = (empty($InfoFieldList[2]) ? 'rowid' : $InfoFieldList[2] . ' as rowid');
 
-                        $fields_label = explode('|', $InfoFieldList[1]);
-                        if (is_array($fields_label)) {
-                            $keyList .= ', ';
-                            $keyList .= implode(', ', $fields_label);
-                        }
+						if (count($InfoFieldList) > 3 && !empty($InfoFieldList[3])) {
+							list ($parentName, $parentField) = explode('|', $InfoFieldList[3]);
+							$keyList .= ', ' . $parentField;
+						}
+						if (count($InfoFieldList) > 4 && !empty($InfoFieldList[4])) {
+							if (strpos($InfoFieldList[4], 'extra.') !== false) {
+								$keyList = 'main.' . $InfoFieldList[2] . ' as rowid';
+							} else {
+								$keyList = $InfoFieldList[2] . ' as rowid';
+							}
+						}
+						if (!empty($InfoFieldList[7])) {
+							$keyList .= ', ' . $InfoFieldList[7] . ' as lang';
+						}
 
-                        $sqlwhere = '';
-                        $sql = 'SELECT ' . $keyList;
-                        $sql .= ' FROM ' . MAIN_DB_PREFIX . $InfoFieldList[0];
-                        if (!empty($InfoFieldList[4])) {
+						$fields_label = explode('|', $InfoFieldList[1]);
+						if (is_array($fields_label)) {
+							$keyList .= ', ';
+							$keyList .= implode(', ', $fields_label);
+						}
 
-                            // can use SELECT request
-                            if (strpos($InfoFieldList[4], '$SEL$') !== false) {
-                                $InfoFieldList[4] = str_replace('$SEL$', 'SELECT', $InfoFieldList[4]);
-                            }
+						$sqlwhere = '';
+						$sql = 'SELECT ' . $keyList;
+						$sql .= ' FROM ' . MAIN_DB_PREFIX . $InfoFieldList[0];
+						if (!empty($InfoFieldList[4])) {
 
-                            // current object id can be use into filter
-                            if (strpos($InfoFieldList[4], '$ID$') !== false && !empty($objectid)) {
-                                $InfoFieldList[4] = str_replace('$ID$', $objectid, $InfoFieldList[4]);
-                            } else {
-                                $InfoFieldList[4] = str_replace('$ID$', '0', $InfoFieldList[4]);
-                            }
+							// can use SELECT request
+							if (strpos($InfoFieldList[4], '$SEL$') !== false) {
+								$InfoFieldList[4] = str_replace('$SEL$', 'SELECT', $InfoFieldList[4]);
+							}
 
-                            // We have to join on extrafield table
-                            if (strpos($InfoFieldList[4], 'extra') !== false) {
-                                $sql .= ' as main, ' . MAIN_DB_PREFIX . $InfoFieldList[0] . '_extrafields as extra';
-                                $sqlwhere .= ' WHERE extra.fk_object=main.' . $InfoFieldList[2] . ' AND ' . $InfoFieldList[4];
-                            } else {
-                                $sqlwhere .= ' WHERE ' . $InfoFieldList[4];
-                            }
-                        } else {
-                            $sqlwhere .= ' WHERE 1=1';
-                        }
-                        // Some tables may have field, some other not. For the moment we disable it.
-                        if (in_array($InfoFieldList[0], array('tablewithentity'))) {
-                            $sqlwhere .= ' AND entity = ' . $conf->entity;
-                        }
-                        // $sql.=preg_replace('/^ AND /','',$sqlwhere);
-                        // print $sql;
+							// current object id can be use into filter
+							if (strpos($InfoFieldList[4], '$ID$') !== false && !empty($objectid)) {
+								$InfoFieldList[4] = str_replace('$ID$', $objectid, $InfoFieldList[4]);
+							} else {
+								$InfoFieldList[4] = str_replace('$ID$', '0', $InfoFieldList[4]);
+							}
 
-                        $sql .= $sqlwhere;
-                        dol_syslog(get_class($this) . ' type=chkbxlst', LOG_DEBUG);
-                        $resql = $this->db->query($sql);
-                        if ($resql) {
-                            $num = $this->db->num_rows($resql);
-                            $i = 0;
+							// We have to join on extrafield table
+							if (strpos($InfoFieldList[4], 'extra') !== false) {
+								$sql .= ' as main, ' . MAIN_DB_PREFIX . $InfoFieldList[0] . '_extrafields as extra';
+								$sqlwhere .= ' WHERE extra.fk_object=main.' . $InfoFieldList[2] . ' AND ' . $InfoFieldList[4];
+							} else {
+								$sqlwhere .= ' WHERE ' . $InfoFieldList[4];
+							}
+						} else {
+							$sqlwhere .= ' WHERE 1=1';
+						}
+						// Some tables may have field, some other not. For the moment we disable it.
+						if (in_array($InfoFieldList[0], array('tablewithentity'))) {
+							$sqlwhere .= ' AND entity = ' . $conf->entity;
+						}
+						// $sql.=preg_replace('/^ AND /','',$sqlwhere);
+						// print $sql;
 
-                            $data = array();
+						$sql .= $sqlwhere;
+						dol_syslog(get_class($this) . ' type=chkbxlst', LOG_DEBUG);
+						$resql = $this->db->query($sql);
+						if ($resql) {
+							$num = $this->db->num_rows($resql);
+							$i = 0;
 
-                            while ($i < $num) {
-                                $labeltoshow = '';
-                                $obj = $this->db->fetch_object($resql);
+							$data = array();
 
-                                // Several field into label (eq table:code|libelle:rowid)
-                                $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
-                                $fields_label = explode('|', $InfoFieldList[1]);
-                                $notrans = false;
-                                if (is_array($fields_label)) {
-                                    $notrans = true;
-                                    $labelstoshow = array();
-                                    foreach ($fields_label as $field_toshow) {
-                                        $labelstoshow[] = $obj->$field_toshow;
-                                    }
-                                    $labeltoshow = implode($label_separator, $labelstoshow);
-                                } else {
-                                    $labeltoshow = $obj->{$InfoFieldList[1]};
-                                }
-                                $labeltoshow = dol_trunc($labeltoshow, 45);
+							while ($i < $num) {
+								$obj = $this->db->fetch_object($resql);
 
-                                if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
-                                    $labelstoshow = array();
-                                    foreach ($fields_label as $field_toshow) {
-                                        $translabel = $langs->trans($field['translate_prefix'] . $obj->$field_toshow . $field['translate_suffix']);
-                                        if ($translabel != $obj->$field_toshow) {
-                                            $labelstoshow[] = dol_trunc($translabel, 18);
-                                        } else {
-                                            $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
-                                        }
-                                    }
-                                    $labeltoshow = implode($label_separator, $labelstoshow);
+								// Several field into label (eq table:code|libelle:rowid)
+								if (!empty($obj->lang)) $langs->load($obj->lang);
+								$label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
+								$fields_label = explode('|', $InfoFieldList[1]);
+								$notrans = false;
+								if (is_array($fields_label) && count($fields_label) > 1) {
+									$notrans = true;
+									$labelstoshow = array();
+									foreach ($fields_label as $field_toshow) {
+										$labelstoshow[] = $obj->$field_toshow;
+									}
+									$labeltoshow = implode($label_separator, $labelstoshow);
+								} else {
+									$labeltoshow = $obj->{$InfoFieldList[1]};
+								}
 
-                                    $data[$obj->rowid] = $labeltoshow;
+								if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
+									$labelstoshow = array();
+									foreach ($fields_label as $field_toshow) {
+										$translabel = $langs->trans($field['translate_prefix'] . $obj->$field_toshow . $field['translate_suffix']);
+										if ($translabel != $obj->$field_toshow) {
+											$labelstoshow[] = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+										} else {
+											$labelstoshow[] = dol_trunc($obj->$field_toshow, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+										}
+									}
+									$labeltoshow = implode($label_separator, $labelstoshow);
 
-                                } else {
-                                    if (!$notrans) {
-                                        $translabel = $langs->trans($field['translate_prefix'] . $obj->{$InfoFieldList[1]} . $field['translate_suffix']);
-                                        if ($translabel != $obj->{$InfoFieldList[1]}) {
-                                            $labeltoshow = dol_trunc($translabel, 18);
-                                        } else {
-                                            $labeltoshow = dol_trunc($obj->{$InfoFieldList[1]}, 18);
-                                        }
-                                    }
-                                    if (empty($labeltoshow))
-                                        $labeltoshow = '(not defined)';
+									$data[$obj->rowid] = $labeltoshow;
 
-                                    if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
-                                        $data[$obj->rowid] = $labeltoshow;
-                                    }
+								} else {
+									if (!$notrans) {
+										$translabel = $langs->trans($field['translate_prefix'] . $obj->{$InfoFieldList[1]} . $field['translate_suffix']);
+										if ($translabel != $obj->{$InfoFieldList[1]}) {
+											$labeltoshow = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+										} else {
+											$labeltoshow = dol_trunc($obj->{$InfoFieldList[1]}, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+										}
+									}
+									if (empty($labeltoshow))
+										$labeltoshow = '(not defined)';
 
-                                    if (!empty($InfoFieldList[3])) {
-                                        $parent = $parentName . ':' . $obj->{$parentField};
-                                    }
+									if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
+										$data[$obj->rowid] = $labeltoshow;
+									}
 
-                                    $data[$obj->rowid] = $labeltoshow;
-                                }
+									if (!empty($InfoFieldList[3])) {
+										$parent = $parentName . ':' . $obj->{$parentField};
+									}
 
-                                $i++;
-                            }
-                            $this->db->free($resql);
+									$data[$obj->rowid] = $labeltoshow;
+								}
 
-                            require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-                            global $form;
-                            if (!is_object($form)) $form = new Form($this->db);
+								$i++;
+							}
+							$this->db->free($resql);
 
-                            $out = $form->multiselectarray($fieldHtmlName, $data, $value_arr, '', 0, $moreClasses, 0, '', $moreAttributes);
-                        } else {
-                            $out = 'Error in request ' . $sql . ' ' . $this->db->lasterror() . '. Check setup of field parameters.';
-                        }
-                        break;
-                    case 'int':
-                        $tmp = explode(',', $size);
-                        $newsize = $tmp[0] + $tmp[1] + 1;
-                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" maxlength="' . $newsize . '" value="' . $value . '"' . $moreAttributes . '>';
-                        break;
-                    case 'float':
-                    case 'double':
-                        if (!empty($value)) {        // $value in memory is a php numeric, we format it into user number format.
-                            $value = price($value);
-                        }
-                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '> ';
-                        break;
-                    case 'price':
-                        if (!empty($value)) {        // $value in memory is a php numeric, we format it into user number format.
-                            $value = price($value);
-                        }
-                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '> ' . $langs->getCurrencySymbol($conf->currency);
-                        break;
-                    case 'link':
-                        // 0 : ObjectName
-                        // 1 : classPath
-                        $InfoFieldList = explode(":", (string)$field['options']);
-                        dol_include_once($InfoFieldList[1]);
-                        if ($InfoFieldList[0] && class_exists($InfoFieldList[0], false)) {
-                            $valuetoshow = $value;
-                            if (!empty($value)) {
-                                $object = new $InfoFieldList[0]($this->db);
-                                $resfetch = $object->fetch($value);
-                                if ($resfetch > 0) {
-                                    $valuetoshow = $object->ref;
-                                    if ($object->element == 'societe') $valuetoshow = $object->name;  // Special case for thirdparty because ->ref is not name but id (because name is not unique)
-                                }
-                            }
-                            $out = '<input type="text" class="flat' . $moreClasses . '" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $valuetoshow . '"' . $moreAttributes . '>';
-                        } else {
-                            dol_syslog('Error bad setup of extrafield', LOG_WARNING);
-                            $out = 'Error bad setup of extrafield';
-                        }
-                        break;
-                    case 'date':
-                    case 'datetime':
-                        $showtime = $type == 'datetime' ? 1 : 0;
+							require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+							global $form;
+							if (!is_object($form)) $form = new Form($this->db);
 
-                        // Do not show current date when field not required (see select_date() method)
-                        if (!$required && $value == '') $value = '-1';
+							$out = $form->multiselectarray($fieldHtmlName, $data, $value_arr, '', 0, $moreClasses, 0, '', $moreAttributes);
+						} else {
+							$out = 'Error in request ' . $sql . ' ' . $this->db->lasterror() . '. Check setup of field parameters.';
+						}
+						break;
+					case 'int':
+						$tmp = explode(',', $size);
+						$newsize = $tmp[0] + $tmp[1] + 1;
+						$out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" maxlength="' . $newsize . '" value="' . $value . '"' . $moreAttributes . '>';
+						break;
+					case 'float':
+					case 'double':
+						if (!empty($value)) {        // $value in memory is a php numeric, we format it into user number format.
+							$value = price($value);
+						}
+						$out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '> ';
+						break;
+					case 'price':
+						if (!empty($value)) {        // $value in memory is a php numeric, we format it into user number format.
+							$value = price($value);
+						}
+						$out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '> ' . $langs->getCurrencySymbol($conf->currency);
+						break;
+					case 'link':
+						// 0 : ObjectName
+						// 1 : classPath
+						$InfoFieldList = explode(":", (string)$field['options']);
+						dol_include_once($InfoFieldList[1]);
+						if ($InfoFieldList[0] && class_exists($InfoFieldList[0], false)) {
+							$valuetoshow = $value;
+							if (!empty($value)) {
+								$object = new $InfoFieldList[0]($this->db);
+								$resfetch = $object->fetch($value);
+								if ($resfetch > 0) {
+									$valuetoshow = $object->ref;
+									if ($object->element == 'societe') $valuetoshow = $object->name;  // Special case for thirdparty because ->ref is not name but id (because name is not unique)
+								}
+							}
+							$out = '<input type="text" class="flat' . $moreClasses . '" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $valuetoshow . '"' . $moreAttributes . '>';
+						} else {
+							dol_syslog('Error bad setup of extrafield', LOG_WARNING);
+							$out = 'Error bad setup of extrafield';
+						}
+						break;
+					case 'date':
+					case 'datetime':
+						$showtime = $type == 'datetime' ? 1 : 0;
 
-                        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-                        global $form;
-                        if (!is_object($form)) $form = new Form($this->db);
+						// Do not show current date when field not required (see select_date() method)
+						if (!$required && $value == '') $value = '-1';
 
-                        // TODO Must also support $moreparam
-                        $out = $form->select_date($value, $fieldHtmlName, $showtime, $showtime, $required, '', 1, 1, 1, 0, 1);
-                        break;
-                    case 'boolean':
-                        $out = '<input type="checkbox" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="1" ' . (!empty($value) ? 'checked' : '') . $moreAttributes . '>';
-                        break;
-                    case 'custom':
-                        $out = $this->showInputCustomFieldAD($fieldName, $value, $keyprefix, $keysuffix, $objectid);
-                        break;
-                    default: // unknown
-                        $out = '';
-                        break;
-                }
-            }
+						require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+						global $form;
+						if (!is_object($form)) $form = new Form($this->db);
+
+						// TODO Must also support $moreparam
+						$out = $form->select_date($value, $fieldHtmlName, $showtime, $showtime, $required, '', 1, 1, 1, 0, 1);
+						break;
+					case 'boolean':
+						$out = '<input type="checkbox" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="1" ' . (!empty($value) ? 'checked' : '') . $moreAttributes . '>';
+						break;
+					case 'custom':
+						$out = $this->showInputCustomFieldAD($fieldName, $value, $keyprefix, $keysuffix, $objectid);
+						break;
+					default: // unknown
+						$out = '';
+						break;
+				}
+			}
 
             return $out;
         }
