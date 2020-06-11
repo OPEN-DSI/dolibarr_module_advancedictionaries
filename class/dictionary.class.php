@@ -1804,12 +1804,18 @@ class Dictionary extends CommonObject
 				case 'radio':
 				case 'select':
 				case 'checkbox':
-					$dictionaryLine->dictionary->fields[$fieldName]['type'] = 'select';
-					return $dictionaryLine->showInputFieldAD($fieldName, is_array($search_filters[$fieldName]) ? $search_filters[$fieldName][0] : '', 'search_');
+					$old_type = $this->fields[$fieldName]['type'];
+					$this->fields[$fieldName]['type'] = 'select';
+					$out = $dictionaryLine->showInputFieldAD($fieldName, is_array($search_filters[$fieldName]) ? $search_filters[$fieldName][0] : '', 'search_');
+					$this->fields[$fieldName]['type'] = $old_type;
+					return $out;
 				case 'sellist':
 				case 'chkbxlst':
-					$dictionaryLine->dictionary->fields[$fieldName]['type'] = 'sellist';
-					return $dictionaryLine->showInputFieldAD($fieldName, is_array($search_filters[$fieldName]) ? $search_filters[$fieldName][0] : '', 'search_');
+					$old_type = $this->fields[$fieldName]['type'];
+					$this->fields[$fieldName]['type'] = 'sellist';
+					$out = $dictionaryLine->showInputFieldAD($fieldName, is_array($search_filters[$fieldName]) ? $search_filters[$fieldName][0] : '', 'search_');
+					$this->fields[$fieldName]['type'] = $old_type;
+					return $out;
 				case 'boolean':
 					require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
 					global $form;
