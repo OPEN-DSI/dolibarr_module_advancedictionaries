@@ -153,7 +153,7 @@ if (empty($reshook)) {
             // Actions add an entry into a dictionary
             if ($action == 'confirm_add_line' && $confirm == 'yes' && $dictionary->lineCanBeAdded && $canCreate) {
                 $fieldsValue = $dictionary->getFieldsValueFromForm('add_');
-                $fieldsValue = array_merge($fieldsValue, $dictionary->getFixedFieldsValue());
+				$fieldsValue += $dictionary->getFixedFieldsValue();
 
                 if ($dictionary->addLine($fieldsValue, $user) > 0) {
                     setEventMessage($langs->transnoentities("RecordSaved"));
@@ -167,6 +167,7 @@ if (empty($reshook)) {
             } // Actions edit an entry into a dictionary
             elseif ($action == 'confirm_edit_line' && $confirm == 'yes' && $dictionary->lineCanBeUpdated && $canUpdate) {
                 $fieldsValue = $dictionary->getFieldsValueFromForm('edit_', '', 1);
+				$fieldsValue += $dictionary->getFixedFieldsValue();
 
                 if ($dictionary->updateLine($rowid, $fieldsValue, $user) > 0) {
                     setEventMessage($langs->transnoentities("RecordSaved"));

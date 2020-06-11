@@ -3,6 +3,10 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.18] - 06-06-2020
+- Ajout du raffraichissement des valeurs d'une liste à la modification d'un champ par AJAX (nouveau parametre: ajax_options)
+- Amélioration du parametre 'options' pour les champs de type 'sellist' et 'chkbxlst'
+
 ## [4.0.17] - 29-04-2020
 - Ajout d'un 8eme paramètre (nom du champ content le fichier de langue a chager pour la traduction du label) dans les options du type de champ 'sellist' et 'chkbxlst'
 
@@ -93,7 +97,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.16...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.18...HEAD
+[4.0.18]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.18
+[4.0.17]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.17
 [4.0.16]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.16
 [4.0.14]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.14
 [4.0.13]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.13

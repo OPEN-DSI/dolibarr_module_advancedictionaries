@@ -86,7 +86,7 @@ class FormDictionary
      * @param   int         $ismultiselect          0=Not multiselect, 1=Multiselect
      * @return  string                              HTML string with select box for thirdparty.
      */
-    function select_dictionary($module, $name, $selected = '', $htmlname = 'dictionaryid', $showempty = '', $key='rowid', $label='{{label}}', $filters=array(), $orders=array('label'=>'ASC'), $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false, $ismultiselect=0)
+	public function select_dictionary($module, $name, $selected = '', $htmlname = 'dictionaryid', $showempty = '', $key='rowid', $label='{{label}}', $filters=array(), $orders=array('label'=>'ASC'), $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false, $ismultiselect=0)
     {
         global $conf, $langs;
 
@@ -154,7 +154,7 @@ class FormDictionary
      * @param   int             $ismultiselect          0=Not multiselect, 1=Multiselect
      * @return	string					                HTML string with
      */
-    function select_dictionary_list($module, $name, $selected='', $htmlname='dictionaryid', $showempty='', $key='rowid', $label='{{label}}', $filters=array(), $orders=array(), $forcecombo=0, $events=array(), $usesearchtoselect=0, $outputmode=0, $limit=0, $morecss='minwidth100', $moreparam='', $options_only=false, $ismultiselect=0)
+	public function select_dictionary_list($module, $name, $selected='', $htmlname='dictionaryid', $showempty='', $key='rowid', $label='{{label}}', $filters=array(), $orders=array(), $forcecombo=0, $events=array(), $usesearchtoselect=0, $outputmode=0, $limit=0, $morecss='minwidth100', $moreparam='', $options_only=false, $ismultiselect=0)
     {
         global $conf, $langs;
 
@@ -239,7 +239,7 @@ class FormDictionary
      *                                      'disabled'    : array(), List of html ID to disable if no options
    	 * @return  string
    	 */
-   	function add_select_events($htmlname, $events)
+	public function add_select_events($htmlname, $events)
     {
         global $conf;
 
@@ -332,7 +332,7 @@ class FormDictionary
      *  @param	string	$elemtype		Type of element we show ('category', ...)
      *  @return	string
      */
-    function multiselect_javascript_code($selected, $htmlname, $elemtype='')
+	public function multiselect_javascript_code($selected, $htmlname, $elemtype='')
     {
         global $conf;
 
@@ -414,7 +414,7 @@ class FormDictionary
      *     @param	int			$post				Resizable box (0=no, 1=yes).
      *     @return 	string      	    			HTML ajax code if a confirm ajax popup is required, Pure HTML code if it's an html form
      */
-    function formconfirm($page, $title, $question, $action, $formquestion=array(), $selectedchoice="", $useajax=0, $height=200, $width=500, $post=0, $resizable=0)
+	public function formconfirm($page, $title, $question, $action, $formquestion=array(), $selectedchoice="", $useajax=0, $height=200, $width=500, $post=0, $resizable=0)
     {
         global $langs, $conf, $form;
         global $useglobalvars;

@@ -34,7 +34,7 @@ class ActionsAdvanceDictionaries
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-    function updateSession($parameters, &$object, &$action, $hookmanager)
+	public function updateSession($parameters, &$object, &$action, $hookmanager)
     {
         return $this->_redirection($parameters, $object, $action, $hookmanager);
     }
@@ -48,7 +48,7 @@ class ActionsAdvanceDictionaries
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-    function afterLogin($parameters, &$object, &$action, $hookmanager)
+	public function afterLogin($parameters, &$object, &$action, $hookmanager)
     {
         return $this->_redirection($parameters, $object, $action, $hookmanager);
     }

@@ -152,10 +152,12 @@ SCRIPT;
         // Confirmation de l'ajout d'une ligne
         if ($action == 'add_line') {
             $formconfirm = $formdictionary->formconfirm($_SERVER["PHP_SELF"] . '?' . $param3, $langs->trans('AdvanceDictionariesAddLine'), $langs->trans('AdvanceDictionariesConfirmAddLine'), 'confirm_add_line', $formquestion, 0, 1, 800, '70%', 1, 1);
-        } // Confirmation de l'edition d'une ligne
+			$formconfirm .= $dictionary->showUpdateListValuesScript($fieldsValue, $action == 'edit_line' ? 'edit_' : 'add_');
+		} // Confirmation de l'edition d'une ligne
         elseif ($action == 'edit_line') {
             $formconfirm = $formdictionary->formconfirm($_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $rowid . '&prevrowid=' . $prevrowid, $langs->trans('AdvanceDictionariesEditLine'), $langs->trans('AdvanceDictionariesConfirmEditLine'), 'confirm_edit_line', $formquestion, 0, 1, 800, '70%', 1, 1);
-        } // Confirmation de la suppression de la ligne
+			$formconfirm .= $dictionary->showUpdateListValuesScript($fieldsValue, $action == 'edit_line' ? 'edit_' : 'add_');
+		} // Confirmation de la suppression de la ligne
         elseif ($action == 'delete_line') {
             $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $rowid . '&prevrowid=' . $prevrowid, $langs->trans('DeleteLine'), $langs->trans('ConfirmDeleteLine'), 'confirm_delete_line', '', 0, 1);
         }
@@ -260,6 +262,7 @@ SCRIPT;
             print $form->showFilterButtons();
             print '</td>';
             print '</tr>';
+			print $dictionary->showUpdateListValuesScript($search_filters, 'search_');
 
             // Fields title
             print '<tr class="liste_titre">';
@@ -283,16 +286,13 @@ SCRIPT;
             print '</tr>';
 
             // Lines with values
-            $var = false;
             $last_rowid = 0;
             $idx = 0;
             foreach ($dictionary->lines as $line) {
                 if ($idx >= min($num, $limit)) break;
 
-                $var = !$var;
-
                 // Output line
-                print '<tr class="' . $bc[$var] . '" id="rowid-' . $line->id . '">';
+                print '<tr class="oddeven" id="rowid-' . $line->id . '">';
 
                 if ($showTechnicalId) {
                     print '<td class="nowrap">';
@@ -381,20 +381,17 @@ SCRIPT;
 
     $dictionaries = Dictionary::fetchAllDictionaries($db, $moduleFilter, $familyFilter);
 
-    $var = false;
     $lastfamily = '';
     foreach ($dictionaries as $dictionary) {
-        $var = !$var;
         if ($dictionary->enabled && !$dictionary->hidden) {
             $langs->loadLangs($dictionary->langs);
 
             if ($lastfamily != $dictionary->family) {
-                $var = false;
                 $lastfamily = $dictionary->family;
-                print '<tr class="' . $bc[$var] . ' family_title"><td colspan="4">' . $langs->trans($dictionary->familyLabel) . '</td></tr>';
+                print '<tr class="oddeven family_title"><td colspan="4">' . $langs->trans($dictionary->familyLabel) . '</td></tr>';
             }
 
-            print '<tr class="' . $bc[$var] . '"><td width="10px"></td>' .
+            print '<tr class="oddeven"><td width="10px"></td>' .
                 '<td width="20%">' . (!empty($dictionary->modulePicto) ? img_picto('', $dictionary->modulePicto) . ' ' : '') . $langs->trans($dictionary->moduleLabel) . '</td>' .
                 '<td width="40%"><a href="' . $_SERVER["PHP_SELF"] . '?module=' . $dictionary->module . '&name=' . $dictionary->name . '">' .
                 $langs->trans($dictionary->nameLabel) . '</a></td>' .
