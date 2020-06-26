@@ -506,6 +506,7 @@ class Dictionary extends CommonObject
                 $this->db->commit();
                 return 1;
             } else {
+            	$this->errors[] = 'Error table: ' . $this->table_name;
                 $this->db->rollback();
                 return -1;
             }
