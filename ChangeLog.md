@@ -3,8 +3,11 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
-## [4.0.19] - 26-06-2020
+## [4.0.20] - 26-06-2020
 - Ajout du du nom de la table lors d'une erreur lors de la creation des dictionnaires
+
+## [4.0.19] - 24-06-2020
+- Compatibilité v12
 
 ## [4.0.18] - 06-06-2020
 - Ajout du raffraichissement des valeurs d'une liste à la modification d'un champ par AJAX (nouveau parametre: ajax_options)
@@ -100,7 +103,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.19...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.20...HEAD
+[4.0.20]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.20
 [4.0.19]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.19
 [4.0.18]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.18
 [4.0.17]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.17
