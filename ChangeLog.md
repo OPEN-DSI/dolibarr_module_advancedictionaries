@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.21] - 16-07-2020
+- Correction lors de l'insertion de nouvelles lignes (valeur NULL)
+
 ## [4.0.20] - 26-06-2020
 - Ajout du du nom de la table lors d'une erreur lors de la creation des dictionnaires
 
@@ -103,7 +106,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.20...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.21...HEAD
+[4.0.21]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.21
 [4.0.20]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.20
 [4.0.19]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.19
 [4.0.18]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.18

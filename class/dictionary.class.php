@@ -3507,17 +3507,17 @@ class DictionaryLine extends CommonObjectLine
                 case 'double':
                 case 'price':
                 case 'link':
-                    return $field['is_require'] || $value !== '' ? "'" . $this->db->escape($value) . "'" : 'NULL';
+                    return $field['is_require'] || (isset($value) && $value !== '') ? "'" . $this->db->escape($value) . "'" : 'NULL';
                 case 'select':
                 case 'sellist':
-                    return $field['is_require'] || ($value !== '' && !in_array($value, $unselect_values)) ? "'" . $this->db->escape($value) . "'" : 'NULL';
+                    return $field['is_require'] || (isset($value) && $value !== '' && !in_array($value, $unselect_values)) ? "'" . $this->db->escape($value) . "'" : 'NULL';
                 case 'chkbxlst':
                     return null;
                 case 'date':
                 case 'datetime':
-                    return $field['is_require'] || $value !== '' ? "'" . $this->db->idate($value) . "'" : 'NULL';
+                    return $field['is_require'] || (isset($value) && $value !== '') ? "'" . $this->db->idate($value) . "'" : 'NULL';
                 case 'boolean':
-                    return $field['is_require'] || $value !== '' ? (!empty($value) ? 1 : 0) : 'NULL';
+                    return $field['is_require'] || (isset($value) && $value !== '') ? (!empty($value) ? 1 : 0) : 'NULL';
                 case 'custom':
                     return $this->formatCustomFieldValueForSQL($name, $value);
                 default: // unknown
@@ -3540,7 +3540,7 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-     *  Format the value of the field from the table
+     *  Format the value of the field from the table (for export ?)
      *
      * @param   string      $name       Name of the field
      * @param   mixed       $value      Value of the field
