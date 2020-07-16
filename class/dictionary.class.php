@@ -25,7 +25,15 @@
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobjectline.class.php';
 
-
+/**
+ * Helper function to get association table properties for a Chkbclst field
+ * @param Array $field          Contains field properties set into dictionary
+ * @param string $table_name    Dictionary database table name
+ * @return Array                Return values at indexes
+ *											0 : Association table name
+ *											1 : Foreign key name of current dictionary line
+ *											2 : Foreign key name of foreign table entries
+ */
 function getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)
 {
 
@@ -46,30 +54,52 @@ function getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)
     return $result;
 }
 
+/**
+ * Helper function to get an array of Chkbxlst properties from dictionary field definition
+ * @param Array $field          Contains field properties set into dictionary
+ * @return Array                Return values at indexes
+ *											            0 : tableName
+ *                                                      1 : label field name
+ *                                                      2 : key fields name (if differ of rowid)
+ *                                                      3 : key field parent (for dependent lists)
+ *                                                      4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
+ *                                                      5 : ObjectName
+ *                                                      6 : classPath
+ *                                                      7 : lang
+ */
 function getInfoFieldArrayFromOptionsForChkbxlstFieldType($field)
 {
-    // 0 : tableName
-    // 1 : label field name
-    // 2 : key fields name (if differ of rowid)
-    // 3 : key field parent (for dependent lists)
-    // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
-    // 5 : ObjectName
-    // 6 : classPath
-    // 7 : lang
     $InfoFieldList = explode(":", (string) $field['options']);
     return $InfoFieldList;
 }
-
+/**
+ * Helper function to get association table name  for a Chkbclst field
+ * @param Array $field          Contains field properties set into dictionary
+ * @param string $table_name    Dictionary database table name
+ * @return string               Association Table Name
+ */
 function getAssociationTableNameForChkbxlstFieldType($field, $table_name)
 {
     return getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)[0];
 }
 
+/**
+ * Helper function to get foreign key name into association table for these dictionary lines into a Chkbxlst field
+ * @param Array $field          Contains field properties set into dictionary
+ * @param string $table_name    Dictionary database table name
+ * @return string               Association Table Name
+ */
 function getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $table_name)
 {
     return getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)[1];
 }
 
+/**
+ * Helper function to get foreign key name into association table for destination table entries
+ * @param Array $field          Contains field properties set into dictionary
+ * @param string $table_name    Dictionary database table name
+ * @return string               Association Table Name
+ */
 function getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $table_name)
 {
     return getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)[2];
@@ -174,9 +204,9 @@ class Dictionary extends CommonObject
      *     'length'               => string,         			// Length of the data type (require)
      *     'default'              => string,         			// Default value in the database
      *   ),
-     *  'association_table'       => string,                    // Parameters for association table on n-n relations elements 
+     *  'association_table'       => string,                    // Parameters for association table on n-n relations elements
      *                                                             Parameter :  0:1:2
-     *                                                             Example : tableName:foreignKeyNameOfElementOfThisDictionary:foreignKeyNameOfElementOfIntoDestinationTable 
+     *                                                             Example : tableName:foreignKeyNameOfElementOfThisDictionary:foreignKeyNameOfElementOfIntoDestinationTable
      *                                                                  0:name of the association table
      *                                                                  1:name of the column for foreign key of this dictionary
      *                                                                  2:name of the column for foreign key of the destination table
@@ -1013,7 +1043,7 @@ class Dictionary extends CommonObject
      * @param   string|array    $family     Only dictionary of the family(s) name
      * @return  Dictionary[]                List of dictionary
      */
-    static function fetchAllDictionaries($db, $module = '', $family = '')
+    public static function fetchAllDictionaries($db, $module = '', $family = '')
     {
         global $conf;
 
@@ -1087,7 +1117,7 @@ class Dictionary extends CommonObject
      * @param   int                 $old_id     Id of the dictionary for old dolibarr dictionary
      * @return  Dictionary|null                 List of dictionary
      */
-    static function getDictionary($db, $module = '', $name = '', $old_id = 0)
+    public static function getDictionary($db, $module = '', $name = '', $old_id = 0)
     {
         $dictionary = null;
 
@@ -1111,11 +1141,12 @@ class Dictionary extends CommonObject
      * Get JSON dictionary
      *
      * @param   DoliDb              $db         Database handler
-     * @param   string              $module     Name of the module containing the dictionary
-     * @param   string              $name       Name of dictionary
+     * @param   string              $moduleName     Name of the module containing the dictionary
+     * @param   string              $dictionaryName       Name of dictionary
+     * @param   array                   $filters                        List of filters: array(fieldName => value), value is a array search a list of rowid
      * @return  Array               List of dictionary line in Json Format
      */
-    static function getJSONDictionary($db, $moduleName, $dictionaryName, $filters = array())
+    public static function getJSONDictionary($db, $moduleName, $dictionaryName, $filters = array())
     {
         $dictionary = Dictionary::getDictionary($db, $moduleName, $dictionaryName);
         $dictionary->fetch_lines(1, $filters);
@@ -1132,12 +1163,12 @@ class Dictionary extends CommonObject
      * Get a dictionary Line according to a given id
      *
      * @param   DoliDb              $db         Database handler
-     * @param   string              $module     Name of the module containing the dictionary
-     * @param   string              $name       Name of dictionary
+     * @param   string              $moduleName     Name of the module containing the dictionary
+     * @param   string              $dictionaryName       Name of dictionary
      * @param   int                 $lineId     Id of the searched line
      * @return  DictionaryLine|null             Dictionary Line Object
      */
-    static function getDictionaryLineObject($db, $moduleName, $dictionaryName, $lineId)
+    public static function getDictionaryLineObject($db, $moduleName, $dictionaryName, $lineId)
     {
         if ($lineId) {
             $dictionary = Dictionary::getDictionary($db, $moduleName, $dictionaryName);
@@ -1156,7 +1187,7 @@ class Dictionary extends CommonObject
      * @param   int                     $old_id     Id of the dictionary for old dolibarr dictionary
      * @return  DictionaryLine|null                 List of dictionary
      */
-    static function getDictionaryLine($db, $module = '', $name = '', $old_id = 0)
+    public static function getDictionaryLine($db, $module = '', $name = '', $old_id = 0)
     {
         $dictionary = self::getDictionary($db, $module, $name, $old_id);
         if (!isset($dictionary))
@@ -1168,12 +1199,12 @@ class Dictionary extends CommonObject
     /**
      * Get dictionary module and name from old dolibarr dictionary ID
      *
+     * @param   int                 $old_id     Id of the dictionary for old dolibarr dictionary
      * @param   string              $module     Name of the module containing the dictionary
      * @param   string              $name       Name of dictionary
-     * @param   int                 $old_id     Id of the dictionary for old dolibarr dictionary
      * @return  void
      */
-    static function getDictionaryModuleAndNameFromID($old_id, &$module, &$name)
+    public static function getDictionaryModuleAndNameFromID($old_id, &$module, &$name)
     {
         $module = '';
         $name = '';
@@ -3827,7 +3858,7 @@ class DictionaryLine extends CommonObjectLine
                     if (is_array($value)) {
                         $value_arr = $value;
                     } else {
-                        if ($value === NULL) {
+                        if ($value === null) {
                             $value_arr = array('NULL');
                         } else {
                             $value_arr = array_filter(explode(',', (string) $value), 'strlen');
@@ -4326,7 +4357,6 @@ class DictionaryLine extends CommonObjectLine
                         $sql = 'SELECT ' . $keyList;
                         $sql .= ' FROM ' . MAIN_DB_PREFIX . str_replace('{{DB_PREFIX}}', MAIN_DB_PREFIX, $InfoFieldList[0]);
                         if (!empty($InfoFieldList[4])) {
-
                             // can use SELECT request
                             if (strpos($InfoFieldList[4], '$SEL$') !== false) {
                                 $InfoFieldList[4] = str_replace('$SEL$', 'SELECT', $InfoFieldList[4]);
