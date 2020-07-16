@@ -763,7 +763,7 @@ class Dictionary extends CommonObject
 //                    } else {
 //                        if (!$this->db->num_rows($resql)) {
 
-                             $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->table_name);
+                            $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->table_name);
 
                             $keyList = 'rowid';
                             if (count($InfoFieldList) >= 3) {
