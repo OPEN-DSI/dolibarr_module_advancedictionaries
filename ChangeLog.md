@@ -2,8 +2,6 @@
 Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.com/fr/1.0.0/).
 
 ## [Non Distribué]
-## [4.0.21] - 01-07-2020
-- Ajout de la possibilité de gérer manuellement les tables d'associations pour les champs représentant des relations N/N
 
 ## [4.0.20] - 26-06-2020
 - Ajout du du nom de la table lors d'une erreur lors de la creation des dictionnaires
