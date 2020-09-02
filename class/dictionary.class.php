@@ -1330,13 +1330,14 @@ class Dictionary extends CommonObject
      * @param   bool                    $nb_lines                       Return only the nb line of the request if ok
      * @param   bool                    $return_array                   Return a array
      * @param   string                  $additionalWhereStatement       Additionnal lines of statement for where statement, [[fieldName]] replaced by this field name in the request, {{ }} if for the field id of multi-select field
-     * @param   string                  $additionalHavingStatement      Additionnal lines of statement for having statement, [[fieldName]] replaced by this field name in the request, {{ }} if for the field id of multi-select field
+	 * @param   string                  $additionalHavingStatement      Additionnal lines of statement for having statement, [[fieldName]] replaced by this field name in the request, {{ }} if for the field id of multi-select field
+	 * @param   string                  $filter_entity					Filter on the entity (by default with getEntity(), -1: all)
    	 * @return  int|DictionaryLine[]                                    <0 if KO, >0 if OK
    	 */
-	public function fetch_lines($filter_active=-1, $filters=array(), $orders=array(), $offset=0, $limit=0, $nb_lines=false, $return_array=false, $additionalWhereStatement='', $additionalHavingStatement='')
+	public function fetch_lines($filter_active=-1, $filters=array(), $orders=array(), $offset=0, $limit=0, $nb_lines=false, $return_array=false, $additionalWhereStatement='', $additionalHavingStatement='', $filter_entity = '')
     {
         // TODO $additionalWhereStatement, $additionalHavingStatement to make
-        global $hookmanager;
+        global $conf, $hookmanager;
 
         $hookmanager2 = clone $hookmanager; // Génère des erreurs de resultat disparaissant si appelé dans une autre hooks donc on copie la hook
         $select = array();
@@ -1388,7 +1389,14 @@ class Dictionary extends CommonObject
         $reshook = $hookmanager2->executeHooks('printADFetchLinesFrom', $parameters, $this);
         $sql .= $hookmanager2->resPrint;
         if($filter_active >= 0) $where[] = 'd.' . $this->active_field . ' = ' . $filter_active;
-        if($this->is_multi_entity && $this->has_entity) $where[] = 'd.' . $this->entity_field . ' IN (' . getEntity('dictionary', 1) . ')';
+        if($this->is_multi_entity && $this->has_entity && $filter_entity != -1) {
+			if ($filter_entity === '') $filter_entity = array();
+        	if (!is_array($filter_entity)) $filter_entity = explode(',', $filter_entity);
+			if (!in_array(0, $filter_entity)) $filter_entity[] = 0;
+			if (!in_array(1, $filter_entity)) $filter_entity[] = 1;
+			if (!in_array($conf->entity, $filter_entity)) $filter_entity[] = $conf->entity;
+        	$where[] = 'd.' . $this->entity_field . ' IN (' . implode(',', $filter_entity) . ')';
+		}
         $sql .= !empty($where) ? ' WHERE ' . implode(' AND ', $where) : '';
         // Add where from hooks
         $reshook = $hookmanager2->executeHooks('printADFetchLinesWhere', $parameters, $this);
@@ -2904,7 +2912,7 @@ class DictionaryLine extends CommonObjectLine
 	public function insert($fieldsValue, $user, $noTrigger = 0)
     {
         global $conf;
-        dol_syslog(__METHOD__ . "::insert fieldsValues: " . http_build_query($fieldsValue));
+        dol_syslog(__METHOD__ . " fieldsValues: " . http_build_query($fieldsValue));
 
         if ($this->checkFieldsValues($fieldsValue) > 0) {
             $this->db->begin();
@@ -2929,7 +2937,7 @@ class DictionaryLine extends CommonObjectLine
                 (!$this->dictionary->is_rowid_auto_increment ? ($this->dictionary->is_rowid_defined_by_code ? $this->id : $this->dictionary->getNextRowID()) . ', ' : '') .
                 implode(', ', $insert_statement) . ', 1' . ($this->dictionary->has_entity ? ', ' . $conf->entity : '') . ')';
 
-            dol_syslog(__METHOD__ . "::insert", LOG_DEBUG);
+            dol_syslog(__METHOD__, LOG_DEBUG);
             $resql = $this->db->query($sql);
             if (!$resql) {
                 dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
@@ -3042,7 +3050,7 @@ class DictionaryLine extends CommonObjectLine
      */
 	public function update($fieldsValue, $user, $noTrigger = 0)
     {
-        dol_syslog(__METHOD__ . "::update lineId: " . $this->id . "; fieldsValues: " . http_build_query($fieldsValue));
+        dol_syslog(__METHOD__ . " lineId: " . $this->id . "; fieldsValues: " . http_build_query($fieldsValue));
 
         if ($this->checkFieldsValues($fieldsValue) > 0) {
             $this->db->begin();
@@ -3062,7 +3070,7 @@ class DictionaryLine extends CommonObjectLine
             $sql .= implode(', ', $set_statement);
             $sql .= ' WHERE ' . $this->dictionary->rowid_field . ' = ' . $this->id;
 
-            dol_syslog(__METHOD__ . "::update", LOG_DEBUG);
+            dol_syslog(__METHOD__, LOG_DEBUG);
             $resql = $this->db->query($sql);
             if (!$resql) {
                 dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
@@ -3172,7 +3180,7 @@ class DictionaryLine extends CommonObjectLine
 	public function delete($user, $noTrigger = 0)
     {
         global $langs;
-        dol_syslog(__METHOD__ . "::delete lineId: " . $this->id);
+        dol_syslog(__METHOD__ . " lineId: " . $this->id);
 
         $langs->load('advancedictionaries@advancedictionaries');
         $this->db->begin();
@@ -3217,7 +3225,7 @@ class DictionaryLine extends CommonObjectLine
             // Delete line of dictionary table
             $sql = 'DELETE FROM ' . MAIN_DB_PREFIX . $this->dictionary->table_name . ' WHERE ' . $this->dictionary->rowid_field . ' = ' . $this->id;
 
-            dol_syslog(__METHOD__ . "::delete", LOG_DEBUG);
+            dol_syslog(__METHOD__, LOG_DEBUG);
             $resql = $this->db->query($sql);
             if (!$resql) {
                 $error++;
@@ -3239,7 +3247,7 @@ class DictionaryLine extends CommonObjectLine
             return 1;
         } else {
             foreach ($errors as $errmsg) {
-                dol_syslog(__METHOD__ . "::delete " . $errmsg, LOG_ERR);
+                dol_syslog(__METHOD__ . " " . $errmsg, LOG_ERR);
                 $this->errors[] = ($this->errors ? ', ' : '') . $errmsg;
             }
 
@@ -3271,7 +3279,7 @@ class DictionaryLine extends CommonObjectLine
     */
 	public function active($status, $user, $noTrigger = 0)
     {
-        dol_syslog(__METHOD__ . "::active lineId: " . $this->id . "; status: " . $status);
+        dol_syslog(__METHOD__ . " lineId: " . $this->id . "; status: " . $status);
 
         $this->db->begin();
         $error = 0;
@@ -3284,7 +3292,7 @@ class DictionaryLine extends CommonObjectLine
             ' SET ' . $this->dictionary->active_field . ' = ' . $this->active .
             ' WHERE ' . $this->dictionary->rowid_field . ' = ' . $this->id;
 
-        dol_syslog(__METHOD__ . "::active", LOG_DEBUG);
+        dol_syslog(__METHOD__, LOG_DEBUG);
         $resql = $this->db->query($sql);
         if (!$resql) {
             $error++;
@@ -3308,7 +3316,7 @@ class DictionaryLine extends CommonObjectLine
             return 1;
         } else {
             foreach ($errors as $errmsg) {
-                dol_syslog(__METHOD__ . "::active " . $errmsg, LOG_ERR);
+                dol_syslog(__METHOD__ . " " . $errmsg, LOG_ERR);
                 $this->errors[] = ($this->errors ? ', ' : '') . $errmsg;
             }
 
@@ -3317,6 +3325,63 @@ class DictionaryLine extends CommonObjectLine
             return -1;
         }
     }
+
+	/**
+	 *  Set entities
+	 *
+	 * @param   User    $user           User who add this line
+	 * @param   int  	$entity       	Entity to update
+	 * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
+	 * @return  int                     <0 if not ok, >0 if ok
+	 */
+	public function setEntity($user, $entity, $noTrigger = 0)
+	{
+		dol_syslog(__METHOD__ . " lineId: " . $this->id . "; entity: " . $entity);
+
+		$this->db->begin();
+		$error = 0;
+		$errors = array();
+		$this->old = clone $this;
+		$this->entity = $entity;
+
+		// Update line of dictionary table
+		$sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->dictionary->table_name .
+			' SET ' . $this->dictionary->entity_field . ' = ' . $this->entity .
+			' WHERE ' . $this->dictionary->rowid_field . ' = ' . $this->id;
+
+		dol_syslog(__METHOD__, LOG_DEBUG);
+		$resql = $this->db->query($sql);
+		if (!$resql) {
+			$error++;
+			$errors[] = $this->db->lasterror();
+		}
+
+		if (!$error && !$noTrigger) {
+			// Call trigger
+			$result = $this->call_trigger('LINEDICTIONARY_ENTITY', $user);
+			if ($result < 0) $error++;
+			// End call triggers
+		}
+
+		if (!$error) {
+			$result = $this->entityLineSuccess($user);
+			if ($result < 0) $error++;
+		}
+
+		if (!$error) {
+			$this->db->commit();
+			return 1;
+		} else {
+			foreach ($errors as $errmsg) {
+				dol_syslog(__METHOD__ . " " . $errmsg, LOG_ERR);
+				$this->errors[] = ($this->errors ? ', ' : '') . $errmsg;
+			}
+
+			$this->entity = $this->old->entity;
+			$this->db->rollback();
+			return -1;
+		}
+	}
 
 	/**
 	 * Execute this function if the insertion of the line in the dictionary is successful
@@ -3330,7 +3395,7 @@ class DictionaryLine extends CommonObjectLine
 	}
 
 	/**
-	 * Execute this function if the insertion of the line in the dictionary is successful
+	 * Execute this function if the modification of the line in the dictionary is successful
 	 *
 	 * @param   User    $user           User who make this action
 	 * @return  int                     <0 if not ok, >0 if ok
@@ -3341,7 +3406,7 @@ class DictionaryLine extends CommonObjectLine
 	}
 
 	/**
-	 * Execute this function if the insertion of the line in the dictionary is successful
+	 * Execute this function if the deletion of the line in the dictionary is successful
 	 *
 	 * @param   User    $user           User who make this action
 	 * @return  int                     <0 if not ok, >0 if ok
@@ -3352,12 +3417,23 @@ class DictionaryLine extends CommonObjectLine
 	}
 
 	/**
-	 * Execute this function if the insertion of the line in the dictionary is successful
+	 * Execute this function if the modification of the active status of the line in the dictionary is successful
 	 *
 	 * @param   User    $user           User who make this action
 	 * @return  int                     <0 if not ok, >0 if ok
 	 */
 	protected function activeLineSuccess(User $user)
+	{
+		return 1;
+	}
+
+	/**
+	 * Execute this function if the modification of the entity of the line in the dictionary is successful
+	 *
+	 * @param   User    $user           User who make this action
+	 * @return  int                     <0 if not ok, >0 if ok
+	 */
+	protected function entityLineSuccess(User $user)
 	{
 		return 1;
 	}
@@ -3370,6 +3446,7 @@ class DictionaryLine extends CommonObjectLine
      */
 	public function fetch($rowid)
     {
+    	global $conf;
         $select = array();
         $from = "";
         foreach ($this->dictionary->fields as $field) {
@@ -3382,14 +3459,19 @@ class DictionaryLine extends CommonObjectLine
             $from .= $this->fromFieldSqlStatement($field);
         }
 
+		$filter_entity = array();
+		if (!in_array(0, $filter_entity)) $filter_entity[] = 0;
+		if (!in_array(1, $filter_entity)) $filter_entity[] = 1;
+		if (!in_array($conf->entity, $filter_entity)) $filter_entity[] = $conf->entity;
+
         $sql = 'SELECT d.' . $this->dictionary->rowid_field . ', ' . implode(', ', $select) .
             ', d.' . $this->dictionary->active_field . ($this->dictionary->has_entity ? ', d.' . $this->dictionary->entity_field : '') .
             ' FROM ' . MAIN_DB_PREFIX . $this->dictionary->table_name . ' as d ' . $from .
             ' WHERE d.' . $this->dictionary->rowid_field . ' = ' . $rowid .
-            ($this->dictionary->is_multi_entity && $this->dictionary->has_entity ? ' AND d.' . $this->dictionary->entity_field . ' IN (' . getEntity('dictionary', 1) . ')' : '') .
+            ($this->dictionary->is_multi_entity && $this->dictionary->has_entity ? ' AND d.' . $this->dictionary->entity_field . ' IN (' . implode(',', $filter_entity) . ')' : '') .
             ' GROUP BY d.' . $this->dictionary->rowid_field;
 
-        dol_syslog(__METHOD__ . "::fetch", LOG_DEBUG);
+        dol_syslog(__METHOD__, LOG_DEBUG);
         $resql = $this->db->query($sql);
         if ($resql) {
             if ($obj = $this->db->fetch_array($resql)) {

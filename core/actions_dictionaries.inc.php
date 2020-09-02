@@ -88,6 +88,7 @@ $param = 'module=' . urlencode($dictionary->module) . '&name=' . urlencode($dict
 if ($limit > 0 && $limit != $conf->liste_limit) $param .= '&limit=' . $limit;
 
 $search_active = 1;
+$search_entity = $conf->entity;
 $search_filters = array();
 $arrayfields = array();
 
@@ -105,8 +106,10 @@ if (isset($dictionary) && $dictionary->enabled) {
     }
 
     // Filters
-    $search_active = GETPOST('search_' . $dictionary->active_field, 'int');
-    if ($search_active === '') $search_active = 1;
+    $search_entity = GETPOST('search_' . $dictionary->entity_field, 'int');
+    if ($search_entity === '') $search_entity = $conf->entity;
+	$search_active = GETPOST('search_' . $dictionary->active_field, 'int');
+	if ($search_active === '') $search_active = 1;
     $search_filters = $dictionary->getSearchFieldsValueFromForm();
 }
 
@@ -126,14 +129,16 @@ include DOL_DOCUMENT_ROOT.'/core/actions_changeselectedfields.inc.php';
 // Do we click on purge search criteria ? All tests are required to be compatible with all browsers
 if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) {
     $search_filters=array();
-    $search_active = 1;
+    $search_entity = $conf->entity;
+	$search_active = 1;
     $toselect=array();
 }
 
 if (isset($dictionary) && $dictionary->enabled) {
     // Params
     foreach ($search_filters as $fieldName => $filter) $param .= '&search_' . $fieldName . '=' . urlencode($filter);
-    if ($search_active != 1) $param .= '&search_' . $dictionary->active_field . '=' . urlencode($search_active);
+    if ($search_entity !== '') $param .= '&search_' . $dictionary->entity_field . '=' . urlencode($search_entity);
+	if ($search_active != 1) $param .= '&search_' . $dictionary->active_field . '=' . urlencode($search_active);
     $param2 = $param;
     if (!empty($page)) $param2 .= '&page=' . urlencode($page);
     $param3 = $param2;
@@ -219,6 +224,40 @@ if (empty($reshook)) {
             $permtodelete = $canDelete;
             $uploaddir = $conf->advancedictionaries->dir_output;
             include DOL_DOCUMENT_ROOT . '/core/actions_massactions.inc.php';
+			// Modify the entity
+			if (!$error && ($massaction == 'modifyentity' || ($action == 'modifyentity' && $confirm == "yes")) && $dictionary->is_multi_entity && $dictionary->has_entity && $conf->multicompany->enabled && $dictionary->lineCanBeUpdated && $canUpdate) {
+				$entity = GETPOST('entity', 'int');
+				if ($entity === '') $entity = $conf->entity;
+
+				$db->begin();
+
+				$objecttmp = new $objectclass($db);
+				$nbok = 0;
+				foreach ($toselect as $toselectid) {
+					$result = $objecttmp->fetch($toselectid);
+					if ($result > 0) {
+						$result = $objecttmp->setEntity($user, $entity);
+
+						if ($result <= 0) {
+							setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+							$error++;
+							break;
+						} else $nbok++;
+					} else {
+						setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+						$error++;
+						break;
+					}
+				}
+
+				if (!$error) {
+					if ($nbok > 1) setEventMessages($langs->trans("RecordsModified", $nbok), null, 'mesgs');
+					else setEventMessages($langs->trans("RecordModified", $nbok), null, 'mesgs');
+					$db->commit();
+				} else {
+					$db->rollback();
+				}
+			}
         }
     }
 }

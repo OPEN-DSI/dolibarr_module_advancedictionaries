@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.22] - 02-09-2020
+- Ajout de la possibilité de modifier l'entité des ligne de dictionnaire en masse (les lignes sur l'entité 0 et entité maitre seront considérées comme communes à toutes les entités)
+
 ## [4.0.21] - 16-07-2020
 - Correction lors de l'insertion de nouvelles lignes (valeur NULL)
 
@@ -106,7 +109,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.21...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.22...HEAD
+[4.0.22]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.22
 [4.0.21]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.21
 [4.0.20]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.20
 [4.0.19]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.19

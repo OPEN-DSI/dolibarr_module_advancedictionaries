@@ -23,14 +23,17 @@ AdvanceDictionariesReplaceOldDictionariesPage   = Remplace l'ancienne page des d
 #######################################################################
 AdvanceDictionariesFieldRequired    = Champ requis
 AdvanceDictionariesDictionaryLines  = Lignes de dictionnaire
+AdvanceDictionariesModifyEntity     = Modification de l'environnement
 
 ############################################################
 ### Confirm box
 ############################################################
-AdvanceDictionariesAddLine              = Ajouter ligne
-AdvanceDictionariesConfirmAddLine       = Êtes-vous sûr de vouloir ajouter cette ligne ?
-AdvanceDictionariesEditLine             = Éditer ligne
-AdvanceDictionariesConfirmEditLine      = Êtes-vous sûr de vouloir éditer cette ligne ?
+AdvanceDictionariesAddLine                          = Ajouter ligne
+AdvanceDictionariesConfirmAddLine                   = Êtes-vous sûr de vouloir ajouter cette ligne ?
+AdvanceDictionariesEditLine                         = Éditer ligne
+AdvanceDictionariesConfirmEditLine                  = Êtes-vous sûr de vouloir éditer cette ligne ?
+AdvanceDictionariesConfirmMassModifyEntity          = Modification de l'environnement
+AdvanceDictionariesConfirmMassModifyEntityQuestion  = Êtes-vous sûr de vouloir modifier l'environnement des %s enregistrement(s) sélectionné(s) ?
 
 #######################################################################
 # Errors
