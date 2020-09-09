@@ -1392,9 +1392,9 @@ class Dictionary extends CommonObject
         if($this->is_multi_entity && $this->has_entity && $filter_entity != -1) {
 			if ($filter_entity === '') $filter_entity = array();
         	if (!is_array($filter_entity)) $filter_entity = explode(',', $filter_entity);
+			if (empty($filter_entity) && !in_array($conf->entity, $filter_entity)) $filter_entity[] = $conf->entity;
 			if (!in_array(0, $filter_entity)) $filter_entity[] = 0;
 			if (!in_array(1, $filter_entity)) $filter_entity[] = 1;
-			if (empty($filter_entity)) $filter_entity[] = $conf->entity;
         	$where[] = 'd.' . $this->entity_field . ' IN (' . implode(',', $filter_entity) . ')';
 		}
         $sql .= !empty($where) ? ' WHERE ' . implode(' AND ', $where) : '';
