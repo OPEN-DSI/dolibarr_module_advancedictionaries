@@ -101,8 +101,8 @@ if (isset($dictionary)) {
             if (!empty($page)) $formquestion[] = array('type' => 'hidden', 'name' => 'page', 'value' => $page);
             if ($limit > 0 && $limit != $conf->liste_limit) $formquestion[] = array('type' => 'hidden', 'name' => 'limit', 'value' => $limit);
             if ($search_entity !== '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_' . $dictionary->entity_field, 'value' => $search_entity);
-			if ($search_active != 1) $formquestion[] = array('type' => 'hidden', 'name' => 'search_' . $dictionary->active_field, 'value' => $search_active);
-			if ($action == 'edit_line') $formquestion[] = array('type' => 'hidden', 'name' => 'rowid', 'value' => $rowid);
+            if ($search_active != 1) $formquestion[] = array('type' => 'hidden', 'name' => 'search_' . $dictionary->active_field, 'value' => $search_active);
+            if ($action == 'edit_line') $formquestion[] = array('type' => 'hidden', 'name' => 'rowid', 'value' => $rowid);
             foreach ($dictionary->fields as $fieldName => $field) {
                 if (!$field['is_not_searchable']) {
                     $formquestion[] = array('type' => 'hidden', 'name' => 'search_' . $fieldName, 'value' => GETPOST('search_' . $fieldName));
@@ -203,7 +203,7 @@ SCRIPT;
 
             // List of mass actions available
             $arrayofmassactions = array();
-			if ($dictionary->lineCanBeDeleted && $canDelete) $arrayofmassactions['predelete'] = $langs->trans("Delete");
+            if ($dictionary->lineCanBeDeleted && $canDelete) $arrayofmassactions['predelete'] = $langs->trans("Delete");
 			if ($dictionary->is_multi_entity && $dictionary->has_entity && $conf->multicompany->enabled && $dictionary->lineCanBeUpdated && $canUpdate) $arrayofmassactions['premodifyentity'] = $langs->trans("AdvanceDictionariesModifyEntity");
             if (in_array($massaction, array('predelete', 'premodifyentity'))) $arrayofmassactions = array();
             $massactionbutton = $form->selectMassAction('', $arrayofmassactions);
@@ -218,7 +218,7 @@ SCRIPT;
             if (!empty($contextpage)) print '<input type="hidden" name="contextpage" value="' . dol_escape_htmltag($contextpage) . '">';
             if ($limit > 0 && $limit != $conf->liste_limit) print '<input type="hidden" name="limit" value="' . dol_escape_htmltag($limit) . '">';
             if ($search_entity !== '') print '<input type="hidden" name="search_' . $dictionary->entity_field . '" value="' . dol_escape_htmltag($search_entity) . '">';
-			if ($search_active != 1) print '<input type="hidden" name="search_' . $dictionary->active_field . '" value="' . dol_escape_htmltag($search_active) . '">';
+            if ($search_active != 1) print '<input type="hidden" name="search_' . $dictionary->active_field . '" value="' . dol_escape_htmltag($search_active) . '">';
 
             print_barre_liste('', $page, $_SERVER["PHP_SELF"], '&' . $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, '', 0, $addButton, '', $limit);
 
@@ -308,7 +308,7 @@ SCRIPT;
             $reshook = $hookmanager->executeHooks('printFieldListTitle', $parameters, $dictionary, $action);
             print $hookmanager->resPrint;
             if ($dictionary->is_multi_entity && $dictionary->has_entity && $conf->multicompany->enabled) print_liste_field_titre($langs->trans("Entity"), $_SERVER["PHP_SELF"], $dictionary->entity_field, "", '&' . $param2, 'align="center"', $sortfield, $sortorder);
-			print_liste_field_titre($langs->trans("Status"), $_SERVER["PHP_SELF"], $dictionary->active_field, "", '&' . $param2, 'width="10%" align="center"', $sortfield, $sortorder);
+            print_liste_field_titre($langs->trans("Status"), $_SERVER["PHP_SELF"], $dictionary->active_field, "", '&' . $param2, 'width="10%" align="center"', $sortfield, $sortorder);
             print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', 'align="center"', $sortfield, $sortorder, 'maxwidthsearch ');
             print '</tr>';
 

@@ -1330,7 +1330,7 @@ class Dictionary extends CommonObject
      * @param   bool                    $nb_lines                       Return only the nb line of the request if ok
      * @param   bool                    $return_array                   Return a array
      * @param   string                  $additionalWhereStatement       Additionnal lines of statement for where statement, [[fieldName]] replaced by this field name in the request, {{ }} if for the field id of multi-select field
-	 * @param   string                  $additionalHavingStatement      Additionnal lines of statement for having statement, [[fieldName]] replaced by this field name in the request, {{ }} if for the field id of multi-select field
+     * @param   string                  $additionalHavingStatement      Additionnal lines of statement for having statement, [[fieldName]] replaced by this field name in the request, {{ }} if for the field id of multi-select field
 	 * @param   string                  $filter_entity					Filter on the entity (by default with getEntity(), -1: all)
    	 * @return  int|DictionaryLine[]                                    <0 if KO, >0 if OK
    	 */
@@ -1341,13 +1341,15 @@ class Dictionary extends CommonObject
 
         $hookmanager2 = clone $hookmanager; // Génère des erreurs de resultat disparaissant si appelé dans une autre hooks donc on copie la hook
         $select = array();
+		$group_by = array();
         $from = "";
         foreach ($this->fields as $field) {
             // Select clause
             $sqlStatement = $this->selectFieldSqlStatement($field);
             if (!empty($sqlStatement)) {
-                $select[] = $sqlStatement;
-            }
+				$select[] = $sqlStatement . (!empty($sqlStatement) ? ' AS ' . $field['name'] : '');
+				$group_by[] = $sqlStatement;
+			}
             // From clause
             $from .= $this->fromFieldSqlStatement($field);
         }
@@ -1401,7 +1403,8 @@ class Dictionary extends CommonObject
         // Add where from hooks
         $reshook = $hookmanager2->executeHooks('printADFetchLinesWhere', $parameters, $this);
         $sql .= $hookmanager2->resPrint;
-        $sql .= ' GROUP BY ' . $this->rowid_field;
+        $sql .= ' GROUP BY d.' . $this->rowid_field . ', ' . implode(', ', $group_by) . ', d.' . $this->active_field;
+		if ($this->has_entity) $sql .= ', d.' . $this->entity_field;
         $sql .= !empty($having) ? ' HAVING ' . implode(' AND ', $having) : '';
         // Add where from hooks
         $reshook = $hookmanager2->executeHooks('printADFetchLinesHaving', $parameters, $this);
@@ -1461,11 +1464,11 @@ class Dictionary extends CommonObject
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
-                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.fk_target SEPARATOR \',\') AS ' . $field['name'];
+                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.fk_target SEPARATOR \',\')';
                 case 'custom':
                     return $this->selectCustomFieldSqlStatement($field);
                 default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
-                    return 'd.' . $field['name'] . ' AS ' . $field['name'];
+                    return 'd.' . $field['name'];
             }
         }
 
@@ -2131,6 +2134,23 @@ SCRIPT;
 
         return $last_rowid + 1;
     }
+
+	/**
+	 *  Get entity list for entity filter in SQL for the dictionary
+	 *
+	 * @return  string              Entity filter list
+	 */
+	public function getEntity()
+	{
+		global $conf;
+
+		$filter_entity = array();
+		if (!in_array(0, $filter_entity)) $filter_entity[] = 0;
+		if (!in_array(1, $filter_entity)) $filter_entity[] = 1;
+		if (!in_array($conf->entity, $filter_entity)) $filter_entity[] = $conf->entity;
+
+		return implode(',', $filter_entity);
+	}
 
     /**
      * Function from wordpress v4.9.6
@@ -2819,75 +2839,96 @@ class DictionaryLine extends CommonObjectLine
      * @return  int                     <0 if not ok, >0 if ok
      */
 	public function checkFieldsValues($fieldsValue)
-    {
-        global $langs;
+	{
+		global $langs;
 
-        $langs->loadLangs($this->dictionary->langs);
+		$langs->loadLangs($this->dictionary->langs);
 
-        $check = true;
-        foreach ($this->dictionary->fields as $fieldName => $field) {
-            if ($field['is_require']) {
-                $checkField = true;
-                if (isset($fieldsValue[$fieldName])) {
-                    $value = $fieldsValue[$fieldName];
-                    switch ($field['type']) {
-                        case 'varchar':
-                        case 'text':
-                        case 'phone':
-                        case 'mail':
-                        case 'url':
-                        case 'password':
-                            if (empty($value))
-                                $checkField = false;
-                            break;
-                        case 'checkbox':
-                        case 'chkbxlst':
-                            if (trim($value) === '')
-                                $checkField = false;
-                            break;
-                        case 'int':
-                        case 'float':
-                        case 'double':
-                        case 'price':
-                            if ($value === '' || (isset($field['min']) && $value < $field['min']) || (isset($field['max']) && $value > $field['max']))
-                                $checkField = false;
-                            break;
-                        case 'date':
-                        case 'datetime':
-                            if (empty($value))
-                                $checkField = false;
-                            break;
-                        case 'link':
-                        case 'radio':
-                        case 'select':
-                        case 'sellist':
-                        case 'boolean':
-                            if (trim($value) === '' || $value == -1)
-                                $checkField = false;
-                            break;
-                        case 'custom':
-                            if ($this->checkCustomFieldValue($field, $value) < 0)
-                                $checkField = false;
-                            break;
-                        default: // unknown
-                            break;
-                    }
-                } else {
-                    $checkField = false;
-                }
+		$check = true;
+		foreach ($this->dictionary->fields as $fieldName => $field) {
+			if ($field['is_require']) {
+				$checkField = true;
+				if (isset($fieldsValue[$fieldName])) {
+					$value = $fieldsValue[$fieldName];
+					switch ($field['type']) {
+						case 'varchar':
+						case 'text':
+						case 'phone':
+						case 'mail':
+						case 'url':
+						case 'password':
+							if (empty($value))
+								$checkField = false;
+							break;
+						case 'checkbox':
+						case 'chkbxlst':
+							if (trim($value) === '')
+								$checkField = false;
+							break;
+						case 'int':
+						case 'float':
+						case 'double':
+						case 'price':
+							if ($value === '' || (isset($field['min']) && $value < $field['min']) || (isset($field['max']) && $value > $field['max']))
+								$checkField = false;
+							break;
+						case 'date':
+						case 'datetime':
+							if (empty($value))
+								$checkField = false;
+							break;
+						case 'link':
+						case 'radio':
+						case 'select':
+						case 'sellist':
+						case 'boolean':
+							if (trim($value) === '' || $value == -1)
+								$checkField = false;
+							break;
+						default: // unknown
+							break;
+					}
+				} else {
+					$checkField = false;
+				}
 
-                if (!$checkField) {
-                    $check = false;
-                    $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentities($field['label']));
-                }
-            }
-        }
+				if (!$checkField) {
+					$check = false;
+					$this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentities($field['label']));
+				}
+			}
 
-        if ($check)
-            return 1;
-        else
-            return -1;
-    }
+			if (isset($fieldsValue[$fieldName])) {
+				$value = $fieldsValue[$fieldName];
+				switch ($field['type']) {
+					case 'int':
+					case 'float':
+					case 'double':
+					case 'price':
+						if (isset($field['min']) && $value < $field['min']) {
+							$check = false;
+							$this->errors[] = $langs->trans("AdvanceDictionariesErrorValueMustBeGreaterOrEqualThan", $field['min']);
+						}
+						if (isset($field['max']) && $value > $field['max']) {
+							$check = false;
+							$this->errors[] = $langs->trans("AdvanceDictionariesErrorValueMustBeLesserOrEqualThan", $field['max']);
+						}
+						break;
+					case 'custom':
+						if ($this->checkCustomFieldValue($field, $value) < 0)
+							$check = false;
+						break;
+					default: // unknown
+						break;
+				}
+			}
+		}
+
+		if ($check)
+			return 1;
+		else
+			return -1;
+	}
 
     /**
      *  Check value of the custom field
@@ -3447,13 +3488,15 @@ class DictionaryLine extends CommonObjectLine
 	public function fetch($rowid)
     {
     	global $conf;
-        $select = array();
+		$select = array();
+		$group_by = array();
         $from = "";
         foreach ($this->dictionary->fields as $field) {
             // Select clause
             $sqlStatement = $this->selectFieldSqlStatement($field);
             if (!empty($sqlStatement)) {
-                $select[] = $sqlStatement;
+                $select[] = $sqlStatement . (!empty($sqlStatement) ? ' AS ' . $field['name'] : '');
+				$group_by[] = $sqlStatement;
             }
             // from clause
             $from .= $this->fromFieldSqlStatement($field);
@@ -3469,7 +3512,8 @@ class DictionaryLine extends CommonObjectLine
             ' FROM ' . MAIN_DB_PREFIX . $this->dictionary->table_name . ' as d ' . $from .
             ' WHERE d.' . $this->dictionary->rowid_field . ' = ' . $rowid .
             ($this->dictionary->is_multi_entity && $this->dictionary->has_entity ? ' AND d.' . $this->dictionary->entity_field . ' IN (' . implode(',', $filter_entity) . ')' : '') .
-            ' GROUP BY d.' . $this->dictionary->rowid_field;
+            ' GROUP BY d.' . $this->dictionary->rowid_field . ', ' . implode(', ', $group_by) .
+			', d.' . $this->dictionary->active_field . ($this->dictionary->has_entity ? ', d.' . $this->dictionary->entity_field : '');
 
         dol_syslog(__METHOD__, LOG_DEBUG);
         $resql = $this->db->query($sql);
@@ -3508,11 +3552,11 @@ class DictionaryLine extends CommonObjectLine
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
-                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.fk_target SEPARATOR \',\') AS ' . $field['name'];
+                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.fk_target SEPARATOR \',\')';
                 case 'custom':
                     return $this->selectCustomFieldSqlStatement($field);
                 default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
-                    return 'd.' . $field['name'] . ' AS ' . $field['name'];
+                    return 'd.' . $field['name'];
             }
         }
 

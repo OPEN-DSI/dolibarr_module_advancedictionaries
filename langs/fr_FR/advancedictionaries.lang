@@ -28,17 +28,19 @@ AdvanceDictionariesModifyEntity     = Modification de l'environnement
 ############################################################
 ### Confirm box
 ############################################################
-AdvanceDictionariesAddLine                          = Ajouter ligne
-AdvanceDictionariesConfirmAddLine                   = Êtes-vous sûr de vouloir ajouter cette ligne ?
-AdvanceDictionariesEditLine                         = Éditer ligne
-AdvanceDictionariesConfirmEditLine                  = Êtes-vous sûr de vouloir éditer cette ligne ?
+AdvanceDictionariesAddLine              = Ajouter ligne
+AdvanceDictionariesConfirmAddLine       = Êtes-vous sûr de vouloir ajouter cette ligne ?
+AdvanceDictionariesEditLine             = Éditer ligne
+AdvanceDictionariesConfirmEditLine      = Êtes-vous sûr de vouloir éditer cette ligne ?
 AdvanceDictionariesConfirmMassModifyEntity          = Modification de l'environnement
 AdvanceDictionariesConfirmMassModifyEntityQuestion  = Êtes-vous sûr de vouloir modifier l'environnement des %s enregistrement(s) sélectionné(s) ?
 
 #######################################################################
 # Errors
 #######################################################################
-AdvanceDictionariesErrorFieldNotDefined     = Erreur : Champ "%s" non définie.
-AdvanceDictionariesErrorIndexNotDefined     = Erreur : Index "%s" non définie.
-AdvanceDictionariesErrorUsedInDolibarr      = Ne peut être supprimée car elle est utilisée dans Dolibarr.
-AdvanceDictionariesErrorValueUsedInDolibarr = Ne peut être supprimée car une des valeurs de la colonne "%s" est utilisée dans Dolibarr.
+AdvanceDictionariesErrorFieldNotDefined                 = Erreur : Champ "%s" non définie.
+AdvanceDictionariesErrorIndexNotDefined                 = Erreur : Index "%s" non définie.
+AdvanceDictionariesErrorUsedInDolibarr                  = Ne peut être supprimée car elle est utilisée dans Dolibarr.
+AdvanceDictionariesErrorValueUsedInDolibarr             = Ne peut être supprimée car une des valeurs de la colonne "%s" est utilisée dans Dolibarr.
+AdvanceDictionariesErrorValueMustBeGreaterOrEqualThan   = La valeur doit être supérieure à %s
+AdvanceDictionariesErrorValueMustBeLesserOrEqualThan    = La valeur doit être inférieur à %s

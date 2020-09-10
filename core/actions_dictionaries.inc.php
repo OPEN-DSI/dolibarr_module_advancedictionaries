@@ -108,8 +108,8 @@ if (isset($dictionary) && $dictionary->enabled) {
     // Filters
     $search_entity = GETPOST('search_' . $dictionary->entity_field, 'int');
     if ($search_entity === '') $search_entity = $conf->entity;
-	$search_active = GETPOST('search_' . $dictionary->active_field, 'int');
-	if ($search_active === '') $search_active = 1;
+    $search_active = GETPOST('search_' . $dictionary->active_field, 'int');
+    if ($search_active === '') $search_active = 1;
     $search_filters = $dictionary->getSearchFieldsValueFromForm();
 }
 
@@ -130,7 +130,7 @@ include DOL_DOCUMENT_ROOT.'/core/actions_changeselectedfields.inc.php';
 if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) {
     $search_filters=array();
     $search_entity = $conf->entity;
-	$search_active = 1;
+    $search_active = 1;
     $toselect=array();
 }
 
@@ -138,7 +138,7 @@ if (isset($dictionary) && $dictionary->enabled) {
     // Params
     foreach ($search_filters as $fieldName => $filter) $param .= '&search_' . $fieldName . '=' . urlencode($filter);
     if ($search_entity !== '') $param .= '&search_' . $dictionary->entity_field . '=' . urlencode($search_entity);
-	if ($search_active != 1) $param .= '&search_' . $dictionary->active_field . '=' . urlencode($search_active);
+    if ($search_active != 1) $param .= '&search_' . $dictionary->active_field . '=' . urlencode($search_active);
     $param2 = $param;
     if (!empty($page)) $param2 .= '&page=' . urlencode($page);
     $param3 = $param2;

@@ -3,6 +3,10 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.24] - 10-09-2020
+- Correction du test des valeurs maximal et minimal lors de la modification/creation d'une ligne
+- Correction instruction group by
+
 ## [4.0.23] - 09-09-2020
 - Correction filtre entité
 
@@ -112,7 +116,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.23...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.24...HEAD
+[4.0.24]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.24
 [4.0.23]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.23
 [4.0.22]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.22
 [4.0.21]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.21
