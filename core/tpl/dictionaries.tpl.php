@@ -95,7 +95,7 @@ if (isset($dictionary)) {
             $formquestion = array('text' => '<i>* ' . $langs->trans("AdvanceDictionariesFieldRequired") . '</i>');
 
             // Add hidden input
-            $formquestion[] = array('type' => 'hidden', 'name' => 'token', 'value' => $_SESSION['newtoken']);
+/*            $formquestion[] = array('type' => 'hidden', 'name' => 'token', 'value' => $_SESSION['newtoken']);
             if (!empty($sortfield)) $formquestion[] = array('type' => 'hidden', 'name' => 'sortfield', 'value' => $sortfield);
             if (!empty($sortorder)) $formquestion[] = array('type' => 'hidden', 'name' => 'sortorder', 'value' => $sortorder);
             if (!empty($page)) $formquestion[] = array('type' => 'hidden', 'name' => 'page', 'value' => $page);
@@ -107,7 +107,7 @@ if (isset($dictionary)) {
                 if (!$field['is_not_searchable']) {
                     $formquestion[] = array('type' => 'hidden', 'name' => 'search_' . $fieldName, 'value' => GETPOST('search_' . $fieldName));
                 }
-            }
+            }*/
 
             // Get default values
             $dictionary_line = $dictionary->getNewDictionaryLine();

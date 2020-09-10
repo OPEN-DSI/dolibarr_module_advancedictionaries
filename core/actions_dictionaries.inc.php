@@ -136,7 +136,7 @@ if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x',
 
 if (isset($dictionary) && $dictionary->enabled) {
     // Params
-    foreach ($search_filters as $fieldName => $filter) $param .= '&search_' . $fieldName . '=' . urlencode($filter);
+    foreach ($search_filters as $fieldName => $filter) $param .= '&search_' . $fieldName . '=' . urlencode(is_array($filter) ? $filter[0] : $filter);
     if ($search_entity !== '') $param .= '&search_' . $dictionary->entity_field . '=' . urlencode($search_entity);
     if ($search_active != 1) $param .= '&search_' . $dictionary->active_field . '=' . urlencode($search_active);
     $param2 = $param;
