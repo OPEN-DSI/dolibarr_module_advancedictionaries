@@ -225,7 +225,7 @@ if (empty($reshook)) {
             $uploaddir = $conf->advancedictionaries->dir_output;
             include DOL_DOCUMENT_ROOT . '/core/actions_massactions.inc.php';
 			// Modify the entity
-			if (!$error && ($massaction == 'modifyentity' || ($action == 'modifyentity' && $confirm == "yes")) && $dictionary->is_multi_entity && $dictionary->has_entity && $conf->multicompany->enabled && $dictionary->lineCanBeUpdated && $canUpdate) {
+			if (!$error && $dictionary->show_entity_management && ($massaction == 'modifyentity' || ($action == 'modifyentity' && $confirm == "yes")) && $dictionary->is_multi_entity && $dictionary->has_entity && $conf->multicompany->enabled && $dictionary->lineCanBeUpdated && $canUpdate) {
 				$entity = GETPOST('entity', 'int');
 				if ($entity === '') $entity = $conf->entity;
 

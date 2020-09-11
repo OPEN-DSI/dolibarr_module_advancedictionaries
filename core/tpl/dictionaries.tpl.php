@@ -43,7 +43,7 @@ $form = new Form($db);
 dol_include_once('/advancedictionaries/class/html.formdictionary.class.php');
 $formdictionary = new FormDictionary($db);
 
-if ($dictionary->is_multi_entity && $dictionary->has_entity && $conf->multicompany->enabled) {
+if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
 	require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
 	dol_include_once('/multicompany/class/dao_multicompany.class.php', 'DaoMulticompany');
 	dol_include_once('/multicompany/lib/multicompany.lib.php');
@@ -204,7 +204,7 @@ SCRIPT;
             // List of mass actions available
             $arrayofmassactions = array();
             if ($dictionary->lineCanBeDeleted && $canDelete) $arrayofmassactions['predelete'] = $langs->trans("Delete");
-			if ($dictionary->is_multi_entity && $dictionary->has_entity && $conf->multicompany->enabled && $dictionary->lineCanBeUpdated && $canUpdate) $arrayofmassactions['premodifyentity'] = $langs->trans("AdvanceDictionariesModifyEntity");
+			if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled && $dictionary->lineCanBeUpdated && $canUpdate) $arrayofmassactions['premodifyentity'] = $langs->trans("AdvanceDictionariesModifyEntity");
             if (in_array($massaction, array('predelete', 'premodifyentity'))) $arrayofmassactions = array();
             $massactionbutton = $form->selectMassAction('', $arrayofmassactions);
 
@@ -225,7 +225,7 @@ SCRIPT;
             $objecttmp = new DictionaryLine($db, $dictionary);
             $trackid = 'dic' . $dictionary->id;
             include DOL_DOCUMENT_ROOT . '/core/tpl/massactions_pre.tpl.php';
-			if ($massaction == 'premodifyentity' && $dictionary->is_multi_entity && $dictionary->has_entity && $conf->multicompany->enabled) {
+			if ($massaction == 'premodifyentity' && $dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
 				$entity = GETPOST('entity', 'int');
 				if ($entity === '') $entity = $conf->entity;
 				$formquestion = array(
@@ -276,7 +276,7 @@ SCRIPT;
             $parameters = array('arrayfields' => $arrayfields);
             $reshook = $hookmanager->executeHooks('printFieldListOption', $parameters, $dictionary, $action);
             print $hookmanager->resPrint;
-			if ($dictionary->is_multi_entity && $dictionary->has_entity && $conf->multicompany->enabled) {
+			if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
 				print '<td class="liste_titre maxwidthonsmartphone center">';
 				print $actionsmulticompany->select_entities($search_entity,'search_entity','',false,false,true, false, '', 'minwidth150imp', false);
 				print "</td>";
@@ -307,7 +307,7 @@ SCRIPT;
             $parameters = array('arrayfields' => $arrayfields, 'param' => $param2, 'sortfield' => $sortfield, 'sortorder' => $sortorder);
             $reshook = $hookmanager->executeHooks('printFieldListTitle', $parameters, $dictionary, $action);
             print $hookmanager->resPrint;
-            if ($dictionary->is_multi_entity && $dictionary->has_entity && $conf->multicompany->enabled) print_liste_field_titre($langs->trans("Entity"), $_SERVER["PHP_SELF"], $dictionary->entity_field, "", '&' . $param2, 'align="center"', $sortfield, $sortorder);
+            if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) print_liste_field_titre($langs->trans("Entity"), $_SERVER["PHP_SELF"], $dictionary->entity_field, "", '&' . $param2, 'align="center"', $sortfield, $sortorder);
             print_liste_field_titre($langs->trans("Status"), $_SERVER["PHP_SELF"], $dictionary->active_field, "", '&' . $param2, 'width="10%" align="center"', $sortfield, $sortorder);
             print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', 'align="center"', $sortfield, $sortorder, 'maxwidthsearch ');
             print '</tr>';
@@ -346,7 +346,7 @@ SCRIPT;
                 print $hookmanager->resPrint;
 
 				// Entity
-				if ($dictionary->is_multi_entity && $dictionary->has_entity && $conf->multicompany->enabled) {
+				if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
 					print '<td align="center" class="nowrap">';
 					if (!isset($entity_cached[$line->entity])) {
 						$result = $daomulticompany->fetch($line->entity);

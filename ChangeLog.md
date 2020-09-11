@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.25] - 11-09-2020
+- Ajout de l'option 'show_entity_management' pour afficher la gestion des entités pour les lignes du dictionnaire (affiche la colonne 'Environement' et l'action en masse de modifier l'entité des lignes)
+
 ## [4.0.24] - 10-09-2020
 - Correction du test des valeurs maximal et minimal lors de la modification/creation d'une ligne
 - Correction instruction group by
@@ -116,7 +119,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.24...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.25...HEAD
+[4.0.25]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.25
 [4.0.24]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.24
 [4.0.23]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.23
 [4.0.22]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.22

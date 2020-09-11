@@ -246,10 +246,15 @@ class Dictionary extends CommonObject
      */
     public $has_entity = true;
 
-    /**
-     * @var bool    Is multi entity (false = shared, true = by entity)
-     */
-    public $is_multi_entity = false;
+	/**
+	 * @var bool    Is multi entity (false = shared, true = by entity)
+	 */
+	public $is_multi_entity = false;
+
+	/**
+	 * @var bool    Show the management of the entity of the dictionary lines (show column entity and the mass action for change the entity of the lines) (false = show, true = hide)
+	 */
+	public $show_entity_management = true;
 
     /**
      * @var string  Name of the DictionaryLine class
