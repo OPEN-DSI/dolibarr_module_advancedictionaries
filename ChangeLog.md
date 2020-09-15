@@ -5,6 +5,7 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [4.0.25] - 11-09-2020
 - Ajout de l'option 'show_entity_management' pour afficher la gestion des entités pour les lignes du dictionnaire (affiche la colonne 'Environement' et l'action en masse de modifier l'entité des lignes)
+- Correction du test des valeurs maximal et minimal
 
 ## [4.0.24] - 10-09-2020
 - Correction du test des valeurs maximal et minimal lors de la modification/creation d'une ligne

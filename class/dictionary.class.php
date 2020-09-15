@@ -2874,7 +2874,7 @@ class DictionaryLine extends CommonObjectLine
 						case 'float':
 						case 'double':
 						case 'price':
-							if ($value === '' || (isset($field['min']) && $value < $field['min']) || (isset($field['max']) && $value > $field['max']))
+							if ($value === '')
 								$checkField = false;
 							break;
 						case 'date':
