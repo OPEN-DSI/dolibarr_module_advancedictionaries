@@ -3502,7 +3502,7 @@ class DictionaryLine extends CommonObjectLine
             $sqlStatement = $this->selectFieldSqlStatement($field);
             if (!empty($sqlStatement)) {
                 $select[] = $sqlStatement . (!empty($sqlStatement) ? ' AS ' . $field['name'] : '');
-				$group_by[] = $sqlStatement;
+				if ($field['type'] != 'chkbxlst') $group_by[] = $sqlStatement;
             }
             // from clause
             $from .= $this->fromFieldSqlStatement($field);

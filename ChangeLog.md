@@ -5,6 +5,7 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [4.0.27] - 16-09-2020
 - Correction mineur pour la fonction showUpdateListValuesScript()
+- Correction instruction group by avec le type chkbxlst
 
 ## [4.0.26] - 15-09-2020
 - Correction instruction group by avec le type chkbxlst
