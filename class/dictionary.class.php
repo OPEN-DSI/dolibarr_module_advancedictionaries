@@ -246,10 +246,10 @@ class Dictionary extends CommonObject
      */
     public $has_entity = true;
 
-	/**
-	 * @var bool    Is multi entity (false = shared, true = by entity)
-	 */
-	public $is_multi_entity = false;
+    /**
+     * @var bool    Is multi entity (false = shared, true = by entity)
+     */
+    public $is_multi_entity = false;
 
 	/**
 	 * @var bool    Show the management of the entity of the dictionary lines (show column entity and the mass action for change the entity of the lines) (false = show, true = hide)
@@ -1353,7 +1353,7 @@ class Dictionary extends CommonObject
             $sqlStatement = $this->selectFieldSqlStatement($field);
             if (!empty($sqlStatement)) {
 				$select[] = $sqlStatement . (!empty($sqlStatement) ? ' AS ' . $field['name'] : '');
-				$group_by[] = $sqlStatement;
+				if ($field['type'] != 'chkbxlst') $group_by[] = $sqlStatement;
 			}
             // From clause
             $from .= $this->fromFieldSqlStatement($field);
@@ -2086,6 +2086,7 @@ class Dictionary extends CommonObject
 		foreach ($this->fields as $field_name => $field_info) {
 			if (!empty($field_info['update_list_values'])) $fields_to_watch[] = $field_name;
 		}
+		if (!is_array($default_values)) $default_values = array();
 
 		$js_url = dol_escape_js(dol_buildpath('/advancedictionaries/js/advancedictionaries.js.php', 1));
 		$module = dol_escape_js($this->module);

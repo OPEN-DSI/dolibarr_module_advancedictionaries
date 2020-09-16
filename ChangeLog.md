@@ -3,6 +3,12 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.27] - 16-09-2020
+- Correction mineur pour la fonction showUpdateListValuesScript()
+
+## [4.0.26] - 15-09-2020
+- Correction instruction group by avec le type chkbxlst
+
 ## [4.0.25] - 11-09-2020
 - Ajout de l'option 'show_entity_management' pour afficher la gestion des entités pour les lignes du dictionnaire (affiche la colonne 'Environement' et l'action en masse de modifier l'entité des lignes)
 - Correction du test des valeurs maximal et minimal
@@ -120,7 +126,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.25...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.27...HEAD
+[4.0.27]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.27
+[4.0.26]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.26
 [4.0.25]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.25
 [4.0.24]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.24
 [4.0.23]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.23
