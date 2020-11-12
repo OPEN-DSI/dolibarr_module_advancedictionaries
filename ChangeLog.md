@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.28] - 09-11-2020
+- Correction de la detection de la version du dictionnaire installer en multisociete
+
 ## [4.0.27] - 16-09-2020
 - Correction mineur pour la fonction showUpdateListValuesScript()
 - Correction instruction group by avec le type chkbxlst
@@ -127,7 +130,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.27...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.28...HEAD
+[4.0.28]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.28
 [4.0.27]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.27
 [4.0.26]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.26
 [4.0.25]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.25

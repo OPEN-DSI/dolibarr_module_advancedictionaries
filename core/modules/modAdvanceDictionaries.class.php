@@ -72,7 +72,7 @@ class modAdvanceDictionaries extends DolibarrModules
 		$this->editor_url = 'http://www.open-dsi.fr';
 		
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '4.0.27';
+		$this->version = '4.0.28';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
@@ -309,7 +309,13 @@ class modAdvanceDictionaries extends DolibarrModules
             }
         }
 
-        $sql = array();
+        $sql = array(
+        	// 4.0.28
+			'INSERT INTO ' . MAIN_DB_PREFIX . 'const (`name`, `entity`, `value`, `type`, `visible`, `note`)' .
+			' SELECT `name` AS `name`, 0 AS `entity`, MAX(CAST(`value` AS INTEGER)) AS `value`, \'chaine\' AS `type`, 0 AS `visible`, \'\' AS `note`' .
+			' FROM ' . MAIN_DB_PREFIX . 'const WHERE `name` LIKE \'ADVANCEDICTIONARIES_DICTIONARY_%_VERSION\' AND `entity` != 0 GROUP BY `name`',
+			'DELETE FROM ' . MAIN_DB_PREFIX . 'const WHERE `name` LIKE \'ADVANCEDICTIONARIES_DICTIONARY_%_VERSION\' AND `entity` != 0',
+			);
 
         return $this->_init($sql, $options);
 	}

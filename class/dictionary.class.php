@@ -859,7 +859,7 @@ class Dictionary extends CommonObject
             }
         }
 
-        dolibarr_set_const($this->db, $version_variable_name, $this->version, 'chaine', 0, '', $conf->entity);
+        dolibarr_set_const($this->db, $version_variable_name, $this->version, 'chaine', 0, '', 0);
 
         return 1;
     }
