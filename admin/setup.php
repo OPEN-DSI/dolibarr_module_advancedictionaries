@@ -37,7 +37,7 @@ $langs->load("opendsi@advancedictionaries");
 
 if (!$user->admin) accessforbidden();
 
-$action = GETPOST('action','alpha');
+$action = GETPOST('action', 'aZ09');
 
 
 /*
@@ -143,7 +143,7 @@ print '</div>';
 
 print '</form>';
 
-dol_fiche_end();
+print dol_get_fiche_end();
 
 llxFooter();
 

@@ -59,7 +59,7 @@ print '<div class="moduledesclong">'."\n";
 print (!empty($changelog) ? $changelog : $langs->trans("NotAvailable"));
 print '<div>'."\n";
 
-dol_fiche_end();
+print dol_get_fiche_end();
 
 
 llxFooter();

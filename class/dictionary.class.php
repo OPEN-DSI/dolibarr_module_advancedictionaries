@@ -470,14 +470,6 @@ class Dictionary extends CommonObject
             }
 
             if (!$error) {
-                // Create indexes of the tables
-                $res = $this->createIndexesTable();
-                if ($res < 0) {
-                    $error++;
-                }
-            }
-
-            if (!$error) {
                 // Create sub dictionary table
                 foreach ($this->fields as $field) {
                     $res = $this->createSubTable($field);
@@ -507,7 +499,15 @@ class Dictionary extends CommonObject
                 }
             }
 
-            if (!$error) {
+			if (!$error) {
+				// Create indexes of the tables
+				$res = $this->createIndexesTable();
+				if ($res < 0) {
+					$error++;
+				}
+			}
+
+			if (!$error) {
                 $this->db->commit();
                 return 1;
             } else {
@@ -2121,6 +2121,28 @@ SCRIPT;
     {
         return true;
     }
+
+	/**
+	 * Determine if lines can be updated or not
+	 *
+	 * @param  DictionaryLine   $dictionaryLine     Line instance
+	 * @return bool
+	 */
+	public function isLineCanBeUpdated(&$dictionaryLine)
+	{
+		return true;
+	}
+
+	/**
+	 * Determine if lines can be deleted or not
+	 *
+	 * @param  DictionaryLine   $dictionaryLine     Line instance
+	 * @return bool
+	 */
+	public function isLineCanBeDeleted(&$dictionaryLine)
+	{
+		return true;
+	}
 
     /**
      *  Get last row ID of the dictionary
