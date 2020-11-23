@@ -360,8 +360,7 @@ class Dictionary extends CommonObject
                     $typedb='text';
                     break;
                 case 'int':
-                    $typedb='int';
-                    $lengthdb='11';
+                    $typedb='integer';
                     break;
                 case 'float':
                     $typedb='float';
@@ -377,8 +376,7 @@ class Dictionary extends CommonObject
                     $typedb='datetime';
                     break;
                 case 'boolean':
-                    $typedb='int';
-                    $lengthdb='1';
+                    $typedb='boolean';
                     break;
                 case 'price':
                     $typedb='double';
@@ -410,8 +408,7 @@ class Dictionary extends CommonObject
                     $typedb='text';
                     break;
                 case 'link':
-                    $typedb='int';
-                    $lengthdb='11';
+                    $typedb='integer';
                     break;
                 case 'custom':
                     return $this->definitionTableCustomFieldInstructionSQL($field);
@@ -419,12 +416,14 @@ class Dictionary extends CommonObject
                     return '';
             }
 
-            $typedb = isset($field['database']['type']) ? $field['database']['type'] : $typedb;
+			$cq = $this->db->type == 'pgsql' ? '"' : '`';
+
+			$typedb = isset($field['database']['type']) ? $field['database']['type'] : $typedb;
             $lengthdb = isset($field['database']['length']) ? $field['database']['length'] : $lengthdb;
             $nulldb = !empty($field['is_require']) ? ' NOT NULL' : ' NULL';
             $defaultdb = isset($field['database']['default']) ? " DEFAULT '" . $this->db->escape($field['database']['default']) . "'" : '';
 
-            return $field['name'] . ' ' . $typedb . (!empty($lengthdb) ? '('.$lengthdb.')' : '') . $nulldb . $defaultdb;
+            return $cq . $field['name'] . $cq . ' ' . $typedb . (!empty($lengthdb) ? '('.$lengthdb.')' : '') . $nulldb . $defaultdb;
         }
 
         return '';
@@ -451,19 +450,21 @@ class Dictionary extends CommonObject
             $error = 0;
             $this->db->begin();
 
+            $cq = $this->db->type == 'pgsql' ? '"' : '`';
+
             // Create dictionary table
-            $sql = 'CREATE TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $this->rowid_field . ' INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY';
+            $sql = 'CREATE TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $cq . $this->rowid_field . $cq . ' INTEGER NOT NULL' . ($this->is_rowid_auto_increment ? ' AUTO_INCREMENT' : '') . ' PRIMARY KEY';
             foreach ($this->fields as $field) {
                 $instructionSQL = $this->definitionTableFieldInstructionSQL($field);
                 $sql .= !empty($instructionSQL) ? ', ' . $instructionSQL : '';
             }
-            $sql .= ', ' . $this->active_field . ' INTEGER DEFAULT 1 NOT NULL';
-            if ($this->has_entity) $sql .= ', ' . $this->entity_field . ' INTEGER DEFAULT 1 NOT NULL';
-            $sql .= ') ENGINE=innodb';
+            $sql .= ', ' . $cq . $this->active_field . $cq . ' INTEGER DEFAULT 1 NOT NULL';
+            if ($this->has_entity) $sql .= ', ' . $cq . $this->entity_field . $cq . ' INTEGER DEFAULT 1 NOT NULL';
+            $sql .= ')' . ($this->db->type == 'pgsql' ? '' : ' ENGINE=innodb');
 
             $resql = $this->db->query($sql);
             if (!$resql) {
-                if ($this->db->lasterrno() != 'DB_ERROR_TABLE_ALREADY_EXISTS') {
+                if ($this->db->lasterrno() != 'DB_ERROR_TABLE_ALREADY_EXISTS' && $this->db->lasterrno() != 'DB_ERROR_TABLE_OR_KEY_ALREADY_EXISTS') {
                     $error++;
                     $this->error = $this->db->lasterror();
                 }
@@ -552,20 +553,25 @@ class Dictionary extends CommonObject
             return -1;
         }
 
-        $index = $this->indexes[$idx_number];
+		$cq = $this->db->type == 'pgsql' ? '"' : '`';
 
-        $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' ADD ' . (!empty($index['is_unique']) ? 'UNIQUE ' : '') . 'INDEX idx_' . $this->table_name . '_' . $idx_number . ' (';
+		$index = $this->indexes[$idx_number];
+
+        if ($this->db->type == 'pgsql')
+			$sql = 'CREATE ' . (!empty($index['is_unique']) ? 'UNIQUE ' : '') . 'INDEX idx_' . $this->table_name . '_' . $idx_number . ' ON ' . MAIN_DB_PREFIX . $this->table_name . ' (';
+		else
+	        $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' ADD ' . (!empty($index['is_unique']) ? 'UNIQUE ' : '') . 'INDEX idx_' . $this->table_name . '_' . $idx_number . ' (';
         foreach ($index['fields'] as $field) {
-            $sql .= $field . ', ';
+            $sql .= $cq . $field . $cq . ', ';
         }
         if ($this->has_entity && $this->is_multi_entity)
-            $sql .= $this->entity_field . ')';
+            $sql .= $cq. $this->entity_field . $cq . ')';
         else
             $sql = substr($sql, 0, -2) . ')';
 
         $resql = $this->db->query($sql);
         if (!$resql) {
-            if ($this->db->lasterrno() != 'DB_ERROR_KEY_NAME_ALREADY_EXISTS') {
+            if ($this->db->lasterrno() != 'DB_ERROR_KEY_NAME_ALREADY_EXISTS' && $this->db->lasterrno() != 'DB_ERROR_TABLE_OR_KEY_ALREADY_EXISTS') {
                 $this->error = $this->db->lasterror();
                 return -1;
             }
@@ -582,7 +588,10 @@ class Dictionary extends CommonObject
    	 */
    	protected function deleteIndexTable($idx_number)
     {
-        $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP INDEX idx_' . $this->table_name . '_' . $idx_number;
+		if ($this->db->type == 'pgsql')
+			$sql = 'DROP INDEX IF EXISTS idx_' . $this->table_name . '_' . $idx_number;
+		else
+			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP INDEX idx_' . $this->table_name . '_' . $idx_number;
 
         $resql = $this->db->query($sql);
         if (!$resql) {
@@ -610,7 +619,7 @@ class Dictionary extends CommonObject
 
                     $resql = $this->db->query($sql);
                     if (!$resql) {
-                        if ($this->db->lasterrno() != 'DB_ERROR_TABLE_ALREADY_EXISTS') {
+                        if ($this->db->lasterrno() != 'DB_ERROR_TABLE_ALREADY_EXISTS' && $this->db->lasterrno() != 'DB_ERROR_TABLE_OR_KEY_ALREADY_EXISTS') {
                             $this->error = $this->db->lasterror();
                             return -1;
                         }
@@ -663,6 +672,8 @@ class Dictionary extends CommonObject
                         }
                     }
 
+					$cq = $this->db->type == 'pgsql' ? '"' : '`';
+
                     // Add foreign constraint with association table for the multi-select list
 //                    $sql = 'SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE()' .
 //                        " AND CONSTRAINT_NAME   = 'fk_" . $initial . '_cbl_' . $field['name'] . "_a'" .
@@ -674,7 +685,7 @@ class Dictionary extends CommonObject
 //                    } else {
 //                        if (!$this->db->num_rows($resql)) {
                             $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] .
-                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_a FOREIGN KEY (fk_line) REFERENCES ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $this->rowid_field . ');';
+                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_a FOREIGN KEY (fk_line) REFERENCES ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $cq . $this->rowid_field . $cq . ');';
 
                             $resql = $this->db->query($sql);
                             if (!$resql) {
@@ -708,7 +719,7 @@ class Dictionary extends CommonObject
                             }
 
                             $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] .
-                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_b FOREIGN KEY (fk_target) REFERENCES ' . MAIN_DB_PREFIX . $InfoFieldList[0] . ' (' . $keyList . ');';
+                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_b FOREIGN KEY (fk_target) REFERENCES ' . MAIN_DB_PREFIX . $InfoFieldList[0] . ' (' . $cq . $keyList . $cq . ');';
 
                             $resql = $this->db->query($sql);
                             if (!$resql) {
@@ -1655,7 +1666,7 @@ class Dictionary extends CommonObject
                 case 'sellist':
                     if (is_array($value)) {
                         if (count($value) > 0) {
-                            return natural_search('d.' . $field['name'], implode(',', $value), 2, 1);
+                            return natural_search('d.' . $field['name'], implode(',', $value), 3, 1);
                         } else {
                             return '';
                         }
@@ -2989,7 +3000,9 @@ class DictionaryLine extends CommonObjectLine
             $errors = array();
             $this->fields = $fieldsValue;
 
-            // Insert line into dictionary table
+			$cq = $this->db->type == 'pgsql' ? '"' : '`';
+
+			// Insert line into dictionary table
             $insert_field = array();
             $insert_statement = array();
             foreach ($this->dictionary->fields as $fieldName => $field) {
@@ -2998,12 +3011,13 @@ class DictionaryLine extends CommonObjectLine
                     $insert_statement[] = $formattedValue;
                 }
             }
-            $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . ' (' .
-                (!$this->dictionary->is_rowid_auto_increment ? $this->dictionary->rowid_field . ', ' : '') .
-                implode(', ', $insert_field) .
-                ', ' . $this->dictionary->active_field . ($this->dictionary->has_entity ? ', ' . $this->dictionary->entity_field : '') .
-                ') VALUES (' .
-                (!$this->dictionary->is_rowid_auto_increment ? ($this->dictionary->is_rowid_defined_by_code ? $this->id : $this->dictionary->getNextRowID()) . ', ' : '') .
+            $rowid = !$this->dictionary->is_rowid_auto_increment ? ($this->dictionary->is_rowid_defined_by_code ? $this->id : $this->dictionary->getNextRowID()) : 0;
+            $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . ' (' . $cq .
+                (!$this->dictionary->is_rowid_auto_increment ? $this->dictionary->rowid_field . $cq . ', ' . $cq : '') .
+                implode($cq . ', ' . $cq, $insert_field) .
+				$cq . ', ' . $cq . $this->dictionary->active_field . ($this->dictionary->has_entity ? $cq . ', ' . $cq . $this->dictionary->entity_field : '') .
+				$cq . ') VALUES (' .
+                (!$this->dictionary->is_rowid_auto_increment ? $rowid . ', ' : '') .
                 implode(', ', $insert_statement) . ', 1' . ($this->dictionary->has_entity ? ', ' . $conf->entity : '') . ')';
 
             dol_syslog(__METHOD__, LOG_DEBUG);
@@ -3013,7 +3027,7 @@ class DictionaryLine extends CommonObjectLine
                 $error++;
                 $errors[] = $this->db->lasterror();
             } else {
-                $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX . $this->dictionary->table_name);
+                $this->id = $this->dictionary->is_rowid_auto_increment ? $this->db->last_insert_id(MAIN_DB_PREFIX . $this->dictionary->table_name) : $rowid;
             }
 
             // Insert post line of dictionary table
@@ -3128,16 +3142,18 @@ class DictionaryLine extends CommonObjectLine
             $this->old = clone $this;
             $this->fields = $fieldsValue;
 
-            // Update line of dictionary table
+			$cq = $this->db->type == 'pgsql' ? '"' : '`';
+
+			// Update line of dictionary table
             $sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->dictionary->table_name . ' SET ';
             $set_statement = array();
             foreach ($this->fields as $name => $value) {
                 if (($formattedValue = $this->formatFieldValueForSQL($name, $value)) !== null) {
-                    $set_statement[] = $name . ' = ' . $formattedValue;
+                    $set_statement[] = $cq . $name . $cq . ' = ' . $formattedValue;
                 }
             }
             $sql .= implode(', ', $set_statement);
-            $sql .= ' WHERE ' . $this->dictionary->rowid_field . ' = ' . $this->id;
+            $sql .= ' WHERE ' . $cq . $this->dictionary->rowid_field . $cq . ' = ' . $this->id;
 
             dol_syslog(__METHOD__, LOG_DEBUG);
             $resql = $this->db->query($sql);
@@ -3291,8 +3307,10 @@ class DictionaryLine extends CommonObjectLine
         }
 
         if (!$error) {
-            // Delete line of dictionary table
-            $sql = 'DELETE FROM ' . MAIN_DB_PREFIX . $this->dictionary->table_name . ' WHERE ' . $this->dictionary->rowid_field . ' = ' . $this->id;
+			$cq = $this->db->type == 'pgsql' ? '"' : '`';
+
+			// Delete line of dictionary table
+            $sql = 'DELETE FROM ' . MAIN_DB_PREFIX . $this->dictionary->table_name . ' WHERE ' . $cq . $this->dictionary->rowid_field . $cq . ' = ' . $this->id;
 
             dol_syslog(__METHOD__, LOG_DEBUG);
             $resql = $this->db->query($sql);
@@ -3356,10 +3374,12 @@ class DictionaryLine extends CommonObjectLine
         $this->old = clone $this;
         $this->active = $status;
 
-        // Update line of dictionary table
+		$cq = $this->db->type == 'pgsql' ? '"' : '`';
+
+		// Update line of dictionary table
         $sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->dictionary->table_name .
-            ' SET ' . $this->dictionary->active_field . ' = ' . $this->active .
-            ' WHERE ' . $this->dictionary->rowid_field . ' = ' . $this->id;
+            ' SET ' . $cq . $this->dictionary->active_field . $cq . ' = ' . $this->active .
+            ' WHERE ' . $cq . $this->dictionary->rowid_field . $cq . ' = ' . $this->id;
 
         dol_syslog(__METHOD__, LOG_DEBUG);
         $resql = $this->db->query($sql);
@@ -3413,10 +3433,12 @@ class DictionaryLine extends CommonObjectLine
 		$this->old = clone $this;
 		$this->entity = $entity;
 
+		$cq = $this->db->type == 'pgsql' ? '"' : '`';
+
 		// Update line of dictionary table
 		$sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->dictionary->table_name .
-			' SET ' . $this->dictionary->entity_field . ' = ' . $this->entity .
-			' WHERE ' . $this->dictionary->rowid_field . ' = ' . $this->id;
+			' SET ' . $cq . $this->dictionary->entity_field . $cq . ' = ' . $this->entity .
+			' WHERE ' . $cq . $this->dictionary->rowid_field . $cq . ' = ' . $this->id;
 
 		dol_syslog(__METHOD__, LOG_DEBUG);
 		$resql = $this->db->query($sql);

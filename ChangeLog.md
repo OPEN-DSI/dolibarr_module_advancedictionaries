@@ -3,6 +3,12 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.30] - 23-11-2020
+- Correction compatibilité avec postgresql lors de l'activation du module.
+
+## [4.0.30] - 18-11-2020
+- Ajout compatibilité avec postgresql. 
+
 ## [4.0.29] - 13-11-2020
 - Correction mineur pour l'affichage du message de "Accès refusé" si le dictionnaire n'est pas activé.
 - Ajout de la possibilité d'authorisé ou non la mise a jour ou la suppression sur chaque ligne par code.
@@ -134,7 +140,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.29...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.30...HEAD
+[4.0.30]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.30
 [4.0.29]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.29
 [4.0.28]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.28
 [4.0.27]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.27

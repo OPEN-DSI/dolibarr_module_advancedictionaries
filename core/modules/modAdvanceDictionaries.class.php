@@ -72,7 +72,7 @@ class modAdvanceDictionaries extends DolibarrModules
 		$this->editor_url = 'http://www.open-dsi.fr';
 		
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '4.0.28';
+		$this->version = '4.0.31';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
@@ -313,13 +313,18 @@ class modAdvanceDictionaries extends DolibarrModules
             }
         }
 
-        $sql = array(
+		$cq = $this->db->type == 'pgsql' ? '"' : '`';
+
+		$sql = array(
         	// 4.0.28
-			'INSERT INTO ' . MAIN_DB_PREFIX . 'const (`name`, `entity`, `value`, `type`, `visible`, `note`)' .
-			' SELECT `name` AS `name`, 0 AS `entity`, MAX(CAST(`value` AS INTEGER)) AS `value`, \'chaine\' AS `type`, 0 AS `visible`, \'\' AS `note`' .
-			' FROM ' . MAIN_DB_PREFIX . 'const WHERE `name` LIKE \'ADVANCEDICTIONARIES_DICTIONARY_%_VERSION\' AND `entity` != 0 GROUP BY `name`',
-			'DELETE FROM ' . MAIN_DB_PREFIX . 'const WHERE `name` LIKE \'ADVANCEDICTIONARIES_DICTIONARY_%_VERSION\' AND `entity` != 0',
-			);
+			array('sql' => "INSERT INTO " . MAIN_DB_PREFIX . "const ({$cq}name{$cq}, {$cq}entity{$cq}, {$cq}value{$cq}, {$cq}type{$cq}, {$cq}visible{$cq}, {$cq}note{$cq})" .
+				" SELECT {$cq}name{$cq} AS {$cq}name{$cq}, 0 AS {$cq}entity{$cq}, MAX(CAST({$cq}value{$cq} AS INTEGER)) AS {$cq}value{$cq}" .
+				", 'chaine' AS {$cq}type{$cq}, 0 AS {$cq}visible{$cq}, '' AS {$cq}note{$cq}" .
+				" FROM " . MAIN_DB_PREFIX . "const WHERE {$cq}name{$cq} LIKE 'ADVANCEDICTIONARIES_DICTIONARY_%_VERSION' AND {$cq}entity{$cq} != 0 GROUP BY {$cq}name{$cq}",
+				'ignoreerror' => 1,
+			),
+			"DELETE FROM " . MAIN_DB_PREFIX . "const WHERE {$cq}name{$cq} LIKE 'ADVANCEDICTIONARIES_DICTIONARY_%_VERSION' AND {$cq}entity{$cq} != 0",
+		);
 
         return $this->_init($sql, $options);
 	}
