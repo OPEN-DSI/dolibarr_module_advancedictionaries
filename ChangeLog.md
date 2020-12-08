@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.32] - 04-12-2020
+- Ajout de l'option sur les champs : 'default_value'
+
 ## [4.0.31] - 23-11-2020
 - Correction compatibilité avec postgresql lors de l'activation du module.
 
@@ -140,9 +143,7 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.31...HEAD
-[4.0.31]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.31
-[4.0.30]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.30
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.29...HEAD
 [4.0.29]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.29
 [4.0.28]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.28
 [4.0.27]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.27

@@ -156,7 +156,9 @@ SCRIPT;
                     }
                 }
 
-                $formquestion[] = array('type' => 'other', 'name' => ($action == 'edit_line' ? 'edit_' : 'add_') . $fieldName, 'label' => $input_label, 'value' => $dictionary_line->showInputFieldAD($fieldName, null, $action == 'edit_line' ? 'edit_' : 'add_'));
+				$value = null;
+                if (!isset($dictionary_line->fields[$fieldName]) && isset($field['default_value'])) $value = $field['default_value'];
+                $formquestion[] = array('type' => 'other', 'name' => ($action == 'edit_line' ? 'edit_' : 'add_') . $fieldName, 'label' => $input_label, 'value' => $dictionary_line->showInputFieldAD($fieldName, $value, $action == 'edit_line' ? 'edit_' : 'add_'));
             }
         }
 
@@ -380,11 +382,9 @@ SCRIPT;
                 // Action column
                 print '<td class="nowrap" align="center">';
                 // Modify link
-				$isLineCanBeUpdated = $dictionary->isLineCanBeUpdated($line);
-				if ($dictionary->lineCanBeUpdated && $canUpdate && $isLineCanBeUpdated) print '<a class="reposition" href="' . $_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $line->id . '&action=edit_line&'.$now.'=#rowid-' . $line->id . '">' . img_edit() . '</a>';
+                if ($dictionary->lineCanBeUpdated && $canUpdate) print '<a class="reposition" href="' . $_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $line->id . '&action=edit_line&'.$now.'=#rowid-' . $line->id . '">' . img_edit() . '</a>';
                 // Delete link
-				$isLineCanBeDeleted = $dictionary->isLineCanBeDeleted($line);
-				if ($dictionary->lineCanBeDeleted && $canDelete && $isLineCanBeDeleted) print '<a href="' . $_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $line->id . '&prevrowid=' . $last_rowid . '&action=delete_line' . '&rowid=' . $line->id . '&'.$now.'=#rowid-' . $line->id . '">' . img_delete() . '</a>';
+                if ($dictionary->lineCanBeDeleted && $canDelete) print '<a href="' . $_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $line->id . '&prevrowid=' . $last_rowid . '&action=delete_line' . '&rowid=' . $line->id . '&'.$now.'=#rowid-' . $line->id . '">' . img_delete() . '</a>';
                 if ($massactionbutton || $massaction) {   // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
                     $selected = 0;
                     if (in_array($line->id, $arrayofselected)) $selected = 1;
@@ -410,7 +410,7 @@ SCRIPT;
             setEventMessage($dictionary->errorsToString(), 'errors');
         }
     } else {
-        accessforbidden('', 0, 0);
+        accessforbidden();
     }
 } else {
     /*
