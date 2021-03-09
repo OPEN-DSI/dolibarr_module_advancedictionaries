@@ -7,9 +7,14 @@ Module163017Desc = Module remplacant et étendant les dictionnaires
 # Permission
 #######################################################################
 Permission163028    = Consulter les dictionnaires
-Permission163029    = Ajouter/Modifier des lignes dans les dictionaires
-Permission163030    = Supprimer des lignes dans les dictionaires
-Permission163031    = Activer/Désactiver des lignes dans les dictionaires
+Permission163029    = Ajouter/Modifier des lignes dans les dictionnaires
+Permission163030    = Supprimer des lignes dans les dictionnaires
+Permission163031    = Activer/Désactiver des lignes dans les dictionnaires
+
+#######################################################################
+# Menu
+#######################################################################
+AdvancedictionariesMenuTitle    = Dictionnaires avancés
 
 #######################################################################
 # Configuration admin

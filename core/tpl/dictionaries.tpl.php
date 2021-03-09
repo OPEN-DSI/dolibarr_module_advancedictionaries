@@ -68,6 +68,9 @@ if (isset($dictionary) && $dictionary->enabled) {
     if (!empty($dictionary->hideCustomBackLink)) $linkback = '';
 }
 
+// Easya compatibility
+$class_fa = !empty($conf->global->EASYA_VERSION) && version_compare(DOL_VERSION, "10.0.0") >= 0 ? 'fal' : 'fa';
+
 print load_fiche_titre($titre, $linkback, $titlepicto);
 
 if (!isset($dictionary))
@@ -197,7 +200,7 @@ SCRIPT;
             if ($dictionary->lineCanBeAdded && $canCreate) {
                 $addButton = '<a href="' . $_SERVER['PHP_SELF'] . '?' . $param3 . '&action=add_line&module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name) . '&'.$now.'="' . ((float)DOL_VERSION >= 8.0 ? 'class=" butActionNew"' : '') . '>';
                 $addButton .= $langs->trans("Add");
-                if ((float)DOL_VERSION >= 8.0) $addButton .= '<span class="fal fa-plus-circle valignmiddle"></span>';
+                if ((float)DOL_VERSION >= 8.0) $addButton .= '<span class="'.$class_fa.' fa-plus-circle valignmiddle"></span>';
                 $addButton .= '</a>';
             }
 
@@ -360,7 +363,7 @@ SCRIPT;
 							$entity_cached[$line->entity] = $daomulticompany->label;
 						}
 					}
-					print '<span class="fal fa-globe"></span><span class="multiselect-selected-title-text">' . $entity_cached[$line->entity] . '</span>';
+					print '<span class="'.$class_fa.' fa-globe"></span><span class="multiselect-selected-title-text">' . $entity_cached[$line->entity] . '</span>';
 					print "</td>";
 				}
 

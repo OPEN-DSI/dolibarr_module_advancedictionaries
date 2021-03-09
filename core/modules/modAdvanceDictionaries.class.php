@@ -72,7 +72,7 @@ class modAdvanceDictionaries extends DolibarrModules
 		$this->editor_url = 'http://www.open-dsi.fr';
 		
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '4.0.32';
+		$this->version = '4.0.33';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
@@ -146,7 +146,7 @@ class modAdvanceDictionaries extends DolibarrModules
 		// 'intervention'     to add a tab in intervention view
 		// 'invoice'          to add a tab in customer invoice view
 		// 'invoice_supplier' to add a tab in supplier invoice view
-		// 'member'           to add a tab in fundation member view
+		// 'member'           to add a tab in foundation member view
 		// 'opensurveypoll'	  to add a tab in opensurvey poll view
 		// 'order'            to add a tab in customer order view
 		// 'order_supplier'   to add a tab in supplier order view
@@ -236,40 +236,23 @@ class modAdvanceDictionaries extends DolibarrModules
 		$this->menu = array();			// List of menus to add
 		$r=0;
 
-		// Add here entries to declare new menus
-		//
-		// Example to declare a new Top Menu entry and its Left menu entry:
-		// $this->menu[$r]=array(	'fk_menu'=>'',			                // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-		//							'type'=>'top',			                // This is a Top menu entry
-		//							'titre'=>'MyModule top menu',
-		//							'mainmenu'=>'mymodule',
-		//							'leftmenu'=>'mymodule',
-		//							'url'=>'/mymodule/pagetop.php',
-		//							'langs'=>'mylangfile@mymodule',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-		//							'position'=>100,
-		//							'enabled'=>'$conf->mymodule->enabled',	// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-		//							'perms'=>'1',			                // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-		//							'target'=>'',
-		//							'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both
-		// $r++;
-		//
-		// Example to declare a Left Menu entry into an existing Top menu entry:
-		// $this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=xxx',		    // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-		//							'type'=>'left',			                // This is a Left menu entry
-		//							'titre'=>'MyModule left menu',
-		//							'mainmenu'=>'xxx',
-		//							'leftmenu'=>'mymodule',
-		//							'url'=>'/mymodule/pagelevel2.php',
-		//							'langs'=>'mylangfile@mymodule',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-		//							'position'=>100,
-		//							'enabled'=>'$conf->mymodule->enabled',  // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-		//							'perms'=>'1',			                // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-		//							'target'=>'',
-		//							'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both
-		// $r++;
+        $this->menu[$r] = array(
+            'fk_menu'=>'fk_mainmenu=home,fk_leftmenu=setup', // Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
+            'type' => 'left', // This is a Left menu entry
+            'titre' => $langs->trans('AdvancedictionariesMenuTitle'),
+            'mainmenu' => '',
+            'leftmenu'=> '',
+            'url' => '/advancedictionaries/admin/dictionaries.php',
+            'langs' => 'advancedictionaries@advancedictionaries', // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+            'position' => 100,
+            'enabled' => '1', // Define condition to show or hide menu entry. Use '$conf->monmodule->enabled' if entry must be visible if module is enabled.
+            'perms' => '$user->rights->advancedictionaries->read', // Use 'perms'=>'$user->rights->monmodule->level1->level2' if you want your menu with a permission rules
+            'target' => '',
+            'user' => 0
+        );    // 0=Menu for internal users,1=external users, 2=both
+        $r++;
 
-
-		// Exports
+        // Exports
 		$r=1;
 
 		// Example:

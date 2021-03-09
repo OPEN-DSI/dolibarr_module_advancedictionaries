@@ -12,6 +12,11 @@ Permission163030    = Delete dictionaries lines
 Permission163031    = Disabled/Enabled dictionaries lines
 
 #######################################################################
+# Menu
+#######################################################################
+AdvancedictionariesMenuTitle    = Advanced Dictionaries
+
+#######################################################################
 # Configuration admin
 #######################################################################
 AdvanceDictionariesSetup                        = Configuration of the module Advanced Dictionaries
