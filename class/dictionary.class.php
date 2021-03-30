@@ -1,6 +1,7 @@
 <?php
 /* Copyright (C) 2018  Open-Dsi <support@open-dsi.fr>
- *
+ * Copyright (C) 2021  Alexis LAURIER <contact@alexislaurier.fr>
+ * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
@@ -137,7 +138,12 @@ class Dictionary extends CommonObject
 	 *																	5 : ObjectName
 	 *																	6 : classPath
 	 *																	7 : lang (can use | for multiple field with lang file to load, can use 'AS', example: t1.lang AS t1_lang|t2.lang AS t2_lang)
-	 *   'truncate'        	  	  => integer,        			// Truncate string in "sellist", "chkbxlst" type
+	 *   'association_table'      => array (                    // Options on fields with an association table
+     *      'name'                => string                     // Custom association table name given here
+     *      'fk_line_name'        => string                     // Custom column name for line's id of this dictionary
+     *      'fk_target_name'      => string                     // Custom column name for target's id of this field
+     *   ),
+     *   'truncate'        	  	  => integer,        			// Truncate string in "sellist", "chkbxlst" type
 	 *   'no_wysiwyg'        	  => bool,         	 			// Disabled the WYSIWYG for the "text" type (Default = false)
      *   'label_separator'        => string,         			// Separator when use | in the label into the options value
      *   'unselected_values'      => array,          			// List of values for unselected values in select and sellist type (=array(-1) if not defined)
@@ -614,8 +620,11 @@ class Dictionary extends CommonObject
             switch ($field['type']) {
                 case 'chkbxlst':
                     // Create association table for the multi-select list
-                    $sql = 'CREATE TABLE ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] .
-                        ' (fk_line INTEGER NOT NULL, fk_target INTEGER NOT NULL) ENGINE=innodb;';
+                    $sql = 'CREATE TABLE ' .
+                    $this->getAssociationTableName($field) .
+                    '(' . $this->getCurrentColumnAssociationTableName($field) . 'INTEGER NOT NULL, ' .
+                    $this->getDestinationColumnAssociationTableName($field) . 'INTEGER NOT NULL) ' .
+                    'ENGINE=innodb;';
 
                     $resql = $this->db->query($sql);
                     if (!$resql) {
@@ -684,8 +693,8 @@ class Dictionary extends CommonObject
 //                        return -1;
 //                    } else {
 //                        if (!$this->db->num_rows($resql)) {
-                            $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] .
-                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_a FOREIGN KEY (fk_line) REFERENCES ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $cq . $this->rowid_field . $cq . ');';
+                            $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->getAssociationTableName($field) .
+                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_a FOREIGN KEY (' . $this->getCurrentColumnAssociationTableName($field) . ') REFERENCES ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $cq . $this->rowid_field . $cq . ');';
 
                             $resql = $this->db->query($sql);
                             if (!$resql) {
@@ -718,8 +727,8 @@ class Dictionary extends CommonObject
                                 $keyList = $InfoFieldList[2];
                             }
 
-                            $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] .
-                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_b FOREIGN KEY (fk_target) REFERENCES ' . MAIN_DB_PREFIX . $InfoFieldList[0] . ' (' . $cq . $keyList . $cq . ');';
+                            $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . $this->getAssociationTableName($field) .
+                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_b FOREIGN KEY (' . $this->getDestinationColumnAssociationTableName($field) . ') REFERENCES ' . MAIN_DB_PREFIX . $InfoFieldList[0] . ' (' . $cq . $keyList . $cq . ');';
 
                             $resql = $this->db->query($sql);
                             if (!$resql) {
@@ -930,7 +939,7 @@ class Dictionary extends CommonObject
             switch ($field['type']) {
                 case 'chkbxlst':
                     // Delete association table for the multi-select list
-                    $sql = 'DROP TABLE ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'];
+                    $sql = 'DROP TABLE ' . MAIN_DB_PREFIX . $this->getAssociationTableName($field);
                     $resql = $this->db->query($sql);
                     if (!$resql) {
                         $this->error = $this->db->lasterror();
@@ -1480,7 +1489,7 @@ class Dictionary extends CommonObject
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
-                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.fk_target SEPARATOR \',\')';
+                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.' . $this->getDestinationColumnAssociationTableName($field) . ' SEPARATOR \',\')';
                 case 'custom':
                     return $this->selectCustomFieldSqlStatement($field);
                 default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
@@ -1515,8 +1524,8 @@ class Dictionary extends CommonObject
                 case 'chkbxlst':
                     $sqlStatement = "";
                     if ($field['type'] == 'chkbxlst') {
-                        $sqlStatement .= ' LEFT JOIN ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] . ' AS cbl_' . $field['name'] .
-                            ' ON (cbl_' . $field['name'] . '.fk_line = d.' . $this->rowid_field . ')';
+                        $sqlStatement .= ' LEFT JOIN ' . $this->getAssociationTableName($field) . ' AS cbl_' . $field['name'] .
+                            ' ON (cbl_' . $field['name'] . '.' . $this->getCurrentColumnAssociationTableName($field) . ' = d.' . $this->rowid_field . ')';
                     }
 
                     // 0 : tableName
@@ -1538,7 +1547,7 @@ class Dictionary extends CommonObject
                     if (strpos($InfoFieldList[4], 'extra') !== false) {
                         $sqlStatement .= ' as main';
                     }
-                    $sqlStatement .= ') AS cbl_val_' . $field['name'] . ' ON (cbl_val_' . $field['name'] . '.rowid = '.($field['type'] == 'chkbxlst' ? 'cbl_' . $field['name'] . '.fk_target' : 'd.' . $field['name']).')';
+                    $sqlStatement .= ') AS cbl_val_' . $field['name'] . ' ON (cbl_val_' . $field['name'] . '.rowid = '.($field['type'] == 'chkbxlst' ? 'cbl_' . $field['name'] . '.' . $this->getDestinationColumnAssociationTableName($field) . '' : 'd.' . $field['name']).')';
 
                     return $sqlStatement;
                 case 'custom':
@@ -1592,14 +1601,14 @@ class Dictionary extends CommonObject
                         }
 
                         $sqlStatement  = ' INNER JOIN (';
-                        $sqlStatement .= '   SELECT DISTINCT l.fk_line';
-                        $sqlStatement .= '   FROM ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] . ' AS l';
+                        $sqlStatement .= '   SELECT DISTINCT l.' . $this->getCurrentColumnAssociationTableName($field);
+                        $sqlStatement .= '   FROM ' . MAIN_DB_PREFIX . $this->getAssociationTableName($field) . ' AS l';
                         $sqlStatement .= '   INNER JOIN (';
                         $sqlStatement .= '     SELECT ' . $keyList;
                         $sqlStatement .= '     FROM ' . MAIN_DB_PREFIX . str_replace('{{DB_PREFIX}}', MAIN_DB_PREFIX, $InfoFieldList[0]) . (strpos($InfoFieldList[4], 'extra') !== false ? ' as main' : '');
                         $sqlStatement .= '     WHERE ' . natural_search($fields_label, $value, 0, 1);
-                        $sqlStatement .= '   ) AS v ON (l.fk_target = v.rowid)';
-                        $sqlStatement .= ') AS search_cbl_' . $field['name'] . ' ON (search_cbl_' . $field['name'] . '.fk_line = d.' . $this->rowid_field . ')';
+                        $sqlStatement .= '   ) AS v ON (l.' . $this->getDestinationColumnAssociationTableName($field) . ' = v.rowid)';
+                        $sqlStatement .= ') AS search_cbl_' . $field['name'] . ' ON (search_cbl_' . $field['name'] . '.' . $this->getCurrentColumnAssociationTableName($field) . ' = d.' . $this->rowid_field . ')';
 
                         return $sqlStatement;
                     } else {
@@ -1690,7 +1699,7 @@ class Dictionary extends CommonObject
                 case 'chkbxlst':
                     if (is_array($value)) {
                         if (count($value) > 0) {
-                            return natural_search('cbl_' . $field['name'] . '.fk_target', implode(',', $value), 2, 1);
+                            return natural_search('cbl_' . $field['name'] . '.' . $this->getDestinationColumnAssociationTableName($field) . '', implode(',', $value), 2, 1);
                         } else {
                             return '';
                         }
@@ -2790,6 +2799,36 @@ SCRIPT;
 
         return $string;
     }
+    
+    /**
+     * Function to get association table for chkbxlst or chkbxlstwithorder field
+     * @param   array       $field      Description of the field
+     * @return string
+     */
+    public function getAssociationTableName($field)
+    {
+        return !empty($field['association_table']['name']) ? $field['association_table']['name'] :  MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'];
+    }
+
+    /**
+     * Function to get current object column name for chkbxlst or chkbxlstwithorder relation
+     * @param   array       $field      Description of the field
+     * @return string
+     */
+    public function getCurrentColumnAssociationTableName($field)
+    {
+        return !empty($field['association_table']['fk_line_name']) ? $field['association_table']['fk_line_name'] : 'fk_line'; 
+    }
+
+    /**
+     * Function to get destination object column name for chkbxlst or chkbxlstwithorder relation
+     * @param   array       $field      Description of the field
+     * @return string
+     */
+    public function getDestinationColumnAssociationTableName($field)
+    {
+        return !empty($field['association_table']['fk_target_name']) ? $field['association_table']['fk_target_name'] : 'fk_target';
+    }
 }
 
 /**
@@ -3015,7 +3054,7 @@ class DictionaryLine extends CommonObjectLine
                     switch ($field['type']) {
                         case 'chkbxlst':
                             // Delete association line for the multi-select list
-                            $sql = 'DELETE FROM ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . ' WHERE fk_line = ' . $this->id;
+                            $sql = 'DELETE FROM ' . $this->getAssociationTableName($field) . ' WHERE ' . $this->getCurrentColumnAssociationTableName($field) . ' = ' . $this->id;
                             $resql = $this->db->query($sql);
                             if (!$resql) {
                                 dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
@@ -3035,7 +3074,7 @@ class DictionaryLine extends CommonObjectLine
                                 }
 
                                 if (count($insert_values) > 0) {
-                                    $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . '(fk_line, fk_target) VALUES' . implode(',', $insert_values);
+                                    $sql = 'INSERT INTO ' . $this->getAssociationTableName($field) . '(' . $this->getCurrentColumnAssociationTableName($field) . ', ' . $this->getDestinationColumnAssociationTableName($field) . ') VALUES' . implode(',', $insert_values);
                                     $resql = $this->db->query($sql);
                                     if (!$resql) {
                                         dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
@@ -3148,7 +3187,7 @@ class DictionaryLine extends CommonObjectLine
                     switch ($field['type']) {
                         case 'chkbxlst':
                             // Delete association line for the multi-select list
-                            $sql = 'DELETE FROM ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . ' WHERE fk_line = ' . $this->id;
+                            $sql = 'DELETE FROM ' . $this->getAssociationTableName($field) . ' WHERE ' . $this->getCurrentColumnAssociationTableName($field) . ' = ' . $this->id;
                             $resql = $this->db->query($sql);
                             if (!$resql) {
                                 dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
@@ -3167,7 +3206,7 @@ class DictionaryLine extends CommonObjectLine
                                     $insert_values[] = '(' . $this->id . ', ' . $value_id . ')';
                                 }
                                 if (count($insert_values) > 0) {
-                                    $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . '(fk_line, fk_target) VALUES' . implode(',', $insert_values);
+                                    $sql = 'INSERT INTO ' . $this->getAssociationTableName($field) . '(' . $this->getCurrentColumnAssociationTableName($field) . ', ' . $this->getDestinationColumnAssociationTableName($field) . ') VALUES' . implode(',', $insert_values);
                                     $resql = $this->db->query($sql);
                                     if (!$resql) {
                                         dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
@@ -3261,7 +3300,7 @@ class DictionaryLine extends CommonObjectLine
             switch ($field['type']) {
                 case 'chkbxlst':
                     // Delete association line for the multi-select list
-                    $sql = 'DELETE FROM ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . ' WHERE fk_line = ' . $this->id;
+                    $sql = 'DELETE FROM ' . $this->getAssociationTableName($field) . ' WHERE ' . $this->getCurrentColumnAssociationTableName($field) . ' = ' . $this->id;
                     $resql = $this->db->query($sql);
                     if (!$resql) {
                         $error++;
@@ -3580,7 +3619,7 @@ class DictionaryLine extends CommonObjectLine
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
-                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.fk_target SEPARATOR \',\')';
+                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.' . $this->getDestinationColumnAssociationTableName($field) . ' SEPARATOR \',\')';
                 case 'custom':
                     return $this->selectCustomFieldSqlStatement($field);
                 default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
@@ -3612,8 +3651,8 @@ class DictionaryLine extends CommonObjectLine
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
-                    return ' LEFT JOIN ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $field['name'] . ' AS cbl_' . $field['name'] .
-                        ' ON (cbl_' . $field['name'] . '.fk_line = d.' . $this->dictionary->rowid_field . ')';
+                    return ' LEFT JOIN ' . $this->getAssociationTableName($field) . ' AS cbl_' . $field['name'] .
+                        ' ON (cbl_' . $field['name'] . '.' . $this->getCurrentColumnAssociationTableName($field) . ' = d.' . $this->dictionary->rowid_field . ')';
                 case 'custom':
                     return $this->fromCustomFieldSqlStatement($field);
                 default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
@@ -4643,5 +4682,35 @@ class DictionaryLine extends CommonObjectLine
         }
 
         return self::$objects_cached[$className][$id];
+    }
+
+    /**
+     * Function to get association table for chkbxlst or chkbxlstwithorder field
+     * @param   array       $field      Description of the field
+     * @return string
+     */
+    public function getAssociationTableName($field)
+    {
+        return $this->dictionary->getAssociationTableName($field);
+    }
+
+    /**
+     * Function to get current object column name for chkbxlst or chkbxlstwithorder relation
+     * @param   array       $field      Description of the field
+     * @return string
+     */
+    public function getCurrentColumnAssociationTableName($field)
+    {
+        return $this->dictionary->getCurrentColumnAssociationTableName($field);
+    }
+
+    /**
+     * Function to get destination object column name for chkbxlst or chkbxlstwithorder relation
+     * @param   array       $field      Description of the field
+     * @return string
+     */
+    public function getDestinationColumnAssociationTableName($field)
+    {
+        return $this->dictionary->getDestinationColumnAssociationTableName($field);
     }
 }
