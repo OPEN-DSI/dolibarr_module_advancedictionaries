@@ -125,7 +125,7 @@ class Dictionary extends CommonObject
      *   ),
      *   'is_require'             => bool,           			// Set at true if this field is required
      *   'is_fixed_value'         => bool,           			// Set at true if this field is a set automatically
-	 *   'update_list_values'     => array(name_field, ...), 	// Update list of values of the specified name_field by AJAX when this field is modified (update field type: select, checkbox, sellist, chkbxlst, chkbxlstwithorder)
+     *   'update_list_values'     => array(name_field, ...), 		// Update list of values of the specified name_field by AJAX when this field is modified (update field type: select, checkbox, sellist, chkbxlst)
      *   'options'                => array()|string, 			// Parameters same as extrafields (ex: 'table:label:rowid::active=1' or array(1=>'value1', 2=>'value2') )
      *                                               			   string: sellist, chkbxlst, chkbxlstwithorder, link | array: select, radio, checkbox
      *                                               			   The key of the value must be not contains the character ',' and for chkbxlst and chkbxlstwithorder it's a rowid
