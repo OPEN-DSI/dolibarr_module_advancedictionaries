@@ -125,10 +125,10 @@ class Dictionary extends CommonObject
      *   ),
      *   'is_require'             => bool,           			// Set at true if this field is required
      *   'is_fixed_value'         => bool,           			// Set at true if this field is a set automatically
-	 *   'update_list_values'     => array(name_field, ...), 	// Update list of values of the specified name_field by AJAX when this field is modified (update field type: select, checkbox, sellist, chkbxlst)
+	 *   'update_list_values'     => array(name_field, ...), 	// Update list of values of the specified name_field by AJAX when this field is modified (update field type: select, checkbox, sellist, chkbxlst, chkbxlstwithorder)
      *   'options'                => array()|string, 			// Parameters same as extrafields (ex: 'table:label:rowid::active=1' or array(1=>'value1', 2=>'value2') )
-     *                                               			   string: sellist, chkbxlst, link | array: select, radio, checkbox
-     *                                               			   The key of the value must be not contains the character ',' and for chkbxlst it's a rowid
+     *                                               			   string: sellist, chkbxlst, chkbxlstwithorder, link | array: select, radio, checkbox
+     *                                               			   The key of the value must be not contains the character ',' and for chkbxlst and chkbxlstwithorder it's a rowid
      * 															   Parameter: 0:1:2:3:4:5:6:7
      *																	0 : tableName ({{DB_PREFIX}} can be used on case: table AS t1 LEFT JOIN {{DB_PREFIX}}table2 AS t2 ON t2.rowid = t1.fk_table2)
      *																	1 : label field name (can use | for multiple label field, can use 'AS', example: t1.label AS t1_label|t2.label AS t2_label)
@@ -138,12 +138,12 @@ class Dictionary extends CommonObject
      *																	5 : ObjectName
      *																	6 : classPath
      *																	7 : lang (can use | for multiple field with lang file to load, can use 'AS', example: t1.lang AS t1_lang|t2.lang AS t2_lang)
-     *   'association_table'      => array (                    // Options on fields with an association table
+     *   'association_table'      => array (                    // Options on fields with an association table (type "chkbxlst" and "chkbxlstwithorder")
      *      'name'                => string                     // Custom association table name given here
      *      'fk_line_name'        => string                     // Custom column name for line's id of this dictionary
      *      'fk_target_name'      => string                     // Custom column name for target's id of this field
      *   ),
-     *   'truncate'        	  	  => integer,        			// Truncate string in "sellist", "chkbxlst" type
+     *   'truncate'        	  	  => integer,        			// Truncate string in "sellist", "chkbxlst", "chkbxlstwithorder" type
      *   'no_wysiwyg'        	  => bool,         	 			// Disabled the WYSIWYG for the "text" type (Default = false)
      *   'label_separator'        => string,         			// Separator when use | in the label into the options value
      *   'unselected_values'      => array,          			// List of values for unselected values in select and sellist type (=array(-1) if not defined)
@@ -411,6 +411,7 @@ class Dictionary extends CommonObject
                     $lengthdb='255';
                     break;
                 case 'checkbox':
+                case 'chkbxlstwithorder':
                     $typedb='text';
                     break;
                 case 'link':
@@ -619,6 +620,7 @@ class Dictionary extends CommonObject
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
+                case 'chkbxlstwithorder':
                     // Create association table for the multi-select list
                     $sql = 'CREATE TABLE ' .
                     $this->getAssociationTableName($field) .
@@ -673,6 +675,7 @@ class Dictionary extends CommonObject
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
+                case 'chkbxlstwithorder':
                     // Get table initial
                     $initial = '';
                     if (preg_match_all('/(?:^|_)(.)/', $this->table_name, $matches)) {
@@ -938,6 +941,7 @@ class Dictionary extends CommonObject
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
+                case 'chkbxlstwithorder':
                     // Delete association table for the multi-select list
                     $sql = 'DROP TABLE ' . MAIN_DB_PREFIX . $this->getAssociationTableName($field);
                     $resql = $this->db->query($sql);
@@ -1368,12 +1372,21 @@ class Dictionary extends CommonObject
         $select = array();
 		$group_by = array();
         $from = "";
+        $chkbxlstwithorderFields = array();
         foreach ($this->fields as $field) {
             // Select clause
             $sqlStatement = $this->selectFieldSqlStatement($field);
             if (!empty($sqlStatement)) {
-				$select[] = $sqlStatement . (!empty($sqlStatement) ? ' AS ' . $field['name'] : '');
-				if ($field['type'] != 'chkbxlst') $group_by[] = $sqlStatement;
+                if($field['type'] == 'chkbxlstwithorder') {
+                    $select[] = $sqlStatement . ' AS ' . $field['name'] . '_unsorted';
+                    $select[] = 'd.' . $field['name'] . ' AS ' . $field['name'];
+                    $group_by[] = 'd.' . $field['name'];
+                    $chkbxlstwithorderFields[] = $field['name'];
+                }
+                else {
+                    $select[] = $sqlStatement . (!empty($sqlStatement) ? ' AS ' . $field['name'] : '');
+                    if ($field['type'] != 'chkbxlst') $group_by[] = $sqlStatement;
+                }
 			}
             // From clause
             $from .= $this->fromFieldSqlStatement($field);
@@ -1439,6 +1452,7 @@ class Dictionary extends CommonObject
 
         dol_syslog(__METHOD__, LOG_DEBUG);
         $resql = $this->db->query($sql);
+
         if ($resql) {
             if ($nb_lines) {
                 $result = $this->db->num_rows($resql);
@@ -1455,8 +1469,24 @@ class Dictionary extends CommonObject
                         $line->entity = $obj[$this->entity_field];
                         unset($obj[$this->entity_field]);
                     }
+                    foreach($chkbxlstwithorderFields as $fieldName) {
+                        $unsortedValue = !empty($obj[$fieldName . 'unsorted']) ? explode(',', $obj[$fieldName . 'unsorted']) : array();
+                        $sortOrder = !empty($obj[$fieldName]) ? explode(',', $obj[$fieldName]) : array();
+                        $sortedValues = array();
+                        foreach($sortOrder as $id) {
+                            if(in_array($id, $unsortedValue)) {
+                                $result[] = $id;
+                            }
+                        }
+                        foreach($unsortedValue as $id) {
+                            if(!in_array($id, $result)) {
+                                $result[] = $id;
+                            }
+                        }
+                        unset($obj[$fieldName . 'unsorted']);
+                        $obj[$fieldName] = implode(',', $result);
+                    }
                     $line->fields = $obj;
-
                     $lines[$line->id] = $line;
                 }
                 $result = 1;
@@ -1489,6 +1519,7 @@ class Dictionary extends CommonObject
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
+                case 'chkbxlstwithorder':
                     return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.' . $this->getDestinationColumnAssociationTableName($field) . ' SEPARATOR \',\')';
                 case 'custom':
                     return $this->selectCustomFieldSqlStatement($field);
@@ -1522,8 +1553,9 @@ class Dictionary extends CommonObject
             switch ($field['type']) {
                 case 'sellist':
                 case 'chkbxlst':
+                case 'chkbxlstwithorder':
                     $sqlStatement = "";
-                    if ($field['type'] == 'chkbxlst') {
+                    if ($field['type'] == 'chkbxlst' || $field['type'] == 'chkbxlst') {
                         $sqlStatement .= ' LEFT JOIN ' . $this->getAssociationTableName($field) . ' AS cbl_' . $field['name'] .
                             ' ON (cbl_' . $field['name'] . '.' . $this->getCurrentColumnAssociationTableName($field) . ' = d.' . $this->rowid_field . ')';
                     }
@@ -1582,6 +1614,7 @@ class Dictionary extends CommonObject
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
+                case 'chkbxlstwithorder':
                     if (!is_array($value)) {
                         // 0 : tableName
                         // 1 : label field name
@@ -1697,6 +1730,7 @@ class Dictionary extends CommonObject
                         return natural_search($fields, $value, 0, 1);
                     }
                 case 'chkbxlst':
+                case 'chkbxlstwithorder':
                     if (is_array($value)) {
                         if (count($value) > 0) {
                             return natural_search('cbl_' . $field['name'] . '.' . $this->getDestinationColumnAssociationTableName($field) . '', implode(',', $value), 2, 1);
@@ -1754,7 +1788,7 @@ class Dictionary extends CommonObject
             switch ($field['type']) {
                 case 'custom':
                     return $this->havingCustomFieldSqlStatement($field, $value);
-                default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, chkbxlst, radio, checkbox, link, unknown
+                default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, chkbxlst, chkbxlstwithorder, radio, checkbox, link, unknown
                     return '';
             }
         }
@@ -1848,6 +1882,7 @@ class Dictionary extends CommonObject
 					return $out;
 				case 'sellist':
 				case 'chkbxlst':
+                case 'chkbxlstwithorder':
 					$old_type = $this->fields[$fieldName]['type'];
 					$this->fields[$fieldName]['type'] = 'sellist';
 					$out = $dictionaryLine->showInputFieldAD($fieldName, is_array($search_filters[$fieldName]) ? $search_filters[$fieldName][0] : '', 'search_');
@@ -1907,7 +1942,7 @@ class Dictionary extends CommonObject
                 case 'custom':
                     $align = $this->getAlignFlagForCustomField($fieldName);
                     break;
-                default: // varchar, text, phone, mail, url, password, select, sellist, chkbxlst, link, unknown
+                default: // varchar, text, phone, mail, url, password, select, sellist, chkbxlst, chkbxlstwithorder, link, unknown
                     return $align;
             }
         }
@@ -1960,6 +1995,7 @@ class Dictionary extends CommonObject
                         break;
                     case 'checkbox':
                     case 'chkbxlst':
+                    case 'chkbxlstwithorder':
                         $value_key = implode(',', GETPOST($fieldHtmlName, 'array'));
                         break;
                     case 'int':
@@ -2056,6 +2092,7 @@ class Dictionary extends CommonObject
 					case 'radio':
 					case 'checkbox':
 					case 'chkbxlst':
+                    case 'chkbxlstwithorder':
 						$value_key = GETPOST($fieldHtmlName, 'alpha');
 						if ($value_key === '') $value_key = null;
 						else $value_key = array($value_key);
@@ -2801,7 +2838,7 @@ SCRIPT;
     }
 
     /**
-     * Function to get association table for chkbxlst field
+     * Function to get association table for chkbxlst or chkbxlstwithorder type field
      * @param   array       $field      Description of the field
      * @return string
      */
@@ -2811,7 +2848,7 @@ SCRIPT;
     }
 
     /**
-     * Function to get current object column name for chkbxlst relation
+     * Function to get current object column name for chkbxlst or chkbxlstwithorder relation
      * @param   array       $field      Description of the field
      * @return string
      */
@@ -2821,7 +2858,7 @@ SCRIPT;
     }
 
     /**
-     * Function to get destination object column name for chkbxlst relation
+     * Function to get destination object column name for chkbxlst or chkbxlstwithorder relation
      * @param   array       $field      Description of the field
      * @return string
      */
@@ -2918,6 +2955,7 @@ class DictionaryLine extends CommonObjectLine
 							break;
 						case 'checkbox':
 						case 'chkbxlst':
+                        case 'chkbxlst':
 							if (trim($value) === '')
 								$checkField = false;
 							break;
@@ -3053,6 +3091,7 @@ class DictionaryLine extends CommonObjectLine
                     $field = $this->dictionary->fields[$fieldName];
                     switch ($field['type']) {
                         case 'chkbxlst':
+                        case 'chkbxlstwithorder':
                             // Delete association line for the multi-select list
                             $sql = 'DELETE FROM ' . $this->getAssociationTableName($field) . ' WHERE ' . $this->getCurrentColumnAssociationTableName($field) . ' = ' . $this->id;
                             $resql = $this->db->query($sql);
@@ -3186,6 +3225,7 @@ class DictionaryLine extends CommonObjectLine
                     $field = $this->dictionary->fields[$fieldName];
                     switch ($field['type']) {
                         case 'chkbxlst':
+                        case 'chkbxlstwithorder':
                             // Delete association line for the multi-select list
                             $sql = 'DELETE FROM ' . $this->getAssociationTableName($field) . ' WHERE ' . $this->getCurrentColumnAssociationTableName($field) . ' = ' . $this->id;
                             $resql = $this->db->query($sql);
@@ -3299,6 +3339,7 @@ class DictionaryLine extends CommonObjectLine
         foreach ($this->dictionary->fields as $fieldName => $field) {
             switch ($field['type']) {
                 case 'chkbxlst':
+                case 'chkbxlstwithorder':
                     // Delete association line for the multi-select list
                     $sql = 'DELETE FROM ' . $this->getAssociationTableName($field) . ' WHERE ' . $this->getCurrentColumnAssociationTableName($field) . ' = ' . $this->id;
                     $resql = $this->db->query($sql);
@@ -3558,13 +3599,22 @@ class DictionaryLine extends CommonObjectLine
 		$select = array();
 		$group_by = array();
         $from = "";
+        $chkbxlstwithorderFields = array();
         foreach ($this->dictionary->fields as $field) {
             // Select clause
             $sqlStatement = $this->selectFieldSqlStatement($field);
             if (!empty($sqlStatement)) {
-                $select[] = $sqlStatement . (!empty($sqlStatement) ? ' AS ' . $field['name'] : '');
-				if ($field['type'] != 'chkbxlst') $group_by[] = $sqlStatement;
-            }
+                if($field['type'] == 'chkbxlstwithorder') {
+                    $select[] = $sqlStatement . ' AS ' . $field['name'] . '_unsorted';
+                    $select[] = 'd.' . $field['name'] . ' AS ' . $field['name'];
+                    $group_by[] = 'd.' . $field['name'];
+                    $chkbxlstwithorderFields[] = $field['name'];
+                }
+                else {
+                    $select[] = $sqlStatement . (!empty($sqlStatement) ? ' AS ' . $field['name'] : '');
+                    if ($field['type'] != 'chkbxlst') $group_by[] = $sqlStatement;
+                }
+			}
             // from clause
             $from .= $this->fromFieldSqlStatement($field);
         }
@@ -3594,6 +3644,23 @@ class DictionaryLine extends CommonObjectLine
                     $this->entity = $obj[$this->dictionary->entity_field];
                     unset($obj[$this->dictionary->entity_field]);
                 }
+                foreach($chkbxlstwithorderFields as $fieldName) {
+                    $unsortedValue = !empty($obj[$fieldName . 'unsorted']) ? explode(',', $obj[$fieldName . 'unsorted']) : array();
+                    $sortOrder = !empty($obj[$fieldName]) ? explode(',', $obj[$fieldName]) : array();
+                    $sortedValues = array();
+                    foreach($sortOrder as $id) {
+                        if(in_array($id, $unsortedValue)) {
+                            $result[] = $id;
+                        }
+                    }
+                    foreach($unsortedValue as $id) {
+                        if(!in_array($id, $result)) {
+                            $result[] = $id;
+                        }
+                    }
+                    unset($obj[$fieldName . 'unsorted']);
+                    $obj[$fieldName] = implode(',', $result);
+                }
                 $this->fields = $obj;
 
                 $this->db->free($resql);
@@ -3619,6 +3686,7 @@ class DictionaryLine extends CommonObjectLine
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
+                case 'chkbxlstwithorder':
                     return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.' . $this->getDestinationColumnAssociationTableName($field) . ' SEPARATOR \',\')';
                 case 'custom':
                     return $this->selectCustomFieldSqlStatement($field);
@@ -3651,6 +3719,7 @@ class DictionaryLine extends CommonObjectLine
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
+                case 'chkbxlstwithorder'
                     return ' LEFT JOIN ' . $this->getAssociationTableName($field) . ' AS cbl_' . $field['name'] .
                         ' ON (cbl_' . $field['name'] . '.' . $this->getCurrentColumnAssociationTableName($field) . ' = d.' . $this->dictionary->rowid_field . ')';
                 case 'custom':
@@ -3706,6 +3775,8 @@ class DictionaryLine extends CommonObjectLine
                     return $field['is_require'] || (isset($value) && $value !== '' && !in_array($value, $unselect_values)) ? "'" . $this->db->escape($value) . "'" : 'NULL';
                 case 'chkbxlst':
                     return null;
+                case 'chkbxlstwithorder':
+                    return $field['is_require'] || !empty($value)) ? "'" . $this->db->escape(implode(',',$value)) . "'" : 'NULL';
                 case 'date':
                 case 'datetime':
                     return $field['is_require'] || (isset($value) && $value !== '') ? "'" . $this->db->idate($value) . "'" : 'NULL';
@@ -3752,7 +3823,7 @@ class DictionaryLine extends CommonObjectLine
                     return (!empty($value) ? 1 : 0);
                 case 'custom':
                     return $this->formatCustomFieldValueFromSQL($name, $value);
-                default: // varchar, text, int, float, double, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, chkbxlst, link, unknown
+                default: // varchar, text, int, float, double, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, chkbxlst, chkbxlstwithorder, link, unknown
                     return $value;
             }
         }
@@ -3931,6 +4002,7 @@ class DictionaryLine extends CommonObjectLine
                     $value = '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $toprint) . '</ul></div>';
                     break;
                 case 'chkbxlst':
+                case 'chkbxlstwithorder':
                     if (is_array($value)) {
                         $value_arr = $value;
                     } else {
@@ -3994,7 +4066,7 @@ class DictionaryLine extends CommonObjectLine
                         $sql .= " WHERE " . $selectkey . " IN (" . implode(',', $value_arr) . ")";
 
 						$value = ''; // value was used, so now we reste it to use it to build final output
-                        dol_syslog(__METHOD__ . ' type=chkbxlst', LOG_DEBUG);
+                        dol_syslog(__METHOD__ . ' type=' . $field['type'], LOG_DEBUG);
                         $resql = $this->db->query($sql);
                         if ($resql) {
                             $toprint = array();
@@ -4130,9 +4202,9 @@ class DictionaryLine extends CommonObjectLine
                     $moreClasses = ' minwidth200imp';
                 } elseif (in_array($type, array('int', 'float', 'double', 'price'))) {
                     $moreClasses = ' maxwidth75';
-                } elseif (in_array($type, array('varchar', 'phone', 'mail', 'url', 'password', 'select', 'sellist', 'radio', 'checkbox', 'link', 'chkbxlst'))) {
+                } elseif (in_array($type, array('varchar', 'phone', 'mail', 'url', 'password', 'select', 'sellist', 'radio', 'checkbox', 'link', 'chkbxlst', 'chkbxlstwithorder'))) {
                     $moreClasses = ' minwidth200';
-                } elseif (in_array($type, array('checkbox', 'chkbxlst'))) {
+                } elseif (in_array($type, array('checkbox', 'chkbxlst', 'chkbxlstwithorder'))) {
                     $moreClasses = '';
                 } elseif ($type == 'boolean') {
                     $moreClasses = '';
@@ -4145,7 +4217,7 @@ class DictionaryLine extends CommonObjectLine
 
             $moreAttributes = trim($field['show_input']['moreAttributes']);
 	        if (empty($moreAttributes)) {
-		        if (in_array($type, array('checkbox', 'chkbxlst'))) {
+		        if (in_array($type, array('checkbox', 'chkbxlst', 'chkbxlstwithorder'))) {
 			        $moreAttributes = ' style="width:100%;"';
 		        }
 	        } else {
@@ -4385,6 +4457,7 @@ class DictionaryLine extends CommonObjectLine
 						}
 						break;
 					case 'chkbxlst':
+                    case 'chkbxlstwithorder':
 						if (is_array($value)) {
 							$value_arr = $value;
 						} else {
@@ -4524,6 +4597,7 @@ class DictionaryLine extends CommonObjectLine
 							if (!is_object($form)) $form = new Form($this->db);
 
 							if (empty($options_only)) {
+                                //toDo - display form with dragable items
 								$out = $form->multiselectarray($fieldHtmlName, $data, $value_arr, '', 0, $moreClasses, 0, '', $moreAttributes);
 							} else {
 								$out = '';
@@ -4685,7 +4759,7 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-     * Function to get association table for chkbxlst field
+     * Function to get association table for chkbxlst or chkbxlstwithorder field
      * @param   array       $field      Description of the field
      * @return string
      */
@@ -4695,7 +4769,7 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-     * Function to get current object column name for chkbxlst relation
+     * Function to get current object column name for chkbxlst or chkbxlstwithorder relation
      * @param   array       $field      Description of the field
      * @return string
      */
@@ -4705,7 +4779,7 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-     * Function to get destination object column name for chkbxlst relation
+     * Function to get destination object column name for chkbxlst or chkbxlstwithorder relation
      * @param   array       $field      Description of the field
      * @return string
      */
