@@ -1,7 +1,7 @@
 <?php
 /* Copyright (C) 2018  Open-Dsi <support@open-dsi.fr>
  * Copyright (C) 2021  Alexis LAURIER <contact@alexislaurier.fr>
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
@@ -1691,7 +1691,7 @@ class Dictionary extends CommonObject
                 case 'radio':
                 case 'checkbox':
                     $values = array();
-					
+
                     if (is_array($value)) {
                         foreach ($value as $val) {
                             $values[$val] = $val;
@@ -2844,7 +2844,7 @@ SCRIPT;
      */
     public function getAssociationTableName($field)
     {
-        return !empty($field['association_table']['name']) ? $field['association_table']['name'] :  MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'];
+        return !empty($field['association_table']['name']) ? MAIN_DB_PREFIX . $field['association_table']['name'] :  MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'];
     }
 
     /**
@@ -2854,7 +2854,7 @@ SCRIPT;
      */
     public function getCurrentColumnAssociationTableName($field)
     {
-        return !empty($field['association_table']['fk_line_name']) ? $field['association_table']['fk_line_name'] : 'fk_line'; 
+        return !empty($field['association_table']['fk_line_name']) ? $field['association_table']['fk_line_name'] : 'fk_line';
     }
 
     /**
@@ -3719,7 +3719,7 @@ class DictionaryLine extends CommonObjectLine
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
-                case 'chkbxlstwithorder'
+                case 'chkbxlstwithorder':
                     return ' LEFT JOIN ' . $this->getAssociationTableName($field) . ' AS cbl_' . $field['name'] .
                         ' ON (cbl_' . $field['name'] . '.' . $this->getCurrentColumnAssociationTableName($field) . ' = d.' . $this->dictionary->rowid_field . ')';
                 case 'custom':
@@ -3776,7 +3776,7 @@ class DictionaryLine extends CommonObjectLine
                 case 'chkbxlst':
                     return null;
                 case 'chkbxlstwithorder':
-                    return $field['is_require'] || !empty($value)) ? "'" . $this->db->escape(implode(',',$value)) . "'" : 'NULL';
+                    return ($field['is_require'] || !empty($value)) ? ("'" . $this->db->escape(implode(',',$value))) . "'" : 'NULL';
                 case 'date':
                 case 'datetime':
                     return $field['is_require'] || (isset($value) && $value !== '') ? "'" . $this->db->idate($value) . "'" : 'NULL';
