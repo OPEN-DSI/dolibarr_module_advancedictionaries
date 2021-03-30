@@ -71,7 +71,7 @@ $familyFilter = ''; // array or string to set the dictionaries of witch family t
 
 require dol_buildpath('/advancedictionaries/core/tpl/dictionaries.tpl.php');
 
-dol_fiche_end();
+print dol_get_fiche_end();
 
 llxFooter();
 

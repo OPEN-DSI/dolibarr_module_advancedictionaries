@@ -44,7 +44,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
     /**
      *  Constructor
      */
-    function __construct()
+	public function __construct()
     {
         global $db, $user;
 
@@ -69,7 +69,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      * @throws  404             RestException       Line not found
      * @throws  500             RestException       Error when retrieve the line
      */
-    function get($id, $module, $name, $old_id=0)
+	public function get($id, $module, $name, $old_id=0)
     {
         if (!DolibarrApiAccess::$user->rights->advancedictionaries->read) {
             throw new RestException(401, "Insufficient rights");
@@ -101,7 +101,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      * @throws  401         RestException       Insufficient rights
      * @throws  500         RestException       Error when retrieve line list
      */
-    function index($module, $name, $old_id=0, $sort_field='', $sort_order='ASC', $limit=100, $page=0)
+	public function index($module, $name, $old_id=0, $sort_field='', $sort_order='ASC', $limit=100, $page=0)
     {
         $obj_ret = array();
 
@@ -153,7 +153,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      * @throws  500     RestException       Error when retrieve the line
      * @throws  500     RestException       Error while creating the line
      */
-    function post($line_data, $module, $name, $old_id=0)
+	public function post($line_data, $module, $name, $old_id=0)
     {
         if (!DolibarrApiAccess::$user->rights->advancedictionaries->create) {
             throw new RestException(401, "Insufficient rights");
@@ -196,7 +196,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      * @throws  500         RestException   Error when retrieve the line
      * @throws  500         RestException   Error while updating the line
      */
-    function put($id, $line_data, $module, $name, $old_id=0)
+	public function put($id, $line_data, $module, $name, $old_id=0)
     {
         if (!DolibarrApiAccess::$user->rights->advancedictionaries->create) {
             throw new RestException(401, "Insufficient rights");
@@ -240,7 +240,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      * @throws  404     RestException   Line not found
      * @throws  500     RestException   Error when retrieve the line
      */
-    function delete($id, $module, $name, $old_id=0)
+	public function delete($id, $module, $name, $old_id=0)
     {
         if (!DolibarrApiAccess::$user->rights->advancedictionaries->delete) {
             throw new RestException(401, "Insufficient rights");
@@ -286,7 +286,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      * @throws  404     RestException   Line not found
      * @throws  500     RestException   Error when retrieve the line
      */
-    function activate($id, $module, $name, $old_id=0)
+	public function activate($id, $module, $name, $old_id=0)
     {
         if (!DolibarrApiAccess::$user->rights->advancedictionaries->disable) {
             throw new RestException(401, "Insufficient rights");
@@ -332,7 +332,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      * @throws  404     RestException   Line not found
      * @throws  500     RestException   Error when retrieve the line
      */
-    function deactivate($id, $module, $name, $old_id=0)
+	public function deactivate($id, $module, $name, $old_id=0)
     {
         if (!DolibarrApiAccess::$user->rights->advancedictionaries->disable) {
             throw new RestException(401, "Insufficient rights");
@@ -374,7 +374,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      *
      * @throws  401     RestException   Insufficient rights
      */
-    function indexDictionaries($module='', $family='', $enabled=1, $hidden=-1)
+	public function indexDictionaries($module='', $family='', $enabled=1, $hidden=-1)
     {
         if (!DolibarrApiAccess::$user->rights->advancedictionaries->read) {
             throw new RestException(401, "Insufficient rights");
@@ -405,7 +405,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      *
      * @throws  404             RestException       Dictionary not found
      */
-    function _getDictionaryObject($module, $name, $old_id=0)
+	protected function _getDictionaryObject($module, $name, $old_id=0)
     {
         if (!isset(self::$dictionary_cached[$module][$name][$old_id])) {
             self::$dictionary_cached[$module][$name][$old_id] = Dictionary::getDictionary(self::$db, $module, $name, $old_id);
@@ -429,7 +429,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      *
      * @throws  404             RestException       Dictionary not found
      */
-    function _getDictionaryLineObject($module, $name, $old_id=0)
+	protected function _getDictionaryLineObject($module, $name, $old_id=0)
     {
         if (!isset(self::$dictionary_line_cached[$module][$name][$old_id])) {
             $dictionary = $this->_getDictionaryObject($module, $name, $old_id=0);
@@ -454,7 +454,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      * @throws  404             RestException       Line not found
      * @throws  500             RestException       Error when retrieve the line
      */
-    function _getLineObject(&$dictionary_line, $line_id)
+	protected function _getLineObject(&$dictionary_line, $line_id)
     {
         $result = $dictionary_line->fetch($line_id);
         if ($result == 0) {
@@ -472,7 +472,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      *
      * @return  array                               Array checked
      */
-    function _checkFields(&$dictionary_line, $data)
+	protected function _checkFields(&$dictionary_line, $data)
     {
         $res = array();
         $dictionary_fields = $dictionary_line->dictionary->fields;
@@ -492,7 +492,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      *
      * @return  array                           Array of cleaned object properties
      */
-    function _cleanLineObjectData($line)
+	protected function _cleanLineObjectData($line)
     {
         $data = array();
         $data[$line->dictionary->rowid_field] = $line->id;
@@ -523,7 +523,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      *
      * @return  array                           Array of cleaned dictionary object properties
      */
-    function _cleanDictionaryObjectData($dictionary)
+	protected function _cleanDictionaryObjectData($dictionary)
     {
         global $langs;
         $langs->loadLangs($dictionary->langs);
@@ -555,7 +555,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      * @param  object   $object     Object
      * @return array                Array of errors
      */
-	function _getErrors(&$object) {
+	protected function _getErrors(&$object) {
 	    $errors = is_array($object->errors) ? $object->errors : array();
 	    $errors = array_merge($errors, (!empty($object->error) ? array($object->error) : array()));
 

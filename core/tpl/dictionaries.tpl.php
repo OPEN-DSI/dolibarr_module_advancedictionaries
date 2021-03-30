@@ -43,6 +43,16 @@ $form = new Form($db);
 dol_include_once('/advancedictionaries/class/html.formdictionary.class.php');
 $formdictionary = new FormDictionary($db);
 
+if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
+	require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
+	dol_include_once('/multicompany/class/dao_multicompany.class.php', 'DaoMulticompany');
+	dol_include_once('/multicompany/lib/multicompany.lib.php');
+	$daomulticompany = new DaoMulticompany($db);
+
+	dol_include_once('/multicompany/class/actions_multicompany.class.php');
+	$actionsmulticompany = new ActionsMulticompany($db);
+}
+
 $titre = $langs->trans("DictionarySetup");
 $linkback = '';
 $titlepicto = 'title_setup';
@@ -57,6 +67,9 @@ if (isset($dictionary) && $dictionary->enabled) {
     if (!empty($dictionary->customBackLink)) $linkback = $dictionary->customBackLink;
     if (!empty($dictionary->hideCustomBackLink)) $linkback = '';
 }
+
+// Easya compatibility
+$class_fa = !empty($conf->global->EASYA_VERSION) && version_compare(DOL_VERSION, "10.0.0") >= 0 ? 'fal' : 'fa';
 
 print load_fiche_titre($titre, $linkback, $titlepicto);
 
@@ -85,18 +98,19 @@ if (isset($dictionary)) {
             $formquestion = array('text' => '<i>* ' . $langs->trans("AdvanceDictionariesFieldRequired") . '</i>');
 
             // Add hidden input
-            $formquestion[] = array('type' => 'hidden', 'name' => 'token', 'value' => $_SESSION['newtoken']);
+/*            $formquestion[] = array('type' => 'hidden', 'name' => 'token', 'value' => $_SESSION['newtoken']);
             if (!empty($sortfield)) $formquestion[] = array('type' => 'hidden', 'name' => 'sortfield', 'value' => $sortfield);
             if (!empty($sortorder)) $formquestion[] = array('type' => 'hidden', 'name' => 'sortorder', 'value' => $sortorder);
             if (!empty($page)) $formquestion[] = array('type' => 'hidden', 'name' => 'page', 'value' => $page);
             if ($limit > 0 && $limit != $conf->liste_limit) $formquestion[] = array('type' => 'hidden', 'name' => 'limit', 'value' => $limit);
+            if ($search_entity !== '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_' . $dictionary->entity_field, 'value' => $search_entity);
             if ($search_active != 1) $formquestion[] = array('type' => 'hidden', 'name' => 'search_' . $dictionary->active_field, 'value' => $search_active);
             if ($action == 'edit_line') $formquestion[] = array('type' => 'hidden', 'name' => 'rowid', 'value' => $rowid);
             foreach ($dictionary->fields as $fieldName => $field) {
                 if (!$field['is_not_searchable']) {
                     $formquestion[] = array('type' => 'hidden', 'name' => 'search_' . $fieldName, 'value' => GETPOST('search_' . $fieldName));
                 }
-            }
+            }*/
 
             // Get default values
             $dictionary_line = $dictionary->getNewDictionaryLine();
@@ -145,17 +159,21 @@ SCRIPT;
                     }
                 }
 
-                $formquestion[] = array('type' => 'other', 'name' => ($action == 'edit_line' ? 'edit_' : 'add_') . $fieldName, 'label' => $input_label, 'value' => $dictionary_line->showInputFieldAD($fieldName, null, $action == 'edit_line' ? 'edit_' : 'add_'));
+				$value = null;
+                if (!isset($dictionary_line->fields[$fieldName]) && isset($field['default_value'])) $value = $field['default_value'];
+                $formquestion[] = array('type' => 'other', 'name' => ($action == 'edit_line' ? 'edit_' : 'add_') . $fieldName, 'label' => $input_label, 'value' => $dictionary_line->showInputFieldAD($fieldName, $value, $action == 'edit_line' ? 'edit_' : 'add_'));
             }
         }
 
         // Confirmation de l'ajout d'une ligne
         if ($action == 'add_line') {
             $formconfirm = $formdictionary->formconfirm($_SERVER["PHP_SELF"] . '?' . $param3, $langs->trans('AdvanceDictionariesAddLine'), $langs->trans('AdvanceDictionariesConfirmAddLine'), 'confirm_add_line', $formquestion, 0, 1, 800, '70%', 1, 1);
-        } // Confirmation de l'edition d'une ligne
+			$formconfirm .= $dictionary->showUpdateListValuesScript($fieldsValue, $action == 'edit_line' ? 'edit_' : 'add_');
+		} // Confirmation de l'edition d'une ligne
         elseif ($action == 'edit_line') {
             $formconfirm = $formdictionary->formconfirm($_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $rowid . '&prevrowid=' . $prevrowid, $langs->trans('AdvanceDictionariesEditLine'), $langs->trans('AdvanceDictionariesConfirmEditLine'), 'confirm_edit_line', $formquestion, 0, 1, 800, '70%', 1, 1);
-        } // Confirmation de la suppression de la ligne
+			$formconfirm .= $dictionary->showUpdateListValuesScript($fieldsValue, $action == 'edit_line' ? 'edit_' : 'add_');
+		} // Confirmation de la suppression de la ligne
         elseif ($action == 'delete_line') {
             $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $rowid . '&prevrowid=' . $prevrowid, $langs->trans('DeleteLine'), $langs->trans('ConfirmDeleteLine'), 'confirm_delete_line', '', 0, 1);
         }
@@ -171,10 +189,10 @@ SCRIPT;
         //------------------------------------------------------------------------------------------------------------------
         // Show list of values
         //------------------------------------------------------------------------------------------------------------------
-        if ($dictionary->fetch_lines($search_active, $search_filters, $order_by, $offset, $limit+1) > 0) {
+        if ($dictionary->fetch_lines($search_active, $search_filters, $order_by, $offset, $limit+1, false, false, '', '', $search_entity) > 0) {
             $nbtotalofrecords = '';
             if (empty($conf->global->MAIN_DISABLE_FULL_SCANLIST)) {
-                $nbtotalofrecords = $dictionary->fetch_lines($search_active, $search_filters, array(), 0, 0, true);
+                $nbtotalofrecords = $dictionary->fetch_lines($search_active, $search_filters, array(), 0, 0, true, false, '', '', $search_entity);
             }
             $num = count($dictionary->lines);
 
@@ -182,7 +200,7 @@ SCRIPT;
             if ($dictionary->lineCanBeAdded && $canCreate) {
                 $addButton = '<a href="' . $_SERVER['PHP_SELF'] . '?' . $param3 . '&action=add_line&module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name) . '&'.$now.'="' . ((float)DOL_VERSION >= 8.0 ? 'class=" butActionNew"' : '') . '>';
                 $addButton .= $langs->trans("Add");
-                if ((float)DOL_VERSION >= 8.0) $addButton .= '<span class="fa fa-plus-circle valignmiddle"></span>';
+                if ((float)DOL_VERSION >= 8.0) $addButton .= '<span class="'.$class_fa.' fa-plus-circle valignmiddle"></span>';
                 $addButton .= '</a>';
             }
 
@@ -191,7 +209,8 @@ SCRIPT;
             // List of mass actions available
             $arrayofmassactions = array();
             if ($dictionary->lineCanBeDeleted && $canDelete) $arrayofmassactions['predelete'] = $langs->trans("Delete");
-            if (in_array($massaction, array('predelete'))) $arrayofmassactions = array();
+			if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled && $dictionary->lineCanBeUpdated && $canUpdate) $arrayofmassactions['premodifyentity'] = $langs->trans("AdvanceDictionariesModifyEntity");
+            if (in_array($massaction, array('predelete', 'premodifyentity'))) $arrayofmassactions = array();
             $massactionbutton = $form->selectMassAction('', $arrayofmassactions);
 
             print '<form id="searchFormList" action="' . $_SERVER['PHP_SELF'] . '?module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name) . '" method="POST">';
@@ -203,6 +222,7 @@ SCRIPT;
             if (!empty($page)) print '<input type="hidden" name="page" value="' . dol_escape_htmltag($page) . '">';
             if (!empty($contextpage)) print '<input type="hidden" name="contextpage" value="' . dol_escape_htmltag($contextpage) . '">';
             if ($limit > 0 && $limit != $conf->liste_limit) print '<input type="hidden" name="limit" value="' . dol_escape_htmltag($limit) . '">';
+            if ($search_entity !== '') print '<input type="hidden" name="search_' . $dictionary->entity_field . '" value="' . dol_escape_htmltag($search_entity) . '">';
             if ($search_active != 1) print '<input type="hidden" name="search_' . $dictionary->active_field . '" value="' . dol_escape_htmltag($search_active) . '">';
 
             print_barre_liste('', $page, $_SERVER["PHP_SELF"], '&' . $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, '', 0, $addButton, '', $limit);
@@ -210,6 +230,14 @@ SCRIPT;
             $objecttmp = new DictionaryLine($db, $dictionary);
             $trackid = 'dic' . $dictionary->id;
             include DOL_DOCUMENT_ROOT . '/core/tpl/massactions_pre.tpl.php';
+			if ($massaction == 'premodifyentity' && $dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
+				$entity = GETPOST('entity', 'int');
+				if ($entity === '') $entity = $conf->entity;
+				$formquestion = array(
+					array('type' => 'other', 'name' => 'entity', 'label' => $langs->trans("Entity"), 'value' => $actionsmulticompany->select_entities($entity))
+				);
+				print $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans("AdvanceDictionariesConfirmMassModifyEntity"), $langs->trans("AdvanceDictionariesConfirmMassModifyEntityQuestion", count($toselect)), "modifyentity", $formquestion, '', 0, 200, 500, 1);
+			}
 
             $moreforfilter = '';
             // More filters from hook
@@ -253,13 +281,19 @@ SCRIPT;
             $parameters = array('arrayfields' => $arrayfields);
             $reshook = $hookmanager->executeHooks('printFieldListOption', $parameters, $dictionary, $action);
             print $hookmanager->resPrint;
-            print '<td class="liste_titre maxwidthonsmartphone" align="center">';
+			if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
+				print '<td class="liste_titre maxwidthonsmartphone center">';
+				print $actionsmulticompany->select_entities($search_entity,'search_entity','',false,false,true, false, '', 'minwidth150imp', false);
+				print "</td>";
+			}
+			print '<td class="liste_titre maxwidthonsmartphone center">';
             print $form->selectyesno('search_' . $dictionary->active_field, $search_active, 1, false, 1);
             print '</td>';
             print '<td class="liste_titre" align="right">';
             print $form->showFilterButtons();
             print '</td>';
             print '</tr>';
+			print $dictionary->showUpdateListValuesScript($search_filters, 'search_');
 
             // Fields title
             print '<tr class="liste_titre">';
@@ -278,21 +312,20 @@ SCRIPT;
             $parameters = array('arrayfields' => $arrayfields, 'param' => $param2, 'sortfield' => $sortfield, 'sortorder' => $sortorder);
             $reshook = $hookmanager->executeHooks('printFieldListTitle', $parameters, $dictionary, $action);
             print $hookmanager->resPrint;
+            if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) print_liste_field_titre($langs->trans("Entity"), $_SERVER["PHP_SELF"], $dictionary->entity_field, "", '&' . $param2, 'align="center"', $sortfield, $sortorder);
             print_liste_field_titre($langs->trans("Status"), $_SERVER["PHP_SELF"], $dictionary->active_field, "", '&' . $param2, 'width="10%" align="center"', $sortfield, $sortorder);
             print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', 'align="center"', $sortfield, $sortorder, 'maxwidthsearch ');
             print '</tr>';
 
             // Lines with values
-            $var = false;
             $last_rowid = 0;
             $idx = 0;
+            $entity_cached = array();
             foreach ($dictionary->lines as $line) {
                 if ($idx >= min($num, $limit)) break;
 
-                $var = !$var;
-
                 // Output line
-                print '<tr class="' . $bc[$var] . '" id="rowid-' . $line->id . '">';
+                print '<tr class="oddeven" id="rowid-' . $line->id . '">';
 
                 if ($showTechnicalId) {
                     print '<td class="nowrap">';
@@ -316,6 +349,23 @@ SCRIPT;
                 $parameters = array('arrayfields' => $arrayfields);
                 $reshook = $hookmanager->executeHooks('printFieldListValue', $parameters, $line, $action);
                 print $hookmanager->resPrint;
+
+				// Entity
+				if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
+					print '<td align="center" class="nowrap">';
+					if (!isset($entity_cached[$line->entity])) {
+						$result = $daomulticompany->fetch($line->entity);
+						if ($result < 0) {
+							setEventMessages($daomulticompany->error, $daomulticompany->errors, 'errors');
+						} elseif ($result == 0) {
+							$entity_cached[$line->entity] = $line->entity;
+						} else {
+							$entity_cached[$line->entity] = $daomulticompany->label;
+						}
+					}
+					print '<span class="'.$class_fa.' fa-globe"></span><span class="multiselect-selected-title-text">' . $entity_cached[$line->entity] . '</span>';
+					print "</td>";
+				}
 
                 // Active
                 print '<td align="center" class="nowrap">';
@@ -381,20 +431,17 @@ SCRIPT;
 
     $dictionaries = Dictionary::fetchAllDictionaries($db, $moduleFilter, $familyFilter);
 
-    $var = false;
     $lastfamily = '';
     foreach ($dictionaries as $dictionary) {
-        $var = !$var;
         if ($dictionary->enabled && !$dictionary->hidden) {
             $langs->loadLangs($dictionary->langs);
 
             if ($lastfamily != $dictionary->family) {
-                $var = false;
                 $lastfamily = $dictionary->family;
-                print '<tr class="' . $bc[$var] . ' family_title"><td colspan="4">' . $langs->trans($dictionary->familyLabel) . '</td></tr>';
+                print '<tr class="oddeven family_title"><td colspan="4">' . $langs->trans($dictionary->familyLabel) . '</td></tr>';
             }
 
-            print '<tr class="' . $bc[$var] . '"><td width="10px"></td>' .
+            print '<tr class="oddeven"><td width="10px"></td>' .
                 '<td width="20%">' . (!empty($dictionary->modulePicto) ? img_picto('', $dictionary->modulePicto) . ' ' : '') . $langs->trans($dictionary->moduleLabel) . '</td>' .
                 '<td width="40%"><a href="' . $_SERVER["PHP_SELF"] . '?module=' . $dictionary->module . '&name=' . $dictionary->name . '">' .
                 $langs->trans($dictionary->nameLabel) . '</a></td>' .

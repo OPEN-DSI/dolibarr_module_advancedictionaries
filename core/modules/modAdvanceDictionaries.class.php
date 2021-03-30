@@ -52,13 +52,16 @@ class modAdvanceDictionaries extends DolibarrModules
 		// Key text used to identify module (for permissions, menus, etc...)
 		$this->rights_class = 'advancedictionaries';
 
+        $family = (!empty($conf->global->EASYA_VERSION) ? 'easya' : 'opendsi');
         // Family can be 'crm','financial','hr','projects','products','ecm','technic','interface','other'
         // It is used to group modules by family in module setup page
-        $this->family = "opendsi";
+        $this->family = $family;
         // Module position in the family
         $this->module_position = 500;
         // Gives the possibility to the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
-        $this->familyinfo = array('opendsi' => array('position' => '001', 'label' => $langs->trans("OpenDsiFamily")));
+        $this->familyinfo = array($family => array('position' => '001', 'label' => $langs->trans($family."Family")));
+        // Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
+        $this->special = 0;
 
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i','',get_class($this));
@@ -69,13 +72,17 @@ class modAdvanceDictionaries extends DolibarrModules
 		$this->editor_url = 'http://www.open-dsi.fr';
 		
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '4.0.16';
+		$this->version = '4.0.33';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
 		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
 		// If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
-		$this->picto='opendsi@advancedictionaries';
+        if((float)DOL_VERSION <= 11.0) {
+            $this->picto='opendsi@'.strtolower($this->name);
+        } else {
+            $this->picto='opendsi_big@'.strtolower($this->name);
+        }
 
 		// Defined all module parts (triggers, login, substitutions, menus, css, etc...)
 		// for default path (eg: /mymodule/core/xxxxx) (0=disable, 1=enable)
@@ -139,7 +146,7 @@ class modAdvanceDictionaries extends DolibarrModules
 		// 'intervention'     to add a tab in intervention view
 		// 'invoice'          to add a tab in customer invoice view
 		// 'invoice_supplier' to add a tab in supplier invoice view
-		// 'member'           to add a tab in fundation member view
+		// 'member'           to add a tab in foundation member view
 		// 'opensurveypoll'	  to add a tab in opensurvey poll view
 		// 'order'            to add a tab in customer order view
 		// 'order_supplier'   to add a tab in supplier order view
@@ -229,40 +236,23 @@ class modAdvanceDictionaries extends DolibarrModules
 		$this->menu = array();			// List of menus to add
 		$r=0;
 
-		// Add here entries to declare new menus
-		//
-		// Example to declare a new Top Menu entry and its Left menu entry:
-		// $this->menu[$r]=array(	'fk_menu'=>'',			                // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-		//							'type'=>'top',			                // This is a Top menu entry
-		//							'titre'=>'MyModule top menu',
-		//							'mainmenu'=>'mymodule',
-		//							'leftmenu'=>'mymodule',
-		//							'url'=>'/mymodule/pagetop.php',
-		//							'langs'=>'mylangfile@mymodule',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-		//							'position'=>100,
-		//							'enabled'=>'$conf->mymodule->enabled',	// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-		//							'perms'=>'1',			                // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-		//							'target'=>'',
-		//							'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both
-		// $r++;
-		//
-		// Example to declare a Left Menu entry into an existing Top menu entry:
-		// $this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=xxx',		    // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-		//							'type'=>'left',			                // This is a Left menu entry
-		//							'titre'=>'MyModule left menu',
-		//							'mainmenu'=>'xxx',
-		//							'leftmenu'=>'mymodule',
-		//							'url'=>'/mymodule/pagelevel2.php',
-		//							'langs'=>'mylangfile@mymodule',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-		//							'position'=>100,
-		//							'enabled'=>'$conf->mymodule->enabled',  // Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-		//							'perms'=>'1',			                // Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
-		//							'target'=>'',
-		//							'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both
-		// $r++;
+        $this->menu[$r] = array(
+            'fk_menu'=>'fk_mainmenu=home,fk_leftmenu=setup', // Use r=value where r is index key used for the parent menu entry (higher parent must be a top menu entry)
+            'type' => 'left', // This is a Left menu entry
+            'titre' => $langs->trans('AdvancedictionariesMenuTitle'),
+            'mainmenu' => '',
+            'leftmenu'=> '',
+            'url' => '/advancedictionaries/admin/dictionaries.php',
+            'langs' => 'advancedictionaries@advancedictionaries', // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+            'position' => 100,
+            'enabled' => '1', // Define condition to show or hide menu entry. Use '$conf->monmodule->enabled' if entry must be visible if module is enabled.
+            'perms' => '$user->rights->advancedictionaries->read', // Use 'perms'=>'$user->rights->monmodule->level1->level2' if you want your menu with a permission rules
+            'target' => '',
+            'user' => 0
+        );    // 0=Menu for internal users,1=external users, 2=both
+        $r++;
 
-
-		// Exports
+        // Exports
 		$r=1;
 
 		// Example:
@@ -306,7 +296,18 @@ class modAdvanceDictionaries extends DolibarrModules
             }
         }
 
-        $sql = array();
+		$cq = $this->db->type == 'pgsql' ? '"' : '`';
+
+		$sql = array(
+        	// 4.0.28
+			array('sql' => "INSERT INTO " . MAIN_DB_PREFIX . "const ({$cq}name{$cq}, {$cq}entity{$cq}, {$cq}value{$cq}, {$cq}type{$cq}, {$cq}visible{$cq}, {$cq}note{$cq})" .
+				" SELECT {$cq}name{$cq} AS {$cq}name{$cq}, 0 AS {$cq}entity{$cq}, MAX(CAST({$cq}value{$cq} AS INTEGER)) AS {$cq}value{$cq}" .
+				", 'chaine' AS {$cq}type{$cq}, 0 AS {$cq}visible{$cq}, '' AS {$cq}note{$cq}" .
+				" FROM " . MAIN_DB_PREFIX . "const WHERE {$cq}name{$cq} LIKE 'ADVANCEDICTIONARIES_DICTIONARY_%_VERSION' AND {$cq}entity{$cq} != 0 GROUP BY {$cq}name{$cq}",
+				'ignoreerror' => 1,
+			),
+			"DELETE FROM " . MAIN_DB_PREFIX . "const WHERE {$cq}name{$cq} LIKE 'ADVANCEDICTIONARIES_DICTIONARY_%_VERSION' AND {$cq}entity{$cq} != 0",
+		);
 
         return $this->_init($sql, $options);
 	}
