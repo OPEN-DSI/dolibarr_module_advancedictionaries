@@ -129,22 +129,22 @@ class Dictionary extends CommonObject
      *   'options'                => array()|string, 			// Parameters same as extrafields (ex: 'table:label:rowid::active=1' or array(1=>'value1', 2=>'value2') )
      *                                               			   string: sellist, chkbxlst, link | array: select, radio, checkbox
      *                                               			   The key of the value must be not contains the character ',' and for chkbxlst it's a rowid
-	 * 															   Parameter: 0:1:2:3:4:5:6:7
-	 *																	0 : tableName ({{DB_PREFIX}} can be used on case: table AS t1 LEFT JOIN {{DB_PREFIX}}table2 AS t2 ON t2.rowid = t1.fk_table2)
-	 *																	1 : label field name (can use | for multiple label field, can use 'AS', example: t1.label AS t1_label|t2.label AS t2_label)
-	 *																	2 : key fields name (if differ of rowid)
-	 *																	3 : key field parent (for dependent lists)
-	 *																	4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
-	 *																	5 : ObjectName
-	 *																	6 : classPath
-	 *																	7 : lang (can use | for multiple field with lang file to load, can use 'AS', example: t1.lang AS t1_lang|t2.lang AS t2_lang)
-	 *   'association_table'      => array (                    // Options on fields with an association table
+     * 															   Parameter: 0:1:2:3:4:5:6:7
+     *																	0 : tableName ({{DB_PREFIX}} can be used on case: table AS t1 LEFT JOIN {{DB_PREFIX}}table2 AS t2 ON t2.rowid = t1.fk_table2)
+     *																	1 : label field name (can use | for multiple label field, can use 'AS', example: t1.label AS t1_label|t2.label AS t2_label)
+     *																	2 : key fields name (if differ of rowid)
+     *																	3 : key field parent (for dependent lists)
+     *																	4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
+     *																	5 : ObjectName
+     *																	6 : classPath
+     *																	7 : lang (can use | for multiple field with lang file to load, can use 'AS', example: t1.lang AS t1_lang|t2.lang AS t2_lang)
+     *   'association_table'      => array (                    // Options on fields with an association table
      *      'name'                => string                     // Custom association table name given here
      *      'fk_line_name'        => string                     // Custom column name for line's id of this dictionary
      *      'fk_target_name'      => string                     // Custom column name for target's id of this field
      *   ),
      *   'truncate'        	  	  => integer,        			// Truncate string in "sellist", "chkbxlst" type
-	 *   'no_wysiwyg'        	  => bool,         	 			// Disabled the WYSIWYG for the "text" type (Default = false)
+     *   'no_wysiwyg'        	  => bool,         	 			// Disabled the WYSIWYG for the "text" type (Default = false)
      *   'label_separator'        => string,         			// Separator when use | in the label into the options value
      *   'unselected_values'      => array,          			// List of values for unselected values in select and sellist type (=array(-1) if not defined)
      *   'translate_prefix'       => string,         			// Prefix for translation of the value
@@ -2799,9 +2799,9 @@ SCRIPT;
 
         return $string;
     }
-    
+
     /**
-     * Function to get association table for chkbxlst or chkbxlstwithorder field
+     * Function to get association table for chkbxlst field
      * @param   array       $field      Description of the field
      * @return string
      */
@@ -2811,7 +2811,7 @@ SCRIPT;
     }
 
     /**
-     * Function to get current object column name for chkbxlst or chkbxlstwithorder relation
+     * Function to get current object column name for chkbxlst relation
      * @param   array       $field      Description of the field
      * @return string
      */
@@ -2821,7 +2821,7 @@ SCRIPT;
     }
 
     /**
-     * Function to get destination object column name for chkbxlst or chkbxlstwithorder relation
+     * Function to get destination object column name for chkbxlst relation
      * @param   array       $field      Description of the field
      * @return string
      */
@@ -4685,7 +4685,7 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-     * Function to get association table for chkbxlst or chkbxlstwithorder field
+     * Function to get association table for chkbxlst field
      * @param   array       $field      Description of the field
      * @return string
      */
@@ -4695,7 +4695,7 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-     * Function to get current object column name for chkbxlst or chkbxlstwithorder relation
+     * Function to get current object column name for chkbxlst relation
      * @param   array       $field      Description of the field
      * @return string
      */
@@ -4705,7 +4705,7 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-     * Function to get destination object column name for chkbxlst or chkbxlstwithorder relation
+     * Function to get destination object column name for chkbxlst relation
      * @param   array       $field      Description of the field
      * @return string
      */
