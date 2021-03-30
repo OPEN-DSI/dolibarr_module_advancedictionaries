@@ -125,7 +125,7 @@ class Dictionary extends CommonObject
      *   ),
      *   'is_require'             => bool,           			// Set at true if this field is required
      *   'is_fixed_value'         => bool,           			// Set at true if this field is a set automatically
-	 *   'update_list_values'     => array(name_field, ...), 	// Update list of values of the specified name_field by AJAX when this field is modified (update field type: select, checkbox, sellist, chkbxlst)
+     *   'update_list_values'     => array(name_field, ...), 		// Update list of values of the specified name_field by AJAX when this field is modified (update field type: select, checkbox, sellist, chkbxlst)
      *   'options'                => array()|string, 			// Parameters same as extrafields (ex: 'table:label:rowid::active=1' or array(1=>'value1', 2=>'value2') )
      *                                               			   string: sellist, chkbxlst, link | array: select, radio, checkbox
      *                                               			   The key of the value must be not contains the character ',' and for chkbxlst it's a rowid
@@ -138,13 +138,13 @@ class Dictionary extends CommonObject
      *																	5 : ObjectName
      *																	6 : classPath
      *																	7 : lang (can use | for multiple field with lang file to load, can use 'AS', example: t1.lang AS t1_lang|t2.lang AS t2_lang)
-     *   'association_table'      => array (                    // Options on fields with an association table
-     *      'name'                => string                     // Custom association table name given here
-     *      'fk_line_name'        => string                     // Custom column name for line's id of this dictionary
-     *      'fk_target_name'      => string                     // Custom column name for target's id of this field
+     *   'association_table'      => array (                    	// Options on fields with an association table
+     *      'name'                => string                     	// Custom association table name given here
+     *      'fk_line_name'        => string                     	// Custom column name for line's id of this dictionary
+     *      'fk_target_name'      => string                     	// Custom column name for target's id of this field
      *   ),
-     *   'truncate'        	  	  => integer,        			// Truncate string in "sellist", "chkbxlst" type
-     *   'no_wysiwyg'        	  => bool,         	 			// Disabled the WYSIWYG for the "text" type (Default = false)
+     *   'truncate'        	  => integer,        			// Truncate string in "sellist", "chkbxlst" type
+     *   'no_wysiwyg'        	  => bool,         	 		// Disabled the WYSIWYG for the "text" type (Default = false)
      *   'label_separator'        => string,         			// Separator when use | in the label into the options value
      *   'unselected_values'      => array,          			// List of values for unselected values in select and sellist type (=array(-1) if not defined)
      *   'translate_prefix'       => string,         			// Prefix for translation of the value
