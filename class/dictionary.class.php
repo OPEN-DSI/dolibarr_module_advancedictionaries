@@ -624,8 +624,8 @@ class Dictionary extends CommonObject
                     // Create association table for the multi-select list
                     $sql = 'CREATE TABLE ' .
                     $this->getAssociationTableName($field) .
-                    '(' . $this->getCurrentColumnAssociationTableName($field) . 'INTEGER NOT NULL, ' .
-                    $this->getDestinationColumnAssociationTableName($field) . 'INTEGER NOT NULL) ' .
+                    '(' . $this->getCurrentColumnAssociationTableName($field) . ' INTEGER NOT NULL, ' .
+                    $this->getDestinationColumnAssociationTableName($field) . ' INTEGER NOT NULL) ' .
                     'ENGINE=innodb;';
 
                     $resql = $this->db->query($sql);
@@ -1470,21 +1470,21 @@ class Dictionary extends CommonObject
                         unset($obj[$this->entity_field]);
                     }
                     foreach($chkbxlstwithorderFields as $fieldName) {
-                        $unsortedValue = !empty($obj[$fieldName . 'unsorted']) ? explode(',', $obj[$fieldName . 'unsorted']) : array();
+                        $unsortedValue = !empty($obj[$fieldName . '_unsorted']) ? explode(',', $obj[$fieldName . '_unsorted']) : array();
                         $sortOrder = !empty($obj[$fieldName]) ? explode(',', $obj[$fieldName]) : array();
                         $sortedValues = array();
                         foreach($sortOrder as $id) {
                             if(in_array($id, $unsortedValue)) {
-                                $result[] = $id;
+                                $sortedValues[] = $id;
                             }
                         }
                         foreach($unsortedValue as $id) {
-                            if(!in_array($id, $result)) {
-                                $result[] = $id;
+                            if(!in_array($id, $sortedValues)) {
+                                $sortedValues[] = $id;
                             }
                         }
-                        unset($obj[$fieldName . 'unsorted']);
-                        $obj[$fieldName] = implode(',', $result);
+                        unset($obj[$fieldName . '_unsorted']);
+                        $obj[$fieldName] = implode(',', $sortedValues);
                     }
                     $line->fields = $obj;
                     $lines[$line->id] = $line;
@@ -1555,7 +1555,7 @@ class Dictionary extends CommonObject
                 case 'chkbxlst':
                 case 'chkbxlstwithorder':
                     $sqlStatement = "";
-                    if ($field['type'] == 'chkbxlst' || $field['type'] == 'chkbxlst') {
+                    if ($field['type'] == 'chkbxlst' || $field['type'] == 'chkbxlstwithorder') {
                         $sqlStatement .= ' LEFT JOIN ' . $this->getAssociationTableName($field) . ' AS cbl_' . $field['name'] .
                             ' ON (cbl_' . $field['name'] . '.' . $this->getCurrentColumnAssociationTableName($field) . ' = d.' . $this->rowid_field . ')';
                     }
@@ -3645,21 +3645,21 @@ class DictionaryLine extends CommonObjectLine
                     unset($obj[$this->dictionary->entity_field]);
                 }
                 foreach($chkbxlstwithorderFields as $fieldName) {
-                    $unsortedValue = !empty($obj[$fieldName . 'unsorted']) ? explode(',', $obj[$fieldName . 'unsorted']) : array();
+                    $unsortedValue = !empty($obj[$fieldName . '_unsorted']) ? explode(',', $obj[$fieldName . '_unsorted']) : array();
                     $sortOrder = !empty($obj[$fieldName]) ? explode(',', $obj[$fieldName]) : array();
                     $sortedValues = array();
                     foreach($sortOrder as $id) {
                         if(in_array($id, $unsortedValue)) {
-                            $result[] = $id;
+                            $sortedValues[] = $id;
                         }
                     }
                     foreach($unsortedValue as $id) {
-                        if(!in_array($id, $result)) {
-                            $result[] = $id;
+                        if(!in_array($id, $sortedValues)) {
+                            $sortedValues[] = $id;
                         }
                     }
-                    unset($obj[$fieldName . 'unsorted']);
-                    $obj[$fieldName] = implode(',', $result);
+                    unset($obj[$fieldName . '_unsorted']);
+                    $obj[$fieldName] = implode(',', $sortedValues);
                 }
                 $this->fields = $obj;
 
@@ -3776,7 +3776,15 @@ class DictionaryLine extends CommonObjectLine
                 case 'chkbxlst':
                     return null;
                 case 'chkbxlstwithorder':
-                    return ($field['is_require'] || !empty($value)) ? ("'" . $this->db->escape(implode(',',$value))) . "'" : 'NULL';
+					$value_arr = array();
+					if(!is_array($value)) {
+						$value_arr = array($value);
+					}
+					else {
+						$value_arr = $value;
+					}
+					$value_arr = array_filter($value_arr);
+                    return ($field['is_require'] || !empty($value_arr)) ? ("'" . $this->db->escape(implode(',',$value_arr))) . "'" : 'NULL';
                 case 'date':
                 case 'datetime':
                     return $field['is_require'] || (isset($value) && $value !== '') ? "'" . $this->db->idate($value) . "'" : 'NULL';
@@ -4070,8 +4078,18 @@ class DictionaryLine extends CommonObjectLine
                         $resql = $this->db->query($sql);
                         if ($resql) {
                             $toprint = array();
+							$elementToDisplay = array();
                             while ($obj = $this->db->fetch_object($resql)) {
-                                if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
+								$elementToDisplay[$obj->rowid] = $obj;
+							}
+                            if (is_array($value_arr)) {
+								foreach($value_arr as $id){
+									if(!$elementToDisplay[$id]) {
+										continue;
+									}
+									else {
+										$obj = $elementToDisplay[$id];
+									}
 									if (!empty($fieldLangList)) {
 										foreach ($fieldLangList as $lang) {
 											if (!empty($obj->$lang)) $langs->load($obj->$lang);
@@ -4592,14 +4610,19 @@ class DictionaryLine extends CommonObjectLine
 							}
 							$this->db->free($resql);
 
-							require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-							global $form;
-							if (!is_object($form)) $form = new Form($this->db);
-
 							if (empty($options_only)) {
-                                //toDo - display form with dragable items
-								$out = $form->multiselectarray($fieldHtmlName, $data, $value_arr, '', 0, $moreClasses, 0, '', $moreAttributes);
-							} else {
+								if($field['type'] == 'chkbxlst') {
+									require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+									global $form;
+									if (!is_object($form)) $form = new Form($this->db);
+									$out = $form->multiselectarray($fieldHtmlName, $data, $value_arr, '', 0, $moreClasses, 0, '', $moreAttributes);
+								}
+								else if($field['type'] == 'chkbxlstwithorder') {
+									dol_include_once('/advancedictionaries/class/html.formdictionary.class.php');
+									$htmlDictionaryForm = new FormDictionary($this->db);
+									$out = $htmlDictionaryForm->multiselectarrayWithOrder($fieldHtmlName, $data, $value_arr, '', 0, $moreClasses, 0, '', $moreAttributes);
+								}
+									} else {
 								$out = '';
 								if (is_array($data) && !empty($data)) {
 									foreach ($data as $key => $value) {
