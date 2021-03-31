@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.34] - 31-03-2021
+- Correction lors de la création du dictionnaire (il n'applique plus les mises à jour de monter de version)
+
 ## [4.0.33] - 09-03-2021
 - Problème d'affichage icône fontawesome
 - Ajout d'un lien vers les dictionnaires avancés directement depuis le menu configuration
@@ -149,7 +152,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.33...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.34...HEAD
+[4.0.34]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.34
 [4.0.33]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.33
 [4.0.32]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.32
 [4.0.31]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.31

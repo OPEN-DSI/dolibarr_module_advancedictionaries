@@ -450,7 +450,8 @@ class Dictionary extends CommonObject
             $error = 0;
             $this->db->begin();
 
-            $cq = $this->db->type == 'pgsql' ? '"' : '`';
+			$new_created = false;
+			$cq = $this->db->type == 'pgsql' ? '"' : '`';
 
             // Create dictionary table
             $sql = 'CREATE TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $cq . $this->rowid_field . $cq . ' INTEGER NOT NULL' . ($this->is_rowid_auto_increment ? ' AUTO_INCREMENT' : '') . ' PRIMARY KEY';
@@ -467,7 +468,9 @@ class Dictionary extends CommonObject
                 if ($this->db->lasterrno() != 'DB_ERROR_TABLE_ALREADY_EXISTS' && $this->db->lasterrno() != 'DB_ERROR_TABLE_OR_KEY_ALREADY_EXISTS') {
                     $error++;
                     $this->error = $this->db->lasterror();
-                }
+                } else {
+                	$new_created = true;
+				}
             }
 
             if (!$error) {
@@ -500,7 +503,7 @@ class Dictionary extends CommonObject
                 }
             }
 
-            if (!$error) {
+            if (!$error && !$new_created) {
                 // Update dictionary table
                 $res = $this->updateTables();
                 if ($res < 0) {
