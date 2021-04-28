@@ -4641,8 +4641,12 @@ class DictionaryLine extends CommonObjectLine
                 return 'Error fetch method not found in the class for the field';
             }
 
-            $object->fetch($id);
-            self::$objects_cached[$className][$id] = $object->getNomUrl(3);
+            if ($id > 0) {
+				$object->fetch($id);
+				self::$objects_cached[$className][$id] = $object->getNomUrl(3);
+			} else {
+				self::$objects_cached[$className][$id] = "";
+			}
         }
 
         return self::$objects_cached[$className][$id];
