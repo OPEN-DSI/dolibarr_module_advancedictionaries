@@ -210,7 +210,8 @@ class Dictionary extends CommonObject
      *   'version' => array(
      *     'fields' => array('field_name'=>'u', ...), // List of field name who is updated(u) for a version
      *     'deleted_fields' => array('field_name'=> array('name', 'type', other_custom_data_required_for_delete), ...), // List of field name who is deleted for a version
-     *     'indexes' => array('idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is updated(u) or deleted(d) for a version
+	 *     'indexes' => array('idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is updated(u) or deleted(d) for a version
+	 *     'primary_key' => 'a' or 'u' or 'd', // The primary key is added(a) or updated(u) or deleted(d) for a version
      *   ),
      * )
      */
@@ -240,6 +241,11 @@ class Dictionary extends CommonObject
      * @var string  Name of the entity field
      */
     public $entity_field = 'entity';
+
+	/**
+	 * @var array  List of fields composing the primary key
+	 */
+	public $primary_key = array('rowid');
 
     /**
      * @var bool    Use entity field
@@ -450,11 +456,11 @@ class Dictionary extends CommonObject
             $error = 0;
             $this->db->begin();
 
-			$new_created = false;
+			$new_created = true;
 			$cq = $this->db->type == 'pgsql' ? '"' : '`';
 
             // Create dictionary table
-            $sql = 'CREATE TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $cq . $this->rowid_field . $cq . ' INTEGER NOT NULL' . ($this->is_rowid_auto_increment ? ' AUTO_INCREMENT' : '') . ' PRIMARY KEY';
+            $sql = 'CREATE TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $cq . $this->rowid_field . $cq . ' INTEGER NOT NULL' . ($this->is_rowid_auto_increment ? ' AUTO_INCREMENT' : '');
             foreach ($this->fields as $field) {
                 $instructionSQL = $this->definitionTableFieldInstructionSQL($field);
                 $sql .= !empty($instructionSQL) ? ', ' . $instructionSQL : '';
@@ -469,17 +475,25 @@ class Dictionary extends CommonObject
                     $error++;
                     $this->error = $this->db->lasterror();
                 } else {
-                	$new_created = true;
+					$new_created = false;
 				}
             }
 
-            if (!$error) {
-                // Create indexes of the tables
-                $res = $this->createIndexesTable();
-                if ($res < 0) {
-                    $error++;
-                }
+            if (!$error && $new_created) {
+				// Add primary key
+				$res = $this->createPrimaryKeyTable();
+				if ($res < 0) {
+					$error++;
+				}
             }
+
+			if (!$error) {
+				// Create indexes of the tables
+				$res = $this->createIndexesTable();
+				if ($res < 0) {
+					$error++;
+				}
+			}
 
             if (!$error) {
                 // Create sub dictionary table
@@ -541,69 +555,157 @@ class Dictionary extends CommonObject
         return 1;
     }
 
-    /**
-   	 * Create index of the table
-   	 *
-     * @param   int   $idx_number       Number of the index
-     * @return  int                     <0 if not ok, >0 if ok
-   	 */
-   	protected function createIndexTable($idx_number)
-    {
-        global $langs;
+	/**
+	 * Create index of the table
+	 *
+	 * @param   int   $idx_number       Number of the index
+	 * @return  int                     <0 if not ok, >0 if ok
+	 */
+	protected function createIndexTable($idx_number)
+	{
+		global $langs;
 
-        if (!isset($this->indexes[$idx_number])) {
-            $this->error = $langs->trans('AdvanceDictionariesErrorIndexNotDefined', $idx_number);
-            return -1;
-        }
+		if (!isset($this->indexes[$idx_number])) {
+			$this->error = $langs->trans('AdvanceDictionariesErrorIndexNotDefined', $idx_number);
+			return -1;
+		}
 
 		$cq = $this->db->type == 'pgsql' ? '"' : '`';
 
 		$index = $this->indexes[$idx_number];
 
-        if ($this->db->type == 'pgsql')
+		if ($this->db->type == 'pgsql')
 			$sql = 'CREATE ' . (!empty($index['is_unique']) ? 'UNIQUE ' : '') . 'INDEX idx_' . $this->table_name . '_' . $idx_number . ' ON ' . MAIN_DB_PREFIX . $this->table_name . ' (';
 		else
-	        $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' ADD ' . (!empty($index['is_unique']) ? 'UNIQUE ' : '') . 'INDEX idx_' . $this->table_name . '_' . $idx_number . ' (';
-        foreach ($index['fields'] as $field) {
-            $sql .= $cq . $field . $cq . ', ';
-        }
-        if ($this->has_entity && $this->is_multi_entity)
-            $sql .= $cq. $this->entity_field . $cq . ')';
-        else
-            $sql = substr($sql, 0, -2) . ')';
+			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' ADD ' . (!empty($index['is_unique']) ? 'UNIQUE ' : '') . 'INDEX idx_' . $this->table_name . '_' . $idx_number . ' (';
+		foreach ($index['fields'] as $field) {
+			$sql .= $cq . $field . $cq . ', ';
+		}
+		if ($this->has_entity && $this->is_multi_entity)
+			$sql .= $cq. $this->entity_field . $cq . ')';
+		else
+			$sql = substr($sql, 0, -2) . ')';
 
-        $resql = $this->db->query($sql);
-        if (!$resql) {
-            if ($this->db->lasterrno() != 'DB_ERROR_KEY_NAME_ALREADY_EXISTS' && $this->db->lasterrno() != 'DB_ERROR_TABLE_OR_KEY_ALREADY_EXISTS') {
-                $this->error = $this->db->lasterror();
-                return -1;
-            }
-        }
+		$resql = $this->db->query($sql);
+		if (!$resql) {
+			if ($this->db->lasterrno() != 'DB_ERROR_KEY_NAME_ALREADY_EXISTS' && $this->db->lasterrno() != 'DB_ERROR_TABLE_OR_KEY_ALREADY_EXISTS') {
+				$this->error = $this->db->lasterror();
+				return -1;
+			}
+		}
 
-        return 1;
-    }
+		return 1;
+	}
 
-    /**
-   	 * Delete index of the table
-   	 *
-     * @param   int   $idx_number       Number of the index
-     * @return  int                     <0 if not ok, >0 if ok
-   	 */
-   	protected function deleteIndexTable($idx_number)
-    {
+	/**
+	 * Delete index of the table
+	 *
+	 * @param   int   $idx_number       Number of the index
+	 * @return  int                     <0 if not ok, >0 if ok
+	 */
+	protected function deleteIndexTable($idx_number)
+	{
 		if ($this->db->type == 'pgsql')
 			$sql = 'DROP INDEX IF EXISTS idx_' . $this->table_name . '_' . $idx_number;
 		else
 			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP INDEX idx_' . $this->table_name . '_' . $idx_number;
 
-        $resql = $this->db->query($sql);
-        if (!$resql) {
-            $this->error = $this->db->lasterror();
-            return -1;
-        }
+		$resql = $this->db->query($sql);
+		if (!$resql) {
+			$this->error = $this->db->lasterror();
+			return -1;
+		}
 
-        return 1;
-    }
+		return 1;
+	}
+
+	/**
+	 * Create primary key of the table
+	 *
+	 * @return  int            <0 if not ok, >0 if ok
+	 */
+	protected function createPrimaryKeyTable()
+	{
+		$this->primary_key = empty($this->primary_key) || !is_array($this->primary_key) ? array($this->rowid_field) : $this->primary_key;
+		$cq = $this->db->type == 'pgsql' ? '"' : '`';
+
+		$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' ADD CONSTRAINT pk_' . $this->table_name . ' PRIMARY KEY (' . $cq . implode($cq . ',' . $cq, $this->primary_key). $cq . ')';
+
+		$resql = $this->db->query($sql);
+		if (!$resql) {
+			if ($this->db->lasterrno() != 'DB_ERROR_KEY_NAME_ALREADY_EXISTS' && $this->db->lasterrno() != 'DB_ERROR_TABLE_OR_KEY_ALREADY_EXISTS') {
+				$this->error = $this->db->lasterror();
+				return -1;
+			}
+		}
+
+		return 1;
+	}
+
+	/**
+	 * Update primary key of the table
+	 *
+	 * @return  int            <0 if not ok, >0 if ok
+	 */
+	protected function updatePrimaryKeyTable()
+	{
+		$this->primary_key = empty($this->primary_key) || !is_array($this->primary_key) ? array($this->rowid_field) : $this->primary_key;
+		$cq = $this->db->type == 'pgsql' ? '"' : '`';
+
+		if ($this->db->type == 'pgsql') {
+			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP ' . $this->table_name . '_pkey, ADD CONSTRAINT pk_' . $this->table_name . ' PRIMARY KEY (' . $cq . implode($cq . ',' . $cq, $this->primary_key). $cq . ')';
+			$resql = $this->db->query($sql);
+			if (!$resql) {
+				$this->error = $this->db->lasterror();
+				return -1;
+			}
+
+			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP pk_' . $this->table_name . ', ADD CONSTRAINT pk_' . $this->table_name . ' PRIMARY KEY (' . $cq . implode($cq . ',' . $cq, $this->primary_key). $cq . ')';
+		} elseif ($this->db->type == 'mysqli') {
+			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP PRIMARY KEY, ADD PRIMARY KEY (' . $cq . implode($cq . ',' . $cq, $this->primary_key). $cq . ')';
+		} else {
+			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP pk_' . $this->table_name . ', ADD CONSTRAINT pk_' . $this->table_name . ' PRIMARY KEY (' . $cq . implode($cq . ',' . $cq, $this->primary_key). $cq . ')';
+		}
+
+		$resql = $this->db->query($sql);
+		if (!$resql) {
+			$this->error = $this->db->lasterror();
+			return -1;
+		}
+
+		return 1;
+	}
+
+	/**
+	 * Delete primary key of the table
+	 *
+	 * @return  int            <0 if not ok, >0 if ok
+	 */
+	protected function deletePrimaryKeyTable()
+	{
+		if ($this->db->type == 'pgsql') {
+			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP CONSTRAINT ' . $this->table_name . '_pkey';
+			$resql = $this->db->query($sql);
+			if (!$resql) {
+				$this->error = $this->db->lasterror();
+				return -1;
+			}
+
+			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP CONSTRAINT pk_' . $this->table_name;
+		} elseif ($this->db->type == 'mysqli') {
+			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP PRIMARY KEY';
+		} else {
+			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP CONSTRAINT pk_' . $this->table_name;
+		}
+
+		$resql = $this->db->query($sql);
+		if (!$resql) {
+			$this->error = $this->db->lasterror();
+			return -1;
+		}
+
+		return 1;
+	}
 
     /**
    	 * Create sub table for the field
@@ -774,104 +876,124 @@ class Dictionary extends CommonObject
 
         // TODO prevoir les mise a jour avec les sous tables
 
-        foreach ($this->updates as $version => $datas)
-        {
-            if ($version > $current_version) {
-                // Fields
-                if (is_array($datas['fields'])) {
-                    foreach ($datas['fields'] as $field_name => $type) {
-                        switch ($type) {
-                            case 'a':
-                                if (!isset($this->fields[$field_name])) {
-                                    $this->error = $langs->trans('AdvanceDictionariesErrorFieldNotDefined', $field_name);
-                                    return -1;
-                                }
+        foreach ($this->updates as $version => $datas) {
+			if ($version > $current_version) {
+				// Fields
+				if (is_array($datas['fields'])) {
+					foreach ($datas['fields'] as $field_name => $type) {
+						switch ($type) {
+							case 'a':
+								if (!isset($this->fields[$field_name])) {
+									$this->error = $langs->trans('AdvanceDictionariesErrorFieldNotDefined', $field_name);
+									return -1;
+								}
 
-                                // Insert column of dictionary table
-                                $instructionSQL = $this->definitionTableFieldInstructionSQL($this->fields[$field_name]);
-                                if (!empty($instructionSQL)) {
-                                    $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' ADD COLUMN ' . $instructionSQL;
-                                    $resql = $this->db->query($sql);
-                                    if (!$resql) {
-                                        $this->error = $this->db->lasterror();
-                                        return -1;
-                                    }
-                                } else {
-                                    $result = $this->createSubTable($this->fields[$field_name]);
-                                    if ($result < 0) {
-                                        return -1;
-                                    }
-                                }
-                                break;
-                            case 'u':
-                                if (!isset($this->fields[$field_name])) {
-                                    $this->error = $langs->trans('AdvanceDictionariesErrorFieldNotDefined', $field_name);
-                                    return -1;
-                                }
+								// Insert column of dictionary table
+								$instructionSQL = $this->definitionTableFieldInstructionSQL($this->fields[$field_name]);
+								if (!empty($instructionSQL)) {
+									$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' ADD COLUMN ' . $instructionSQL;
+									$resql = $this->db->query($sql);
+									if (!$resql) {
+										$this->error = $this->db->lasterror();
+										return -1;
+									}
+								} else {
+									$result = $this->createSubTable($this->fields[$field_name]);
+									if ($result < 0) {
+										return -1;
+									}
+								}
+								break;
+							case 'u':
+								if (!isset($this->fields[$field_name])) {
+									$this->error = $langs->trans('AdvanceDictionariesErrorFieldNotDefined', $field_name);
+									return -1;
+								}
 
-                                // Update column of dictionary table
-                                $instructionSQL = $this->definitionTableFieldInstructionSQL($this->fields[$field_name]);
-                                if (!empty($instructionSQL)) {
-                                    $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' MODIFY COLUMN ' . $instructionSQL;
-                                    $resql = $this->db->query($sql);
-                                    if (!$resql) {
-                                        $this->error = $this->db->lasterror();
-                                        return -1;
-                                    }
-                                } else {
-                                    // Todo update sub tables ?
-                                }
-                                break;
-                        }
-                    }
-                }
-                // Delete fields
-                if (is_array($datas['delete_fields'])) {
-                    foreach ($datas['delete_fields'] as $field_name => $field) {
-                        // Delete column of dictionary table
-                        $instructionSQL = $this->definitionTableFieldInstructionSQL($field);
-                        if (!empty($instructionSQL)) {
-                            $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP COLUMN ' . $field_name;
-                            $resql = $this->db->query($sql);
-                            if (!$resql) {
-                                $this->error = $this->db->lasterror();
-                                return -1;
-                            }
-                        } else {
-                            $result = $this->deleteSubTable($field);
-                            if ($result < 0) {
-                                return -1;
-                            }
-                        }
-                    }
-                }
+								// Update column of dictionary table
+								$instructionSQL = $this->definitionTableFieldInstructionSQL($this->fields[$field_name]);
+								if (!empty($instructionSQL)) {
+									$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' MODIFY COLUMN ' . $instructionSQL;
+									$resql = $this->db->query($sql);
+									if (!$resql) {
+										$this->error = $this->db->lasterror();
+										return -1;
+									}
+								} else {
+									// Todo update sub tables ?
+								}
+								break;
+						}
+					}
+				}
+				// Delete fields
+				if (is_array($datas['delete_fields'])) {
+					foreach ($datas['delete_fields'] as $field_name => $field) {
+						// Delete column of dictionary table
+						$instructionSQL = $this->definitionTableFieldInstructionSQL($field);
+						if (!empty($instructionSQL)) {
+							$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP COLUMN ' . $field_name;
+							$resql = $this->db->query($sql);
+							if (!$resql) {
+								$this->error = $this->db->lasterror();
+								return -1;
+							}
+						} else {
+							$result = $this->deleteSubTable($field);
+							if ($result < 0) {
+								return -1;
+							}
+						}
+					}
+				}
 
-                // Indexes
-                if (is_array($datas['indexes'])) {
-                    foreach ($datas['indexes'] as $idx_number => $type) {
-                        switch ($type) {
-                            //case 'a':
-                                //// Insert index of dictionary table
-                                //if ($this->createIndexTable($idx_number) < 0)
-                                //    return -1;
-                                //break;
-                            case 'u':
-                                // Udpate index of dictionary table
-                                if ($this->deleteIndexTable($idx_number) < 0)
-                                    return -1;
-                                if ($this->createIndexTable($idx_number) < 0)
-                                    return -1;
-                                break;
-                            case 'd':
-                                // Delete index of dictionary table
-                                if ($this->deleteIndexTable($idx_number) < 0)
-                                    return -1;
-                                break;
-                        }
-                    }
-                }
-            }
-        }
+				// Indexes
+				if (is_array($datas['indexes'])) {
+					foreach ($datas['indexes'] as $idx_number => $type) {
+						switch ($type) {
+							//case 'a':
+							//// Insert index of dictionary table
+							//if ($this->createIndexTable($idx_number) < 0)
+							//    return -1;
+							//break;
+							case 'u':
+								// Update index of dictionary table
+								if ($this->deleteIndexTable($idx_number) < 0)
+									return -1;
+								if ($this->createIndexTable($idx_number) < 0)
+									return -1;
+								break;
+							case 'd':
+								// Delete index of dictionary table
+								if ($this->deleteIndexTable($idx_number) < 0)
+									return -1;
+								break;
+						}
+					}
+				}
+
+				// Primary key
+				if (!empty($datas['primary_key'])) {
+					switch ($datas['primary_key']) {
+						case 'a':
+							// Add primary key
+							if ($this->createPrimaryKeyTable() < 0)
+							    return -1;
+							break;
+						case 'u':
+							// Update primary key of dictionary table
+							if ($this->updatePrimaryKeyTable() < 0)
+								return -1;
+							break;
+						case 'd':
+							// Delete primary key of dictionary table
+							if ($this->deletePrimaryKeyTable() < 0)
+								return -1;
+							break;
+					}
+				}
+			}
+		}
 
         dolibarr_set_const($this->db, $version_variable_name, $this->version, 'chaine', 0, '', $conf->entity);
 

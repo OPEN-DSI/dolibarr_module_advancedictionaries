@@ -3,6 +3,11 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.36] - 28-04-2021
+- Ajout de la posibilité de déterminé la clé primaire
+- Ajout mechanique de mise a jour de la clé primaire
+- Correction mineures
+
 ## [4.0.35] - 28-04-2021
 - Correction mineures
 
@@ -155,7 +160,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.35...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.36...HEAD
+[4.0.36]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.36
 [4.0.35]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.35
 [4.0.34]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.34
 [4.0.33]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.33
