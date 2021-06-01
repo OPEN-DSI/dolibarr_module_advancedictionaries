@@ -460,7 +460,7 @@ class Dictionary extends CommonObject
 			$cq = $this->db->type == 'pgsql' ? '"' : '`';
 
             // Create dictionary table
-            $sql = 'CREATE TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $cq . $this->rowid_field . $cq . ' INTEGER NOT NULL' . ($this->is_rowid_auto_increment ? ' AUTO_INCREMENT' : '');
+            $sql = 'CREATE TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $cq . $this->rowid_field . $cq . ' INTEGER NOT NULL';
             foreach ($this->fields as $field) {
                 $instructionSQL = $this->definitionTableFieldInstructionSQL($field);
                 $sql .= !empty($instructionSQL) ? ', ' . $instructionSQL : '';
@@ -629,17 +629,33 @@ class Dictionary extends CommonObject
 		$this->primary_key = empty($this->primary_key) || !is_array($this->primary_key) ? array($this->rowid_field) : $this->primary_key;
 		$cq = $this->db->type == 'pgsql' ? '"' : '`';
 
+		$error = 0;
+		$this->db->begin();
+
 		$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' ADD CONSTRAINT pk_' . $this->table_name . ' PRIMARY KEY (' . $cq . implode($cq . ',' . $cq, $this->primary_key). $cq . ')';
 
 		$resql = $this->db->query($sql);
 		if (!$resql) {
 			if ($this->db->lasterrno() != 'DB_ERROR_KEY_NAME_ALREADY_EXISTS' && $this->db->lasterrno() != 'DB_ERROR_TABLE_OR_KEY_ALREADY_EXISTS') {
 				$this->error = $this->db->lasterror();
-				return -1;
+				$error++;
+			}
+		} elseif ($this->is_rowid_auto_increment) {
+			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' MODIFY ' . $cq . $this->rowid_field . $cq . ' INTEGER NOT NULL AUTO_INCREMENT';
+			$resql = $this->db->query($sql);
+			if (!$resql) {
+				$this->error = $this->db->lasterror();
+				$error++;
 			}
 		}
 
-		return 1;
+		if ($error) {
+			$this->db->rollback();
+			return -1;
+		} else {
+			$this->db->commit();
+			return 1;
+		}
 	}
 
 	/**
@@ -667,13 +683,31 @@ class Dictionary extends CommonObject
 			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP pk_' . $this->table_name . ', ADD CONSTRAINT pk_' . $this->table_name . ' PRIMARY KEY (' . $cq . implode($cq . ',' . $cq, $this->primary_key). $cq . ')';
 		}
 
+		$error = 0;
+		$this->db->begin();
+
 		$resql = $this->db->query($sql);
 		if (!$resql) {
 			$this->error = $this->db->lasterror();
-			return -1;
+			$error++;
 		}
 
-		return 1;
+		if ($error) {
+			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' MODIFY ' . $cq . $this->rowid_field . $cq . ' INTEGER NOT NULL' . ($this->is_rowid_auto_increment ? ' AUTO_INCREMENT' : '');
+			$resql = $this->db->query($sql);
+			if (!$resql) {
+				$this->error = $this->db->lasterror();
+				$error++;
+			}
+		}
+
+		if ($error) {
+			$this->db->rollback();
+			return -1;
+		} else {
+			$this->db->commit();
+			return 1;
+		}
 	}
 
 	/**
