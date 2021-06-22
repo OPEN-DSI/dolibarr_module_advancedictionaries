@@ -27,11 +27,6 @@ dol_include_once('/advancedictionaries/class/dictionary.class.php');
  */
 class AdvanceDictionariesApi extends DolibarrApi {
     /**
-     * @var DoliDb      $db         Database object
-     */
-    static protected $db;
-
-    /**
      * @var Dictionary[]        $dictionary_cached          Cached dictionary object list
      */
     static protected $dictionary_cached;
@@ -49,7 +44,11 @@ class AdvanceDictionariesApi extends DolibarrApi {
         global $db, $user;
 
         $user = DolibarrApiAccess::$user;
-        self::$db = $db;
+        if (version_compare(DOL_VERSION, "12.0.0") >= 0) {
+			$this->db = $db;
+		} else {
+			self::$db = $db;
+		}
     }
 
     /**
@@ -382,7 +381,8 @@ class AdvanceDictionariesApi extends DolibarrApi {
 
         // Get dictionaries
         $obj_ret = array();
-        $dictionaries = Dictionary::fetchAllDictionaries(self::$db, $module, $family);
+        $db = version_compare(DOL_VERSION, "12.0.0") >= 0 ? $this->db : self::$db;
+        $dictionaries = Dictionary::fetchAllDictionaries($db, $module, $family);
         foreach ($dictionaries as $dictionary) {
             if (($enabled < 0 || ($enabled == 0 && !$dictionary->enabled) || ($enabled == 1 && $dictionary->enabled)) &&
                 ($hidden < 0 || ($hidden == 0 && !$dictionary->hidden) || ($hidden == 1 && $dictionary->hidden))
@@ -407,8 +407,9 @@ class AdvanceDictionariesApi extends DolibarrApi {
      */
 	protected function _getDictionaryObject($module, $name, $old_id=0)
     {
+		$db = version_compare(DOL_VERSION, "12.0.0") >= 0 ? $this->db : self::$db;
         if (!isset(self::$dictionary_cached[$module][$name][$old_id])) {
-            self::$dictionary_cached[$module][$name][$old_id] = Dictionary::getDictionary(self::$db, $module, $name, $old_id);
+            self::$dictionary_cached[$module][$name][$old_id] = Dictionary::getDictionary($db, $module, $name, $old_id);
         }
 
         if (!isset(self::$dictionary_cached[$module][$name][$old_id])) {
