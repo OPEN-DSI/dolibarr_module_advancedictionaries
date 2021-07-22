@@ -106,8 +106,6 @@ class modAdvanceDictionaries extends DolibarrModules
 		$this->module_parts = array(
             //'dictionaries' => 1,
             'hooks' => array('main', 'login'),
-			'css' => array('/advancedictionaries/css/adSelect2Sortable.css.php'),
-			'js' => array('/advancedictionaries/js/ad-select2Sortable.min.js')
         );
 
 		// Data directories to create when module is enabled.
