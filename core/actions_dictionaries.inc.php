@@ -86,8 +86,11 @@ $contextpage = isset($dictionary) ? $dictionary->module . '_' . $dictionary->nam
 $hookmanager->initHooks(array($contextpage));
 
 // Params
-$param = 'module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name);
-$param .= $dictionary->getFixedParameters();
+$param = '';
+if (isset($dictionary)) {
+	$param .= 'module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name);
+	$param .= $dictionary->getFixedParameters();
+}
 $param0 = $param;
 if ($limit > 0 && $limit != $conf->liste_limit) $param .= '&limit=' . $limit;
 
