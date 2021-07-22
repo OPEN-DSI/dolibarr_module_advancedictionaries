@@ -70,7 +70,7 @@ class modAdvanceDictionaries extends DolibarrModules
 		$this->descriptionlong = "";
 		$this->editor_name = 'Open-DSI';
 		$this->editor_url = 'http://www.open-dsi.fr';
-		
+
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
 		$this->version = '4.0.40';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
@@ -165,7 +165,7 @@ class modAdvanceDictionaries extends DolibarrModules
         	$conf->advancedictionaries=new stdClass();
         	$conf->advancedictionaries->enabled=0;
         }
-        
+
         // Dictionaries
 		$this->dictionaries=array();
         /* Example:
