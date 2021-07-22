@@ -68,6 +68,8 @@ if (empty($sortfield)) {
         $tmp = explode(' ', trim($order));
         $order_by[$tmp[0]] = $tmp[1];
     }
+    $sortfield = implode(',', array_keys($order_by));
+    $sortorder = implode(',', array_values($order_by));
 } else {
     $order_by[$sortfield] = $sortorder;
 }
@@ -85,6 +87,8 @@ $hookmanager->initHooks(array($contextpage));
 
 // Params
 $param = 'module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name);
+$param .= $dictionary->getFixedParameters();
+$param0 = $param;
 if ($limit > 0 && $limit != $conf->liste_limit) $param .= '&limit=' . $limit;
 
 $search_active = 1;
@@ -136,7 +140,14 @@ if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x',
 
 if (isset($dictionary) && $dictionary->enabled) {
     // Params
-    foreach ($search_filters as $fieldName => $filter) $param .= '&search_' . $fieldName . '=' . urlencode(is_array($filter) ? $filter[0] : $filter);
+    foreach ($search_filters as $fieldName => $filter) {
+    	if (isset($dictionary->fields[$fieldName]['type']) && in_array($dictionary->fields[$fieldName]['type'], array('date', 'datetime'))) {
+			if (isset($filter['date_start'])) $param .= '&search_' . $fieldName . '_start=' . urlencode($filter['date_start']);
+			if (isset($filter['date_end'])) $param .= '&search_' . $fieldName . '_end=' . urlencode($filter['date_end']);
+		} else {
+			$param .= '&search_' . $fieldName . '=' . urlencode(is_array($filter) ? $filter[0] : $filter);
+		}
+	}
     if ($search_entity !== '') $param .= '&search_' . $dictionary->entity_field . '=' . urlencode($search_entity);
     if ($search_active != 1) $param .= '&search_' . $dictionary->active_field . '=' . urlencode($search_active);
     $param2 = $param;

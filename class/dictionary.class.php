@@ -90,6 +90,11 @@ class Dictionary extends CommonObject
     public $nameLabel = '';
 
     /**
+     * @var bool        Hide the title block in the values list screen
+     */
+    public $hideTitleBlock = false;
+
+    /**
      * @var string      Custom name for the title in the values list screen
      */
     public $customTitle = '';
@@ -103,6 +108,11 @@ class Dictionary extends CommonObject
      * @var bool        Hide the custom back link in the values list screen
      */
     public $hideCustomBackLink = false;
+
+    /**
+     * @var string      List title
+     */
+    public $listTitle = '';
 
     /**
      * @var string      Name of the dictionary table without prefix (ex: c_country)
@@ -1605,7 +1615,10 @@ class Dictionary extends CommonObject
                         $line->entity = $obj[$this->entity_field];
                         unset($obj[$this->entity_field]);
                     }
-                    $line->fields = $obj;
+                    $line->fields = array();
+                    foreach ($this->fields as $k => $v) {
+                        $line->fields[$k] = $line->formatFieldValueFromSQL($k, $obj[$k]);
+                    }
 
                     $lines[$line->id] = $line;
                 }
@@ -1863,7 +1876,10 @@ class Dictionary extends CommonObject
                     return natural_search('d.' . $field['name'], $value, 1, 1);
                 case 'date':
                 case 'datetime':
-                    return natural_search('d.' . $field['name'], $value, 1, 1); // TODO check for date and datetime
+                    $where = array();
+                    if (isset($value['date_start']) && $value['date_start'] !== "") $where[] = 'd.' . $field['name'] . " >= '" . $this->db->idate($value['date_start']) . "'";
+                    if (isset($value['date_end']) && $value['date_end'] !== "") $where[] = 'd.' . $field['name'] . " <= '" . $this->db->idate($value['date_end']) . "'";
+                    return implode(' AND ', $where);
                 case 'boolean':
                     if (!empty($value)) {
 						return 'd.' . $field['name'] . ' = ' . ($value > 0 ? '1' : '0');
@@ -1932,10 +1948,17 @@ class Dictionary extends CommonObject
      */
 	public function showInputSearchField($fieldName, $search_filters)
 	{
+	    global $langs, $form;
+
 		if (isset($this->fields[$fieldName])) {
 			$field = $this->fields[$fieldName];
 			$fieldHtmlName = 'search_' . $fieldName;
 			$type = $field['type'];
+
+            if (!is_object($form)) {
+                require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+                $form = new Form($this->db);
+            }
 
 			$size = $field['show_search_input']['size'];
 			if (empty($size)) {
@@ -1984,10 +2007,20 @@ class Dictionary extends CommonObject
 				case 'float':
 				case 'double':
 				case 'price':
-				case 'date':
-				case 'datetime':
 					return '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '"' . $size .
 						' value="' . dol_escape_htmltag($search_filters[$fieldName]) . '"' . $moreAttributes . '>';
+                case 'date':
+                case 'datetime':
+                    $hm = $type == 'datetime' ? 1 : 0;
+                    $out = '<div class="nowrap">';
+                    $out .= $langs->trans('From') . ' ';
+                    $out .= $form->selectDate($search_filters[$fieldName]['date_start']?$search_filters[$fieldName]['date_start']:-1, $fieldHtmlName . '_start_', $hm, $hm, 1);
+                    $out .= '</div>';
+                    $out .= '<div class="nowrap">';
+                    $out .= $langs->trans('to') . ' ';
+                    $out .= $form->selectDate($search_filters[$fieldName]['date_end']?$search_filters[$fieldName]['date_end']:-1, $fieldHtmlName . '_end_', $hm, $hm, 1);
+                    $out .= '</div>';
+                    return $out;
 				case 'radio':
 				case 'select':
 				case 'checkbox':
@@ -2004,9 +2037,6 @@ class Dictionary extends CommonObject
 					$this->fields[$fieldName]['type'] = $old_type;
 					return $out;
 				case 'boolean':
-					require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-					global $form;
-					if (!is_object($form)) $form = new Form($this->db);
 					return $form->selectyesno($fieldHtmlName, $search_filters[$fieldName], 1, false, 1);
 				case 'custom':
 					return $this->showInputSearchCustomField($fieldName);
@@ -2161,11 +2191,21 @@ class Dictionary extends CommonObject
     }
 
     /**
-     * Get fixed value for each fixed fields of the dictionary
+     * Get fixed value for parameters in url query
    	 *
-   	 * @return array                    Values of each field
+   	 * @return string                    Fixed value for parameters
    	 */
-	public function getFixedFieldsValue()
+	public function getFixedParameters()
+    {
+        return '';
+    }
+
+    /**
+     * Get fixed value for each fixed fields of the dictionary
+     *
+     * @return array                    Values of each field
+     */
+    public function getFixedFieldsValue()
     {
         return array();
     }
@@ -2181,25 +2221,55 @@ class Dictionary extends CommonObject
 
         // Get fields
         foreach ($this->fields as $fieldName => $field) {
-            if (!$field['is_not_searchable']) {
-                $fieldHtmlName = 'search_' . $fieldName;
+			if (!$field['is_not_searchable']) {
+				$fieldHtmlName = 'search_' . $fieldName;
 
-                switch ($field['type']) {
-                    case 'varchar':
-                    case 'text':
-                    case 'phone':
-                    case 'mail':
-                    case 'url':
-                    case 'password':
+				switch ($field['type']) {
+					case 'varchar':
+					case 'text':
+					case 'phone':
+					case 'mail':
+					case 'url':
+					case 'password':
 					case 'link':
 					case 'int':
 					case 'float':
 					case 'double':
 					case 'price':
-					case 'date':
-					case 'datetime':
 						$value_key = GETPOST($fieldHtmlName, 'alpha');
 						if ($value_key === '') $value_key = null;
+						break;
+					case 'date':
+					case 'datetime':
+						$value_key = array();
+
+						$date = GETPOST($fieldHtmlName . '_start', 'int');
+						if (!is_numeric($date) || $date === "") {
+							$year = GETPOST($fieldHtmlName . '_start_year', 'int');
+							$month = GETPOST($fieldHtmlName . '_start_month', 'int');
+							$day = GETPOST($fieldHtmlName . '_start_day', 'int');
+							$hour = GETPOST($fieldHtmlName . '_start_hour', 'int');
+							$minute = GETPOST($fieldHtmlName . '_start_min', 'int');
+							$hour = $field['type'] == 'date' ? 0 : $hour;
+							$minute = $field['type'] == 'date' ? 0 : $minute;
+							$date = dol_mktime($hour, $minute, 0, $month, $day, $year);
+						}
+						if ($date !== "") $value_key['date_start'] = $date;
+
+						$date = GETPOST($fieldHtmlName . '_end', 'int');
+						if (!is_numeric($date) || $date === "") {
+							$year = GETPOST($fieldHtmlName . '_end_year', 'int');
+							$month = GETPOST($fieldHtmlName . '_end_month', 'int');
+							$day = GETPOST($fieldHtmlName . '_end_day', 'int');
+							$hour = GETPOST($fieldHtmlName . '_end_hour', 'int');
+							$minute = GETPOST($fieldHtmlName . '_end_min', 'int');
+							$hour = $field['type'] == 'date' || ($hour == -1 && ($year !== "" || $month !== "" || $day !== "")) ? 23 : $hour;
+							$minute = $field['type'] == 'date' || ($minute == -1 && ($year !== "" || $month !== "" || $day !== "")) ? 59 : $minute;
+							$date = dol_mktime($hour, $minute, 59, $month, $day, $year);
+						}
+						if ($date !== "") $value_key['date_end'] = $date;
+
+						if (empty($value_key)) $value_key = null;
 						break;
 					case 'select':
 					case 'sellist':
@@ -2210,23 +2280,23 @@ class Dictionary extends CommonObject
 						if ($value_key === '') $value_key = null;
 						else $value_key = array($value_key);
 						break;
-                    case 'boolean':
-                        $value_key = GETPOST($fieldHtmlName, 'int');
-                        if ($value_key < 0 || $value_key === '') $value_key = null;
-                        break;
-                    case 'custom':
-                        $value_key = $this->getSearchCustomFieldsValueFromForm($fieldName);
-                        break;
-                    default: // unknown
-                        $value_key = null;
-                        break;
-                }
+					case 'boolean':
+						$value_key = GETPOST($fieldHtmlName, 'int');
+						if ($value_key < 0 || $value_key === '') $value_key = null;
+						break;
+					case 'custom':
+						$value_key = $this->getSearchCustomFieldsValueFromForm($fieldName);
+						break;
+					default: // unknown
+						$value_key = null;
+						break;
+				}
 
-                if ($value_key !== null) {
-                    $fields[$fieldName] = $value_key;
-                }
-            }
-        }
+				if ($value_key !== null) {
+					$fields[$fieldName] = $value_key;
+				}
+			}
+		}
 
         return $fields;
     }
@@ -2291,6 +2361,28 @@ SCRIPT;
     {
         return true;
     }
+
+	/**
+	 * Determine if lines can be updated or not
+	 *
+	 * @param  DictionaryLine   $dictionaryLine     Line instance
+	 * @return bool
+	 */
+	public function isLineCanBeUpdated(&$dictionaryLine)
+	{
+		return true;
+	}
+
+	/**
+	 * Determine if lines can be deleted or not
+	 *
+	 * @param  DictionaryLine   $dictionaryLine     Line instance
+	 * @return bool
+	 */
+	public function isLineCanBeDeleted(&$dictionaryLine)
+	{
+		return true;
+	}
 
     /**
      *  Get last row ID of the dictionary
@@ -3714,7 +3806,10 @@ class DictionaryLine extends CommonObjectLine
                     $this->entity = $obj[$this->dictionary->entity_field];
                     unset($obj[$this->dictionary->entity_field]);
                 }
-                $this->fields = $obj;
+                $this->fields = array();
+                foreach ($this->dictionary->fields as $k => $v) {
+                    $this->fields[$k] = $this->formatFieldValueFromSQL($k, $obj[$k]);
+                }
 
                 $this->db->free($resql);
 
@@ -3867,7 +3962,7 @@ class DictionaryLine extends CommonObjectLine
             switch ($field['type']) {
                 case 'date':
                 case 'datetime':
-                    return "'" . $this->db->jdate($value);
+                    return $this->db->jdate($value);
                 case 'boolean':
                     return (!empty($value) ? 1 : 0);
                 case 'custom':

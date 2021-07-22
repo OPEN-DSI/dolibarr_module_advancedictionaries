@@ -3,6 +3,17 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.40] - 22-07-2021
+- Corrections mise a jour de la version du dictionnaire sur l'entité 0 et non l'entité actuelle
+- Remise des fonctions isLineCanBeUpdated() et isLineCanBeDeleted()
+
+## [4.0.39] - 06-07-2021
+- Ajout des propriétés 'hideTitleBlock' et 'listTitle' sur le dictionnaire
+- Ajout fonction getFixedParameters() pour des paramètres fixes passés en Query
+- Correction du format des valeurs des lignes lues
+- Correction de l'affichage du tri par défaut
+- Mise en standard des recherches de dates (filtre date : array('key' => array('date_start' => int, 'date_end' => int)))
+
 ## [4.0.38] - 22-06-2021
 - Compatibilité de l'API avec les version 12+ de Dolibarr
 
@@ -166,7 +177,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.38...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.40...HEAD
+[4.0.40]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.40
+[4.0.39]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.39
 [4.0.38]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.38
 [4.0.37]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.37
 [4.0.36]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.36

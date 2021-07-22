@@ -53,6 +53,7 @@ if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show
 	$actionsmulticompany = new ActionsMulticompany($db);
 }
 
+$show_title_block = true;
 $titre = $langs->trans("DictionarySetup");
 $linkback = '';
 $titlepicto = 'title_setup';
@@ -62,6 +63,7 @@ if (isset($dictionary) && $dictionary->enabled) {
     $titre.=' - '.$langs->trans($dictionary->nameLabel);
     $linkback = '<a href="' . $_SERVER['PHP_SELF'] . '">' . $langs->trans("BackToDictionaryList") . '</a>';
     if (!empty($dictionary->titlePicto)) $titlepicto = $dictionary->titlePicto;
+    if (!empty($dictionary->hideTitleBlock)) $show_title_block = false;
 
     if (!empty($dictionary->customTitle)) $titre = $langs->trans($dictionary->customTitle);
     if (!empty($dictionary->customBackLink)) $linkback = $dictionary->customBackLink;
@@ -71,7 +73,9 @@ if (isset($dictionary) && $dictionary->enabled) {
 // Easya compatibility
 $class_fa = !empty($conf->global->EASYA_VERSION) && version_compare(DOL_VERSION, "10.0.0") >= 0 ? 'fal' : 'fa';
 
-print load_fiche_titre($titre, $linkback, $titlepicto);
+if ($show_title_block) {
+    print load_fiche_titre($titre, $linkback, $titlepicto);
+}
 
 if (!isset($dictionary))
 {
@@ -213,7 +217,7 @@ SCRIPT;
             if (in_array($massaction, array('predelete', 'premodifyentity'))) $arrayofmassactions = array();
             $massactionbutton = $form->selectMassAction('', $arrayofmassactions);
 
-            print '<form id="searchFormList" action="' . $_SERVER['PHP_SELF'] . '?module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name) . '" method="POST">';
+            print '<form id="searchFormList" action="' . $_SERVER['PHP_SELF'] . '?' . $param0 . '" method="POST">';
             print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
             print '<input type="hidden" name="formfilteraction" id="formfilteraction" value="list">';
             print '<input type="hidden" name="action" value="list">';
@@ -225,7 +229,8 @@ SCRIPT;
             if ($search_entity !== '') print '<input type="hidden" name="search_' . $dictionary->entity_field . '" value="' . dol_escape_htmltag($search_entity) . '">';
             if ($search_active != 1) print '<input type="hidden" name="search_' . $dictionary->active_field . '" value="' . dol_escape_htmltag($search_active) . '">';
 
-            print_barre_liste('', $page, $_SERVER["PHP_SELF"], '&' . $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, '', 0, $addButton, '', $limit);
+            $title_list = !empty($dictionary->listTitle) ? $langs->trans($dictionary->listTitle) : '';
+            print_barre_liste($title_list, $page, $_SERVER["PHP_SELF"], '&' . $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, '', 0, $addButton, '', $limit);
 
             $objecttmp = new DictionaryLine($db, $dictionary);
             $trackid = 'dic' . $dictionary->id;
@@ -385,9 +390,11 @@ SCRIPT;
                 // Action column
                 print '<td class="nowrap" align="center">';
                 // Modify link
-                if ($dictionary->lineCanBeUpdated && $canUpdate) print '<a class="reposition" href="' . $_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $line->id . '&action=edit_line&'.$now.'=#rowid-' . $line->id . '">' . img_edit() . '</a>';
+				$isLineCanBeUpdated = $dictionary->isLineCanBeUpdated($line);
+                if ($dictionary->lineCanBeUpdated && $canUpdate && $isLineCanBeUpdated) print '<a class="reposition" href="' . $_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $line->id . '&action=edit_line&'.$now.'=#rowid-' . $line->id . '">' . img_edit() . '</a>';
                 // Delete link
-                if ($dictionary->lineCanBeDeleted && $canDelete) print '<a href="' . $_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $line->id . '&prevrowid=' . $last_rowid . '&action=delete_line' . '&rowid=' . $line->id . '&'.$now.'=#rowid-' . $line->id . '">' . img_delete() . '</a>';
+				$isLineCanBeDeleted = $dictionary->isLineCanBeDeleted($line);
+                if ($dictionary->lineCanBeDeleted && $canDelete && $isLineCanBeDeleted) print '<a href="' . $_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $line->id . '&prevrowid=' . $last_rowid . '&action=delete_line' . '&rowid=' . $line->id . '&'.$now.'=#rowid-' . $line->id . '">' . img_delete() . '</a>';
                 if ($massactionbutton || $massaction) {   // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
                     $selected = 0;
                     if (in_array($line->id, $arrayofselected)) $selected = 1;
