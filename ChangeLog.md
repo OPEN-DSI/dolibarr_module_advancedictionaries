@@ -6,6 +6,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.40] - 22-07-2021
 - Corrections mise a jour de la version du dictionnaire sur l'entité 0 et non l'entité actuelle
 - Remise des fonctions isLineCanBeUpdated() et isLineCanBeDeleted()
+- Ajout du type de champ 'chkbxlstwithorder' par AlexisLaurier
+- Ajout de l'option 'association_table' par AlexisLaurier
+- Corrections
 
 ## [4.0.39] - 06-07-2021
 - Ajout des propriétés 'hideTitleBlock' et 'listTitle' sur le dictionnaire
