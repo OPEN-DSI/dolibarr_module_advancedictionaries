@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.41] - 27-09-2021
+- Ajout la gestion de l'update d'une colonne de type sellist vers chkbxlst (rajoute les valeurs existantes dans la table de liaison et supprime la colonne)
+
 ## [4.0.40] - 22-07-2021
 - Corrections mise a jour de la version du dictionnaire sur l'entité 0 et non l'entité actuelle
 - Remise des fonctions isLineCanBeUpdated() et isLineCanBeDeleted()
@@ -180,7 +183,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.40...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.41...HEAD
+[4.0.41]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.41
 [4.0.40]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.40
 [4.0.39]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.39
 [4.0.38]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.38

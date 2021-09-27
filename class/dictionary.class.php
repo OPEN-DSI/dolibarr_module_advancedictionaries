@@ -984,7 +984,24 @@ class Dictionary extends CommonObject
 										return -1;
 									}
 								} else {
-									// Todo update sub tables ?
+									$field = $this->fields[$field_name];
+									if (in_array($field['type'], array('chkbxlst', 'chkbxlstwithorder'))) {
+										$isPgSql = $this->db->type == 'pgsql';
+										$cq = $isPgSql ? '"' : '`';
+
+										$sql = 'INSERT' . (!$isPgSql ? ' IGNORE' : '') . ' INTO ' . MAIN_DB_PREFIX . $this->getAssociationTableName($field) .
+											' (' . $cq . $this->getCurrentColumnAssociationTableName($field) . $cq . ', ' . $cq . $this->getDestinationColumnAssociationTableName($field) . $cq . ') ' .
+											' SELECT ' . $this->rowid_field . ', ' . $field_name .  ' FROM ' . MAIN_DB_PREFIX . $this->table_name .
+											($isPgSql ? ' ON CONFLICT DO NOTHING' : '');
+										$resql = $this->db->query($sql);
+										if (!$resql) {
+											$this->error = $this->db->lasterror();
+											return -1;
+										}
+
+										$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP COLUMN ' . $cq . $field_name . $cq;
+										$resql = $this->db->query($sql);
+									}
 								}
 								break;
 						}
