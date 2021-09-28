@@ -3,6 +3,10 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.42] - 28-09-2021
+- Passe les colonnes non definies lors de la creation
+- Corrections mise à jour de la version du dictionnaire sur l'entité 0 et non l'entité actuelle (avais disparue entre temps)
+
 ## [4.0.41] - 27-09-2021
 - Ajout la gestion de l'update d'une colonne de type sellist vers chkbxlst (rajoute les valeurs existantes dans la table de liaison et supprime la colonne)
 

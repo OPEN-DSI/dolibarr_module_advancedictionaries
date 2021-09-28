@@ -807,7 +807,7 @@ class Dictionary extends CommonObject
             return 1;
         }
 
-        return -2;
+        return 0;
     }
 
     /**
@@ -913,7 +913,7 @@ class Dictionary extends CommonObject
             return 1;
         }
 
-        return -2;
+        return 0;
     }
 
     /**
@@ -1076,7 +1076,7 @@ class Dictionary extends CommonObject
 			}
 		}
 
-        dolibarr_set_const($this->db, $version_variable_name, $this->version, 'chaine', 0, '', $conf->entity);
+        dolibarr_set_const($this->db, $version_variable_name, $this->version, 'chaine', 0, '', 0);
 
         return 1;
     }
@@ -1159,7 +1159,7 @@ class Dictionary extends CommonObject
             return 1;
         }
 
-        return -2;
+        return 0;
     }
 
     /**
