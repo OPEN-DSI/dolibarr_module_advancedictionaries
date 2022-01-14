@@ -32,6 +32,7 @@ if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main
 
 $module = GETPOST('dictionary_module', 'alpha');
 $name = GETPOST('dictionary_name', 'alpha');
+$rootPath = GETPOST('dictionary_root_path', 'alpha');
 $field_updated = GETPOST('field_updated', 'alpha');
 $key_prefix = GETPOST('key_prefix', 'alpha');
 $key_suffix = GETPOST('key_suffix', 'alpha');
@@ -45,7 +46,7 @@ $outjson = array();
 
 if (!empty($module) && !empty($name)) {
 	dol_include_once('/advancedictionaries/class/dictionary.class.php');
-	$dictionary = Dictionary::getDictionary($db, $module, $name);
+	$dictionary = Dictionary::getDictionary($db, $module, $name, 0, $rootPath);
 
 	if (empty($field_updated)) {
 		$fields_to_update = array();

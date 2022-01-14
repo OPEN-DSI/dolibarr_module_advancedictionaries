@@ -46,7 +46,7 @@ if (!$canRead) accessforbidden();
 $dictionary = null;
 if ($id > 0 || (!empty($module) && !empty($name))) {
     // Select the dictionary
-    $dictionary = Dictionary::getDictionary($db, $module, $name, $id);
+    $dictionary = Dictionary::getDictionary($db, $module, $name, $id, $rootPath);
 }
 
 $massaction = GETPOST('massaction','alpha');
@@ -86,9 +86,9 @@ $contextpage = isset($dictionary) ? $dictionary->module . '_' . $dictionary->nam
 $hookmanager->initHooks(array($contextpage));
 
 // Params
-$param = '';
+if (empty($param)) $param = '';
 if (isset($dictionary)) {
-	$param .= 'module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name);
+	$param .= '&module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name);
 	$param .= $dictionary->getFixedParameters();
 }
 $param0 = $param;

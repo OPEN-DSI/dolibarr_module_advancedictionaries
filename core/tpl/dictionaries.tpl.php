@@ -1,16 +1,5 @@
 <?php
-/* Copyright (C) 2004		Rodolphe Quiedeville	<rodolphe@quiedeville.org>
- * Copyright (C) 2004-2015	Laurent Destailleur		<eldy@users.sourceforge.net>
- * Copyright (C) 2004		Benoit Mortier			<benoit.mortier@opensides.be>
- * Copyright (C) 2005-2017	Regis Houssin			<regis.houssin@capnetworks.com>
- * Copyright (C) 2010-2016	Juanjo Menent			<jmenent@2byte.es>
- * Copyright (C) 2011-2015	Philippe Grand			<philippe.grand@atoo-net.com>
- * Copyright (C) 2011		Remy Younes				<ryounes@gmail.com>
- * Copyright (C) 2012-2015	Marcos García			<marcosgdf@gmail.com>
- * Copyright (C) 2012		Christophe Battarel		<christophe.battarel@ltairis.fr>
- * Copyright (C) 2011-2016	Alexandre Spangaro		<aspangaro.dolibarr@gmail.com>
- * Copyright (C) 2015		Ferran Marcet			<fmarcet@2byte.es>
- * Copyright (C) 2016		Raphaël Doursenaud		<rdoursenaud@gpcsolutions.fr>
+/* Copyright (C) 2020		Open-Dsi		<support@open-dsi.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +42,6 @@ if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show
 	$actionsmulticompany = new ActionsMulticompany($db);
 }
 
-$show_title_block = true;
 $titre = $langs->trans("DictionarySetup");
 $linkback = '';
 $titlepicto = 'title_setup';
@@ -63,7 +51,7 @@ if (isset($dictionary) && $dictionary->enabled) {
     $titre.=' - '.$langs->trans($dictionary->nameLabel);
     $linkback = '<a href="' . $_SERVER['PHP_SELF'] . '">' . $langs->trans("BackToDictionaryList") . '</a>';
     if (!empty($dictionary->titlePicto)) $titlepicto = $dictionary->titlePicto;
-    if (!empty($dictionary->hideTitleBlock)) $show_title_block = false;
+    if (!empty($dictionary->hideTitleBlock)) $hide_title_block = true;
 
     if (!empty($dictionary->customTitle)) $titre = $langs->trans($dictionary->customTitle);
     if (!empty($dictionary->customBackLink)) $linkback = $dictionary->customBackLink;
@@ -73,71 +61,64 @@ if (isset($dictionary) && $dictionary->enabled) {
 // Easya compatibility
 $class_fa = !empty($conf->global->EASYA_VERSION) && version_compare(DOL_VERSION, "10.0.0") >= 0 ? 'fal' : 'fa';
 
-if ($show_title_block) {
+if (empty($hide_title_block)) {
     print load_fiche_titre($titre, $linkback, $titlepicto);
 }
 
-if (!isset($dictionary))
+if (!isset($dictionary) && empty($hide_description_block))
 {
     print $langs->trans("DictionaryDesc");
     print " ".$langs->trans("OnlyActiveElementsAreShown")."<br>\n";
 }
 
-/*
- * Show a dictionary
- */
-if (isset($dictionary)) {
-    if ($dictionary->enabled) {
-        $now = dol_now();
+//------------------------------------------------------------------------------------------------------------------
+// Confirm box
+//------------------------------------------------------------------------------------------------------------------
+if (empty($formconfirm)) $formconfirm = '';
+if (empty($formquestion)) $formquestion = '';
 
-        //------------------------------------------------------------------------------------------------------------------
-        // Confirm box
-        //------------------------------------------------------------------------------------------------------------------
+if (isset($dictionary) && $dictionary->enabled) {
+	// Make form question
+	if ($action == 'add_line' || $action == 'edit_line') {
+		$formquestion = array('text' => '<i>* ' . $langs->trans("AdvanceDictionariesFieldRequired") . '</i>');
 
-        $formconfirm = '';
-        $formquestion = '';
+		// Add hidden input
+		/*            $formquestion[] = array('type' => 'hidden', 'name' => 'token', 'value' => $_SESSION['newtoken']);
+					if (!empty($sortfield)) $formquestion[] = array('type' => 'hidden', 'name' => 'sortfield', 'value' => $sortfield);
+					if (!empty($sortorder)) $formquestion[] = array('type' => 'hidden', 'name' => 'sortorder', 'value' => $sortorder);
+					if (!empty($page)) $formquestion[] = array('type' => 'hidden', 'name' => 'page', 'value' => $page);
+					if ($limit > 0 && $limit != $conf->liste_limit) $formquestion[] = array('type' => 'hidden', 'name' => 'limit', 'value' => $limit);
+					if ($search_entity !== '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_' . $dictionary->entity_field, 'value' => $search_entity);
+					if ($search_active != 1) $formquestion[] = array('type' => 'hidden', 'name' => 'search_' . $dictionary->active_field, 'value' => $search_active);
+					if ($action == 'edit_line') $formquestion[] = array('type' => 'hidden', 'name' => 'rowid', 'value' => $rowid);
+					foreach ($dictionary->fields as $fieldName => $field) {
+						if (!$field['is_not_searchable']) {
+							$formquestion[] = array('type' => 'hidden', 'name' => 'search_' . $fieldName, 'value' => GETPOST('search_' . $fieldName));
+						}
+					}*/
 
-        // Make form question
-        if ($action == 'add_line' || $action == 'edit_line') {
-            $formquestion = array('text' => '<i>* ' . $langs->trans("AdvanceDictionariesFieldRequired") . '</i>');
+		// Get default values
+		$dictionary_line = $dictionary->getNewDictionaryLine();
+		if ($action == 'edit_line') $dictionary_line->fetch($rowid);
+		if ($error) $fieldsValue = $dictionary->getFieldsValueFromForm($action == 'edit_line' ? 'edit_' : 'add_', '', $action == 'edit_line' ? 1 : 0);
 
-            // Add hidden input
-/*            $formquestion[] = array('type' => 'hidden', 'name' => 'token', 'value' => $_SESSION['newtoken']);
-            if (!empty($sortfield)) $formquestion[] = array('type' => 'hidden', 'name' => 'sortfield', 'value' => $sortfield);
-            if (!empty($sortorder)) $formquestion[] = array('type' => 'hidden', 'name' => 'sortorder', 'value' => $sortorder);
-            if (!empty($page)) $formquestion[] = array('type' => 'hidden', 'name' => 'page', 'value' => $page);
-            if ($limit > 0 && $limit != $conf->liste_limit) $formquestion[] = array('type' => 'hidden', 'name' => 'limit', 'value' => $limit);
-            if ($search_entity !== '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_' . $dictionary->entity_field, 'value' => $search_entity);
-            if ($search_active != 1) $formquestion[] = array('type' => 'hidden', 'name' => 'search_' . $dictionary->active_field, 'value' => $search_active);
-            if ($action == 'edit_line') $formquestion[] = array('type' => 'hidden', 'name' => 'rowid', 'value' => $rowid);
-            foreach ($dictionary->fields as $fieldName => $field) {
-                if (!$field['is_not_searchable']) {
-                    $formquestion[] = array('type' => 'hidden', 'name' => 'search_' . $fieldName, 'value' => GETPOST('search_' . $fieldName));
-                }
-            }*/
+		// Add input fields
+		foreach ($dictionary->fields as $fieldName => $field) {
+			if (($action == 'add_line' && (!empty($field['is_not_addable']) || !empty($field['is_not_show_in_add']))) ||
+				($action == 'edit_line' && (!empty($field['is_not_editable'])) || !empty($field['is_not_show_in_edit']))) continue;
+			$label = $langs->trans(!empty($field['label_in_add_edit']) ? $field['label_in_add_edit'] : $field['label']);
+			if (isset($fieldsValue[$fieldName])) $dictionary_line->fields[$fieldName] = $fieldsValue[$fieldName];
 
-            // Get default values
-            $dictionary_line = $dictionary->getNewDictionaryLine();
-            if ($action == 'edit_line') $dictionary_line->fetch($rowid);
-            if ($error) $fieldsValue = $dictionary->getFieldsValueFromForm($action == 'edit_line' ? 'edit_' : 'add_', '', $action == 'edit_line' ? 1 : 0);
-
-            // Add input fields
-            foreach ($dictionary->fields as $fieldName => $field) {
-                if (($action == 'add_line' && (!empty($field['is_not_addable']) || !empty($field['is_not_show_in_add']))) ||
-                    ($action == 'edit_line' && (!empty($field['is_not_editable'])) || !empty($field['is_not_show_in_edit']))) continue;
-                $label = $langs->trans(!empty($field['label_in_add_edit']) ? $field['label_in_add_edit'] : $field['label']);
-                if (isset($fieldsValue[$fieldName])) $dictionary_line->fields[$fieldName] = $fieldsValue[$fieldName];
-
-                $input_label = '';
-                if (!empty($field['is_require'])) {
-                    $input_label .= '<span class="fieldrequired">';
-                }
-                if (!empty($field['help'])) {
-                    if (preg_match('/^http(s*):/i', $field['help'])) $input_label .= '<a href="' . $field['help'] . '" target="_blank">' . $label . ' ' . img_help(1, $label) . '</a>';
-                    else $input_label .= $form->textwithpicto($label, $langs->trans($field['help']));   // Tooltip on hover
-                } elseif (!empty($field['help_button'])) {
-                    $input_label .= $form->textwithpicto($label, $langs->trans($field['help_button']), 1, 'help', '', 0, 2, $fieldName);   // Tooltip on click
-                    $input_label .= <<<SCRIPT
+			$input_label = '';
+			if (!empty($field['is_require'])) {
+				$input_label .= '<span class="fieldrequired">';
+			}
+			if (!empty($field['help'])) {
+				if (preg_match('/^http(s*):/i', $field['help'])) $input_label .= '<a href="' . $field['help'] . '" target="_blank">' . $label . ' ' . img_help(1, $label) . '</a>';
+				else $input_label .= $form->textwithpicto($label, $langs->trans($field['help']));   // Tooltip on hover
+			} elseif (!empty($field['help_button'])) {
+				$input_label .= $form->textwithpicto($label, $langs->trans($field['help_button']), 1, 'help', '', 0, 2, $fieldName);   // Tooltip on click
+				$input_label .= <<<SCRIPT
                     <script type="text/javascript">
                     	jQuery(document).ready(function () {
                     		jQuery(".classfortooltiponclick").click(function () {
@@ -152,43 +133,52 @@ if (isset($dictionary)) {
                         });
                     </script>
 SCRIPT;
-                } else $input_label .= $label;
-                if (!empty($field['is_require'])) {
-                    $input_label .= ' *</span>';
-                }
+			} else $input_label .= $label;
+			if (!empty($field['is_require'])) {
+				$input_label .= ' *</span>';
+			}
 
-                if (is_array($field['add_params_in_add_edit'])) {
-                    foreach ($field['add_params_in_add_edit'] as $name) {
-                        $formquestion[] = array('name' => $name);
-                    }
-                }
+			if (is_array($field['add_params_in_add_edit'])) {
+				foreach ($field['add_params_in_add_edit'] as $name) {
+					$formquestion[] = array('name' => $name);
+				}
+			}
 
-				$value = null;
-                if (!isset($dictionary_line->fields[$fieldName]) && isset($field['default_value'])) $value = $field['default_value'];
-                $formquestion[] = array('type' => 'other', 'name' => ($action == 'edit_line' ? 'edit_' : 'add_') . $fieldName, 'label' => $input_label, 'value' => $dictionary_line->showInputFieldAD($fieldName, $value, $action == 'edit_line' ? 'edit_' : 'add_'));
-            }
-        }
+			$value = null;
+			if (!isset($dictionary_line->fields[$fieldName]) && isset($field['default_value'])) $value = $field['default_value'];
+			$formquestion[] = array('type' => 'other', 'name' => ($action == 'edit_line' ? 'edit_' : 'add_') . $fieldName, 'label' => $input_label, 'value' => $dictionary_line->showInputFieldAD($fieldName, $value, $action == 'edit_line' ? 'edit_' : 'add_'));
+		}
+	}
 
-        // Confirmation de l'ajout d'une ligne
-        if ($action == 'add_line') {
-            $formconfirm = $formdictionary->formconfirm($_SERVER["PHP_SELF"] . '?' . $param3, $langs->trans('AdvanceDictionariesAddLine'), $langs->trans('AdvanceDictionariesConfirmAddLine'), 'confirm_add_line', $formquestion, 0, 1, 800, '70%', 1, 1);
-			$formconfirm .= $dictionary->showUpdateListValuesScript($fieldsValue, $action == 'edit_line' ? 'edit_' : 'add_');
-		} // Confirmation de l'edition d'une ligne
-        elseif ($action == 'edit_line') {
-            $formconfirm = $formdictionary->formconfirm($_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $rowid . '&prevrowid=' . $prevrowid, $langs->trans('AdvanceDictionariesEditLine'), $langs->trans('AdvanceDictionariesConfirmEditLine'), 'confirm_edit_line', $formquestion, 0, 1, 800, '70%', 1, 1);
-			$formconfirm .= $dictionary->showUpdateListValuesScript($fieldsValue, $action == 'edit_line' ? 'edit_' : 'add_');
-		} // Confirmation de la suppression de la ligne
-        elseif ($action == 'delete_line') {
-            $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $rowid . '&prevrowid=' . $prevrowid, $langs->trans('DeleteLine'), $langs->trans('ConfirmDeleteLine'), 'confirm_delete_line', '', 0, 1);
-        }
+	// Confirmation de l'ajout d'une ligne
+	if ($action == 'add_line') {
+		$formconfirm = $formdictionary->formconfirm($_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&'), $langs->trans('AdvanceDictionariesAddLine'), $langs->trans('AdvanceDictionariesConfirmAddLine'), 'confirm_add_line', $formquestion, 0, 1, 800, '70%', 1, 1);
+		$formconfirm .= $dictionary->showUpdateListValuesScript($fieldsValue, $action == 'edit_line' ? 'edit_' : 'add_');
+	} // Confirmation de l'edition d'une ligne
+	elseif ($action == 'edit_line') {
+		$formconfirm = $formdictionary->formconfirm($_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $rowid . '&prevrowid=' . $prevrowid, $langs->trans('AdvanceDictionariesEditLine'), $langs->trans('AdvanceDictionariesConfirmEditLine'), 'confirm_edit_line', $formquestion, 0, 1, 800, '70%', 1, 1);
+		$formconfirm .= $dictionary->showUpdateListValuesScript($fieldsValue, $action == 'edit_line' ? 'edit_' : 'add_');
+	} // Confirmation de la suppression de la ligne
+	elseif ($action == 'delete_line') {
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $rowid . '&prevrowid=' . $prevrowid, $langs->trans('DeleteLine'), $langs->trans('ConfirmDeleteLine'), 'confirm_delete_line', '', 0, 1);
+	}
+}
 
-        $parameters = array();
-        $reshook = $hookmanager->executeHooks('formConfirm', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
-        if (empty($reshook)) $formconfirm .= $hookmanager->resPrint;
-        elseif ($reshook > 0) $formconfirm = $hookmanager->resPrint;
+$parameters = array();
+$reshook = $hookmanager->executeHooks('formConfirm', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+if (empty($reshook)) $formconfirm .= $hookmanager->resPrint;
+elseif ($reshook > 0) $formconfirm = $hookmanager->resPrint;
 
-        // Print form confirm
-        print $formconfirm;
+// Print form confirm
+print $formconfirm;
+
+
+/*
+ * Show a dictionary
+ */
+if (isset($dictionary)) {
+    if ($dictionary->enabled) {
+        $now = dol_now();
 
         //------------------------------------------------------------------------------------------------------------------
         // Show list of values
@@ -202,7 +192,7 @@ SCRIPT;
 
             $addButton = '';
             if ($dictionary->lineCanBeAdded && $canCreate) {
-                $addButton = '<a href="' . $_SERVER['PHP_SELF'] . '?' . $param3 . '&action=add_line&module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name) . '&'.$now.'="' . ((float)DOL_VERSION >= 8.0 ? 'class=" butActionNew"' : '') . '>';
+                $addButton = '<a href="' . $_SERVER['PHP_SELF'] . '?' . ltrim($param3, '&') . '&action=add_line&module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name) . '&'.$now.'="' . ((float)DOL_VERSION >= 8.0 ? 'class=" butActionNew"' : '') . '>';
                 $addButton .= $langs->trans("Add");
                 if ((float)DOL_VERSION >= 8.0) $addButton .= '<span class="'.$class_fa.' fa-plus-circle valignmiddle"></span>';
                 $addButton .= '</a>';
@@ -217,7 +207,7 @@ SCRIPT;
             if (in_array($massaction, array('predelete', 'premodifyentity'))) $arrayofmassactions = array();
             $massactionbutton = $form->selectMassAction('', $arrayofmassactions);
 
-            print '<form id="searchFormList" action="' . $_SERVER['PHP_SELF'] . '?' . $param0 . '" method="POST">';
+            print '<form id="searchFormList" action="' . $_SERVER['PHP_SELF'] . '?' . ltrim($param0, '&') . '" method="POST">';
             print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
             print '<input type="hidden" name="formfilteraction" id="formfilteraction" value="list">';
             print '<input type="hidden" name="action" value="list">';
@@ -302,14 +292,14 @@ SCRIPT;
 
             // Fields title
             print '<tr class="liste_titre">';
-            if ($showTechnicalId) print_liste_field_titre($langs->trans("TechnicalID"), $_SERVER["PHP_SELF"], $dictionary->rowid_field, "", '&' . $param2, 'width="5%"', $sortfield, $sortorder);
+            if ($showTechnicalId) print_liste_field_titre($langs->trans("TechnicalID"), $_SERVER["PHP_SELF"], $dictionary->rowid_field, "", '&' . ltrim($param2, '&'), 'width="5%"', $sortfield, $sortorder);
             foreach ($dictionary->fields as $fieldName => $field) {
                 if ($arrayfields[$fieldName]['checked'] && empty($field['is_not_show'])) {
                     $moreAttributes = !empty($field['td_title']['moreAttributes']) ? ' ' . $field['td_title']['moreAttributes'] : '';
                     $align = !empty($field['td_title']['align']) ? $field['td_title']['align'] : $dictionary->getAlignFlagForField($fieldName);
                     $moreAttributes .= ' align="' . $align . '"';
 
-                    print_liste_field_titre($arrayfields[$fieldName]['label'], $_SERVER["PHP_SELF"], $field['is_not_sortable'] ? '' : $fieldName, '', '&' . $param2, $moreAttributes, $sortfield, $sortorder);
+                    print_liste_field_titre($arrayfields[$fieldName]['label'], $_SERVER["PHP_SELF"], $field['is_not_sortable'] ? '' : $fieldName, '', '&' . ltrim($param2, '&'), $moreAttributes, $sortfield, $sortorder);
                     print '</td>';
                 }
             }
@@ -317,8 +307,8 @@ SCRIPT;
             $parameters = array('arrayfields' => $arrayfields, 'param' => $param2, 'sortfield' => $sortfield, 'sortorder' => $sortorder);
             $reshook = $hookmanager->executeHooks('printFieldListTitle', $parameters, $dictionary, $action);
             print $hookmanager->resPrint;
-            if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) print_liste_field_titre($langs->trans("Entity"), $_SERVER["PHP_SELF"], $dictionary->entity_field, "", '&' . $param2, 'align="center"', $sortfield, $sortorder);
-            print_liste_field_titre($langs->trans("Status"), $_SERVER["PHP_SELF"], $dictionary->active_field, "", '&' . $param2, 'width="10%" align="center"', $sortfield, $sortorder);
+            if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) print_liste_field_titre($langs->trans("Entity"), $_SERVER["PHP_SELF"], $dictionary->entity_field, "", '&' . ltrim($param2, '&'), 'align="center"', $sortfield, $sortorder);
+            print_liste_field_titre($langs->trans("Status"), $_SERVER["PHP_SELF"], $dictionary->active_field, "", '&' . ltrim($param2, '&'), 'width="10%" align="center"', $sortfield, $sortorder);
             print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', 'align="center"', $sortfield, $sortorder, 'maxwidthsearch ');
             print '</tr>';
 
@@ -378,7 +368,7 @@ SCRIPT;
                 if ($isLineCanBeDisabled === null) {
                     print $langs->trans("AlwaysActive");
                 } elseif ($isLineCanBeDisabled === true && $canDisable) {
-                    print '<a href="' . $_SERVER["PHP_SELF"] . '?' . $param3 . '&action=activate_' . ($line->active ? 'off' : 'on') . '&rowid=' . $line->id . '#rowid-' . $line->id . '">' .
+                    print '<a href="' . $_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&action=activate_' . ($line->active ? 'off' : 'on') . '&rowid=' . $line->id . '#rowid-' . $line->id . '">' .
                         img_picto($langs->trans($line->active ? 'Activated' : 'Disabled'), $line->active ? 'switch_on' : 'switch_off') . '</a>';
                 } elseif (is_string($isLineCanBeDisabled)) {
                     print $langs->trans($isLineCanBeDisabled);
@@ -391,10 +381,10 @@ SCRIPT;
                 print '<td class="nowrap" align="center">';
                 // Modify link
 				$isLineCanBeUpdated = $dictionary->isLineCanBeUpdated($line);
-                if ($dictionary->lineCanBeUpdated && $canUpdate && $isLineCanBeUpdated) print '<a class="reposition" href="' . $_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $line->id . '&action=edit_line&'.$now.'=#rowid-' . $line->id . '">' . img_edit() . '</a>';
+                if ($dictionary->lineCanBeUpdated && $canUpdate && $isLineCanBeUpdated) print '<a class="reposition" href="' . $_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $line->id . '&action=edit_line&'.$now.'=#rowid-' . $line->id . '">' . img_edit() . '</a>';
                 // Delete link
 				$isLineCanBeDeleted = $dictionary->isLineCanBeDeleted($line);
-                if ($dictionary->lineCanBeDeleted && $canDelete && $isLineCanBeDeleted) print '<a href="' . $_SERVER["PHP_SELF"] . '?' . $param3 . '&rowid=' . $line->id . '&prevrowid=' . $last_rowid . '&action=delete_line' . '&rowid=' . $line->id . '&'.$now.'=#rowid-' . $line->id . '">' . img_delete() . '</a>';
+                if ($dictionary->lineCanBeDeleted && $canDelete && $isLineCanBeDeleted) print '<a href="' . $_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $line->id . '&prevrowid=' . $last_rowid . '&action=delete_line&'.$now.'=#rowid-' . $line->id . '">' . img_delete() . '</a>';
                 if ($massactionbutton || $massaction) {   // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
                     $selected = 0;
                     if (in_array($line->id, $arrayofselected)) $selected = 1;
@@ -423,40 +413,45 @@ SCRIPT;
         accessforbidden();
     }
 } else {
-    /*
-     * Show list of dictionary to show
-     */
+	/*
+	 * Show list of dictionary to show
+	 */
 
-    print '<div class="div-table-responsive-no-min">';
-    print '<table class="noborder" width="100%">';
-    print '<tr class="liste_titre">';
-    print '<td width="10px">';
-    print '<td width="20%">' . $langs->trans("Module") . '</td>';
-    print '<td width="40%">' . $langs->trans("Dictionary") . '</td>';
-    print '<td>' . $langs->trans("Table") . '</td>';
-    print '</tr>';
+	print '<div class="div-table-responsive-no-min">';
+	print '<table class="noborder" width="100%">';
+	print '<tr class="liste_titre">';
+	if (empty($hide_module_column)) {
+		print '<td width="10px">';
+		print '<td width="20%">' . $langs->trans("Module") . '</td>';
+	}
+	print '<td width="40%">' . $langs->trans("Dictionary") . '</td>';
+	print '<td>' . $langs->trans("Table") . '</td>';
+	print '</tr>';
 
-    $dictionaries = Dictionary::fetchAllDictionaries($db, $moduleFilter, $familyFilter);
+	$dictionaries = Dictionary::fetchAllDictionaries($db, $moduleFilter, $familyFilter, $rootPath);
 
-    $lastfamily = '';
-    foreach ($dictionaries as $dictionary) {
-        if ($dictionary->enabled && !$dictionary->hidden) {
-            $langs->loadLangs($dictionary->langs);
+	$lastfamily = '';
+	foreach ($dictionaries as $dictionary) {
+		if ($dictionary->enabled && !$dictionary->hidden) {
+			$langs->loadLangs($dictionary->langs);
 
-            if ($lastfamily != $dictionary->family) {
-                $lastfamily = $dictionary->family;
-                print '<tr class="oddeven family_title"><td colspan="4">' . $langs->trans($dictionary->familyLabel) . '</td></tr>';
-            }
+			if (empty($hide_family_title) && $lastfamily != $dictionary->family) {
+				$lastfamily = $dictionary->family;
+				print '<tr class="oddeven family_title"><td colspan="4">' . $langs->trans($dictionary->familyLabel) . '</td></tr>';
+			}
 
-            print '<tr class="oddeven"><td width="10px"></td>' .
-                '<td width="20%">' . (!empty($dictionary->modulePicto) ? img_picto('', $dictionary->modulePicto) . ' ' : '') . $langs->trans($dictionary->moduleLabel) . '</td>' .
-                '<td width="40%"><a href="' . $_SERVER["PHP_SELF"] . '?module=' . $dictionary->module . '&name=' . $dictionary->name . '">' .
-                $langs->trans($dictionary->nameLabel) . '</a></td>' .
-                '<td>' . $dictionary->table_name . '</td></tr>';
-        }
-    }
-    print '</table>';
-    print '</div>';
+			print '<tr class="oddeven">';
+			if (empty($hide_module_column)) {
+				print '<td width="10px"></td>' .
+					'<td width="20%">' . (!empty($dictionary->modulePicto) ? img_picto('', $dictionary->modulePicto) . ' ' : '') . $langs->trans($dictionary->moduleLabel) . '</td>';
+			}
+			print '<td width="40%"><a href="' . $_SERVER["PHP_SELF"] . '?' . $param . '&module=' . $dictionary->module . '&name=' . $dictionary->name . '">' .
+				$langs->trans($dictionary->nameLabel) . '</a></td>' .
+				'<td>' . $dictionary->table_name . '</td></tr>';
+		}
+	}
+	print '</table>';
+	print '</div>';
 }
 
 print '<br>';

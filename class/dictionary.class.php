@@ -90,6 +90,11 @@ class Dictionary extends CommonObject
      */
     public $nameLabel = '';
 
+	/**
+	 * @var string      Custom root path of this dictionary (set in getDictionary())
+	 */
+	public $root_path = '';
+
     /**
      * @var bool        Hide the title block in the values list screen
      */
@@ -533,7 +538,7 @@ class Dictionary extends CommonObject
                 }
             }
 
-            if (!$error && !$new_created) {
+            if (!$error) {
                 // Update dictionary table
                 $res = $this->updateTables();
                 if ($res < 0) {
@@ -628,8 +633,10 @@ class Dictionary extends CommonObject
 
 		$resql = $this->db->query($sql);
 		if (!$resql) {
-			$this->error = $this->db->lasterror();
-			return -1;
+			if ($this->db->lasterrno() != 'DB_ERROR_NOSUCHFIELD') {
+				$this->error = $this->db->lasterror();
+				return -1;
+			}
 		}
 
 		return 1;
@@ -750,8 +757,10 @@ class Dictionary extends CommonObject
 
 		$resql = $this->db->query($sql);
 		if (!$resql) {
-			$this->error = $this->db->lasterror();
-			return -1;
+			if ($this->db->lasterrno() != 'DB_ERROR_NOSUCHFIELD') {
+				$this->error = $this->db->lasterror();
+				return -1;
+			}
 		}
 
 		return 1;
@@ -936,7 +945,7 @@ class Dictionary extends CommonObject
         global $conf, $langs;
 
         $version_variable_name = strtoupper('ADVANCEDICTIONARIES_DICTIONARY_'.$this->name.'_VERSION');
-        $current_version = isset($conf->global->$version_variable_name) ? $conf->global->$version_variable_name : $this->version;
+        $current_version = isset($conf->global->$version_variable_name) ? $conf->global->$version_variable_name : 0;
 
         // TODO prevoir les mise a jour avec les sous tables
 
@@ -958,8 +967,10 @@ class Dictionary extends CommonObject
 									$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' ADD COLUMN ' . $instructionSQL;
 									$resql = $this->db->query($sql);
 									if (!$resql) {
-										$this->error = $this->db->lasterror();
-										return -1;
+										if ($this->db->lasterrno() != 'DB_ERROR_COLUMN_ALREADY_EXISTS') {
+											$this->error = $this->db->lasterror();
+											return -1;
+										}
 									}
 								} else {
 									$result = $this->createSubTable($this->fields[$field_name]);
@@ -980,8 +991,10 @@ class Dictionary extends CommonObject
 									$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' MODIFY COLUMN ' . $instructionSQL;
 									$resql = $this->db->query($sql);
 									if (!$resql) {
-										$this->error = $this->db->lasterror();
-										return -1;
+										if ($this->db->lasterrno() != 'DB_ERROR_NOSUCHFIELD') {
+											$this->error = $this->db->lasterror();
+											return -1;
+										}
 									}
 								} else {
 									$field = $this->fields[$field_name];
@@ -1016,8 +1029,10 @@ class Dictionary extends CommonObject
 							$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP COLUMN ' . $field_name;
 							$resql = $this->db->query($sql);
 							if (!$resql) {
-								$this->error = $this->db->lasterror();
-								return -1;
+								if ($this->db->lasterrno() != 'DB_ERROR_NOSUCHFIELD') {
+									$this->error = $this->db->lasterror();
+									return -1;
+								}
 							}
 						} else {
 							$result = $this->deleteSubTable($field);
@@ -1106,8 +1121,10 @@ class Dictionary extends CommonObject
                 $sql = 'DELETE TABLE ' . MAIN_DB_PREFIX . $this->table_name;
                 $resql = $this->db->query($sql);
                 if (!$resql) {
-                    $error++;
-                    $this->error = $this->db->lasterror();
+					if ($this->db->lasterrno() != 'DB_ERROR_NOSUCHTABLE') {
+						$error++;
+						$this->error = $this->db->lasterror();
+					}
                 }
             }
 
@@ -1140,8 +1157,10 @@ class Dictionary extends CommonObject
                     $sql = 'DROP TABLE ' . MAIN_DB_PREFIX . $this->getAssociationTableName($field);
                     $resql = $this->db->query($sql);
                     if (!$resql) {
-                        $this->error = $this->db->lasterror();
-                        return -1;
+						if ($this->db->lasterrno() != 'DB_ERROR_NOSUCHTABLE') {
+							$this->error = $this->db->lasterror();
+							return -1;
+						}
                     }
 
                     break;
@@ -1177,35 +1196,41 @@ class Dictionary extends CommonObject
    	 *
      * @param   DoliDb          $db         Database handler
      * @param   string|array    $module     Only dictionary of the module(s) name
-     * @param   string|array    $family     Only dictionary of the family(s) name
+	 * @param   string|array    $family     Only dictionary of the family(s) name
+	 * @param   string    		$root_path  Specific relative root path of the dictionnaries (direct path)
    	 * @return  Dictionary[]                List of dictionary
    	 */
-   	static function fetchAllDictionaries($db, $module='', $family='')
+   	static function fetchAllDictionaries($db, $module='', $family='', $root_path = '')
     {
         global $conf;
 
+		$root_path = trim(trim($root_path), '/');
         $dictionaries = array();
 
-        if (empty($module)) {
-            $dirmodels = array('/');
-            if (is_array($conf->modules_parts['dictionaries'])) {
-                foreach ($conf->modules_parts['dictionaries'] as $path) {
-                    $dirmodels[] = str_replace('/core/modules/dictionaries/', '/', $path);
-                }
-            }
-        } else {
-            $dirmodels = array();
-            if (is_array($module)) {
-                foreach ($module as $name) {
-                    $dirmodels[] = '/' . $name . '/';
-                }
-            } else {
-                $dirmodels[] = '/' . $module . '/';
-            }
-        }
+        if (empty($root_path)) {
+			if (empty($module)) {
+				$dirmodels = array('/');
+				if (is_array($conf->modules_parts['dictionaries'])) {
+					foreach ($conf->modules_parts['dictionaries'] as $path) {
+						$dirmodels[] = str_replace('/core/modules/dictionaries/', '/', $path);
+					}
+				}
+			} else {
+				$dirmodels = array();
+				if (is_array($module)) {
+					foreach ($module as $name) {
+						$dirmodels[] = '/' . $name . '/';
+					}
+				} else {
+					$dirmodels[] = '/' . $module . '/';
+				}
+			}
+		} else {
+			$dirmodels = array('/' . $root_path . '/');
+		}
 
         foreach ($dirmodels as $reldir) {
-            $dirroot = $reldir . "core/dictionaries/";
+            $dirroot = $reldir . (empty($root_path) ? "core/dictionaries/" : '');
             $dir = dol_buildpath($dirroot);
 
             $handle = @opendir($dir);
@@ -1252,27 +1277,30 @@ class Dictionary extends CommonObject
      * @param   string              $module     Name of the module containing the dictionary
      * @param   string              $name       Name of dictionary
      * @param   int                 $old_id     Id of the dictionary for old dolibarr dictionary
+	 * @param   string    			$root_path  Specific relative root path of the dictionnaries (direct path)
      * @return  Dictionary|null                 List of dictionary
      */
-    static function getDictionary($db, $module='', $name='', $old_id=0)
-    {
-        $dictionary = null;
+    static function getDictionary($db, $module='', $name='', $old_id=0, $root_path = '')
+	{
+		$dictionary = null;
 
-        if (empty($module) && empty($name)) {
-            Dictionary::getDictionaryModuleAndNameFromID($old_id, $module, $name);
-        }
+		if (empty($module) && empty($name)) {
+			Dictionary::getDictionaryModuleAndNameFromID($old_id, $module, $name);
+		}
 
-        $classname = $name . "Dictionary";
-        $file = "/" . $module . "/core/dictionaries/".strtolower($name).".dictionary.php";
+		$root_path = trim(trim($root_path), '/');
+		$classname = $name . "Dictionary";
+		$file = "/" . (!empty($root_path) ? $root_path : $module . "/core/dictionaries") . "/" . strtolower($name) . ".dictionary.php";
 
-        if (!class_exists($classname, false)) {
-            dol_include_once($file);
-        }
+		if (!class_exists($classname, false)) {
+			dol_include_once($file);
+		}
 
-        $dictionary = new $classname($db);
+		$dictionary = new $classname($db);
+		if (is_object($dictionary)) $dictionary->root_path = $root_path;
 
-        return $dictionary;
-    }
+		return $dictionary;
+	}
 
     /**
      * Get dictionary line
@@ -1281,11 +1309,12 @@ class Dictionary extends CommonObject
      * @param   string                  $module     Name of the module containing the dictionary
      * @param   string                  $name       Name of dictionary
      * @param   int                     $old_id     Id of the dictionary for old dolibarr dictionary
+	 * @param   string    				$root_path  Specific relative root path of the dictionnaries (direct path)
      * @return  DictionaryLine|null                 List of dictionary
      */
-    static function getDictionaryLine($db, $module='', $name='', $old_id=0)
+    static function getDictionaryLine($db, $module='', $name='', $old_id=0, $root_path = '')
     {
-        $dictionary = self::getDictionary($db, $module, $name, $old_id);
+        $dictionary = self::getDictionary($db, $module, $name, $old_id, $root_path);
         if (!isset($dictionary))
             return null;
 
@@ -2374,6 +2403,7 @@ class Dictionary extends CommonObject
 		$js_url = dol_escape_js(dol_buildpath('/advancedictionaries/js/advancedictionaries.js.php', 1));
 		$module = dol_escape_js($this->module);
 		$name = dol_escape_js($this->name);
+		$root_path = dol_escape_js($this->root_path);
 		$default_values = json_encode($default_values);
 		$fields_to_watch = json_encode($fields_to_watch);
 		$key_prefix = dol_escape_js($keyprefix);
@@ -2384,7 +2414,7 @@ class Dictionary extends CommonObject
 	<script type="text/javascript" src="$js_url"></script>
 	<script type="text/javascript">
 		jQuery(document).ready(function () {
-			advanced_dictionaries_watch_input('$module', '$name', $default_values, $fields_to_watch, '$key_prefix', '$key_suffix');
+			advanced_dictionaries_watch_input('$module', '$name', '$root_path', $default_values, $fields_to_watch, '$key_prefix', '$key_suffix');
 		});
 	</script>
 	<!-- Advanced Dictionaries - Update list values - End -->
@@ -4467,7 +4497,7 @@ class DictionaryLine extends CommonObjectLine
 						if (empty($field['no_wysiwyg'])) {
 							require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
 							$doleditor = new DolEditor($fieldHtmlName, $value, '', 200, 'dolibarr_notes', 'In', false,
-								false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
+								true, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
 							$out = $doleditor->Create(1);
 						} else {
 							$out = '<textarea id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" rows="' . ROWS_5 . '" style="margin-top: 5px; width: 90%;" class="flat">' . $value . '</textarea>';

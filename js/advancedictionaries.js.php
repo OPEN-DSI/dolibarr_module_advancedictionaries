@@ -53,19 +53,19 @@ $get_select_options_url = dol_escape_js(dol_buildpath('/advancedictionaries/ajax
  * Update functions
  ***************************************************************************************/
 
-function advanced_dictionaries_watch_input(dictionary_module, dictionary_name, default_values, fields_to_watch, key_prefix, key_suffix) {
-	advanced_dictionaries_update_list_values(dictionary_module, dictionary_name, default_values, '', fields_to_watch, key_prefix, key_suffix);
+function advanced_dictionaries_watch_input(dictionary_module, dictionary_name, dictionary_root_path, default_values, fields_to_watch, key_prefix, key_suffix) {
+	advanced_dictionaries_update_list_values(dictionary_module, dictionary_name, dictionary_root_path, default_values, '', fields_to_watch, key_prefix, key_suffix);
 
 	$.map(fields_to_watch, function (field_name) {
 		$('#' + key_prefix + field_name + key_suffix).on('change keyup', function () {
-			advanced_dictionaries_update_list_values(dictionary_module, dictionary_name, {}, field_name, fields_to_watch, key_prefix, key_suffix);
+			advanced_dictionaries_update_list_values(dictionary_module, dictionary_name, dictionary_root_path, {}, field_name, fields_to_watch, key_prefix, key_suffix);
 		});
 	});
 }
 
-function advanced_dictionaries_update_list_values(dictionary_module, dictionary_name, default_values, field_updated, fields_to_watch, key_prefix, key_suffix) {
+function advanced_dictionaries_update_list_values(dictionary_module, dictionary_name, dictionary_root_path, default_values, field_updated, fields_to_watch, key_prefix, key_suffix) {
 	var data_send = {
-		dictionary_module: dictionary_module, dictionary_name: dictionary_name,
+		dictionary_module: dictionary_module, dictionary_name: dictionary_name, dictionary_root_path: dictionary_root_path,
 		field_updated: field_updated, key_prefix: key_prefix, key_suffix: key_suffix
 	};
 	$.map(fields_to_watch, function (field_name) {

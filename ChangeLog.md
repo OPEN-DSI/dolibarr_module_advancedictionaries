@@ -3,6 +3,16 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.45] - 14-01-2022
+- Correction de la mise à jour d'une table déjà existante à la création du dictionnaire
+- Correction de l'emplacement d'execution de la hook 'formConfirm'
+
+## [4.0.44] - 15-12-2021
+- Ajout l'acces au web browser pour selectionner les fichiers documents depuis le bouton image d'un champ de type text
+
+## [4.0.43] - 29-10-2021
+- Ignore les "erreurs" (table/colonne existe deja, index supprimé n'exist pas, ...) non blocante lors de la creation/maj des dictionnaires
+
 ## [4.0.42] - 28-09-2021
 - Passe les colonnes non definies lors de la creation
 - Corrections mise à jour de la version du dictionnaire sur l'entité 0 et non l'entité actuelle (avais disparue entre temps)
@@ -187,7 +197,11 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.41...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.45...HEAD
+[4.0.45]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.45
+[4.0.44]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.44
+[4.0.43]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.43
+[4.0.42]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.42
 [4.0.41]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.41
 [4.0.40]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.40
 [4.0.39]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.39
