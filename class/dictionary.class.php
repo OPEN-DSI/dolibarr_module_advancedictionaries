@@ -956,64 +956,58 @@ class Dictionary extends CommonObject
 					foreach ($datas['fields'] as $field_name => $type) {
 						switch ($type) {
 							case 'a':
-								if (!isset($this->fields[$field_name])) {
-									$this->error = $langs->trans('AdvanceDictionariesErrorFieldNotDefined', $field_name);
-									return -1;
-								}
-
-								// Insert column of dictionary table
-								$instructionSQL = $this->definitionTableFieldInstructionSQL($this->fields[$field_name]);
-								if (!empty($instructionSQL)) {
-									$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' ADD COLUMN ' . $instructionSQL;
-									$resql = $this->db->query($sql);
-									if (!$resql) {
-										if ($this->db->lasterrno() != 'DB_ERROR_COLUMN_ALREADY_EXISTS') {
-											$this->error = $this->db->lasterror();
+								if (isset($this->fields[$field_name])) {
+									// Insert column of dictionary table
+									$instructionSQL = $this->definitionTableFieldInstructionSQL($this->fields[$field_name]);
+									if (!empty($instructionSQL)) {
+										$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' ADD COLUMN ' . $instructionSQL;
+										$resql = $this->db->query($sql);
+										if (!$resql) {
+											if ($this->db->lasterrno() != 'DB_ERROR_COLUMN_ALREADY_EXISTS') {
+												$this->error = $this->db->lasterror();
+												return -1;
+											}
+										}
+									} else {
+										$result = $this->createSubTable($this->fields[$field_name]);
+										if ($result < 0) {
 											return -1;
 										}
-									}
-								} else {
-									$result = $this->createSubTable($this->fields[$field_name]);
-									if ($result < 0) {
-										return -1;
 									}
 								}
 								break;
 							case 'u':
 								if (!isset($this->fields[$field_name])) {
-									$this->error = $langs->trans('AdvanceDictionariesErrorFieldNotDefined', $field_name);
-									return -1;
-								}
-
-								// Update column of dictionary table
-								$instructionSQL = $this->definitionTableFieldInstructionSQL($this->fields[$field_name]);
-								if (!empty($instructionSQL)) {
-									$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' MODIFY COLUMN ' . $instructionSQL;
-									$resql = $this->db->query($sql);
-									if (!$resql) {
-										if ($this->db->lasterrno() != 'DB_ERROR_NOSUCHFIELD') {
-											$this->error = $this->db->lasterror();
-											return -1;
-										}
-									}
-								} else {
-									$field = $this->fields[$field_name];
-									if (in_array($field['type'], array('chkbxlst', 'chkbxlstwithorder'))) {
-										$isPgSql = $this->db->type == 'pgsql';
-										$cq = $isPgSql ? '"' : '`';
-
-										$sql = 'INSERT' . (!$isPgSql ? ' IGNORE' : '') . ' INTO ' . MAIN_DB_PREFIX . $this->getAssociationTableName($field) .
-											' (' . $cq . $this->getCurrentColumnAssociationTableName($field) . $cq . ', ' . $cq . $this->getDestinationColumnAssociationTableName($field) . $cq . ') ' .
-											' SELECT ' . $this->rowid_field . ', ' . $field_name .  ' FROM ' . MAIN_DB_PREFIX . $this->table_name .
-											($isPgSql ? ' ON CONFLICT DO NOTHING' : '');
+									// Update column of dictionary table
+									$instructionSQL = $this->definitionTableFieldInstructionSQL($this->fields[$field_name]);
+									if (!empty($instructionSQL)) {
+										$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' MODIFY COLUMN ' . $instructionSQL;
 										$resql = $this->db->query($sql);
 										if (!$resql) {
-											$this->error = $this->db->lasterror();
-											return -1;
+											if ($this->db->lasterrno() != 'DB_ERROR_NOSUCHFIELD') {
+												$this->error = $this->db->lasterror();
+												return -1;
+											}
 										}
+									} else {
+										$field = $this->fields[$field_name];
+										if (in_array($field['type'], array('chkbxlst', 'chkbxlstwithorder'))) {
+											$isPgSql = $this->db->type == 'pgsql';
+											$cq = $isPgSql ? '"' : '`';
 
-										$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP COLUMN ' . $cq . $field_name . $cq;
-										$resql = $this->db->query($sql);
+											$sql = 'INSERT' . (!$isPgSql ? ' IGNORE' : '') . ' INTO ' . MAIN_DB_PREFIX . $this->getAssociationTableName($field) .
+												' (' . $cq . $this->getCurrentColumnAssociationTableName($field) . $cq . ', ' . $cq . $this->getDestinationColumnAssociationTableName($field) . $cq . ') ' .
+												' SELECT ' . $this->rowid_field . ', ' . $field_name . ' FROM ' . MAIN_DB_PREFIX . $this->table_name .
+												($isPgSql ? ' ON CONFLICT DO NOTHING' : '');
+											$resql = $this->db->query($sql);
+											if (!$resql) {
+												$this->error = $this->db->lasterror();
+												return -1;
+											}
+
+											$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP COLUMN ' . $cq . $field_name . $cq;
+											$resql = $this->db->query($sql);
+										}
 									}
 								}
 								break;

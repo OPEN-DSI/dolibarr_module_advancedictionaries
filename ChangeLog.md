@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.46] - 27-01-2022
+- Correction lors de la création du dictionnaire pour la premiere fois lorsqu'un champ à disparue lors d'une de ses versions
+
 ## [4.0.45] - 14-01-2022
 - Correction de la mise à jour d'une table déjà existante à la création du dictionnaire
 - Correction de l'emplacement d'execution de la hook 'formConfirm'
@@ -197,7 +200,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.45...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.46...HEAD
+[4.0.46]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.46
 [4.0.45]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.45
 [4.0.44]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.44
 [4.0.43]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.43
