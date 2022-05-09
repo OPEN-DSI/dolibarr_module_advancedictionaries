@@ -1883,7 +1883,7 @@ class Dictionary extends CommonObject
                 case 'radio':
                 case 'checkbox':
                     $values = array();
-					
+
                     if (is_array($value)) {
                         foreach ($value as $val) {
                             $values[$val] = $val;
@@ -2393,6 +2393,7 @@ class Dictionary extends CommonObject
 			if (!empty($field_info['update_list_values'])) $fields_to_watch[] = $field_name;
 		}
 		if (!is_array($default_values)) $default_values = array();
+		$default_values = array_values($default_values);
 
 		$js_url = dol_escape_js(dol_buildpath('/advancedictionaries/js/advancedictionaries.js.php', 1));
 		$module = dol_escape_js($this->module);
