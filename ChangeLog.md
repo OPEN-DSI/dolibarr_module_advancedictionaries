@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.48] - 11-05-2022
+- Compatibilité dolibarr v15
+
 ## [4.0.47] - 08-05-2022
 - Compatibilité dolibarr v15
 
@@ -203,7 +206,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.47...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.48...HEAD
+[4.0.48]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.48
 [4.0.47]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.47
 [4.0.46]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.46
 [4.0.45]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.45

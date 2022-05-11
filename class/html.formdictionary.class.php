@@ -390,185 +390,203 @@ class FormDictionary
        	return $out;
     }
 
-    /**
-     *     Show a confirmation HTML form or AJAX popup.
-     *     Easiest way to use this is with useajax=1.
-     *     If you use useajax='xxx', you must also add jquery code to trigger opening of box (with correct parameters)
-     *     just after calling this method. For example:
-     *       print '<script type="text/javascript">'."\n";
-     *       print 'jQuery(document).ready(function() {'."\n";
-     *       print 'jQuery(".xxxlink").click(function(e) { jQuery("#aparamid").val(jQuery(this).attr("rel")); jQuery("#dialog-confirm-xxx").dialog("open"); return false; });'."\n";
-     *       print '});'."\n";
-     *       print '</script>'."\n";
-     *
-     *     @param  	string		$page        	   	Url of page to call if confirmation is OK
-     *     @param	string		$title       	   	Title
-     *     @param	string		$question    	   	Question
-     *     @param 	string		$action      	   	Action
-     *	   @param  	array		$formquestion	   	An array with complementary inputs to add into forms: array(array('label'=> ,'type'=> , ))
-     * 	   @param  	string		$selectedchoice  	"" or "no" or "yes"
-     * 	   @param  	int			$useajax		   	0=No, 1=Yes, 2=Yes but submit page with &confirm=no if choice is No, 'xxx'=Yes and preoutput confirm box with div id=dialog-confirm-xxx
-     *     @param  	int			$height          	Force height of box
-     *     @param	int			$width				Force width of box ('999' or '90%'). Ignored and forced to 90% on smartphones.
-     *     @param	int			$post				Send by form POST.
-     *     @param	int			$post				Resizable box (0=no, 1=yes).
-     *     @return 	string      	    			HTML ajax code if a confirm ajax popup is required, Pure HTML code if it's an html form
-     */
-	public function formconfirm($page, $title, $question, $action, $formquestion=array(), $selectedchoice="", $useajax=0, $height=200, $width=500, $post=0, $resizable=0)
-    {
-        global $langs, $conf, $form;
-        global $useglobalvars;
+	/**
+	 *     Show a confirmation HTML form or AJAX popup.
+	 *     Easiest way to use this is with useajax=1.
+	 *     If you use useajax='xxx', you must also add jquery code to trigger opening of box (with correct parameters)
+	 *     just after calling this method. For example:
+	 *       print '<script type="text/javascript">'."\n";
+	 *       print 'jQuery(document).ready(function() {'."\n";
+	 *       print 'jQuery(".xxxlink").click(function(e) { jQuery("#aparamid").val(jQuery(this).attr("rel")); jQuery("#dialog-confirm-xxx").dialog("open"); return false; });'."\n";
+	 *       print '});'."\n";
+	 *       print '</script>'."\n";
+	 *
+	 *     @param  	string		$page        	   	Url of page to call if confirmation is OK
+	 *     @param	string		$title       	   	Title
+	 *     @param	string		$question    	   	Question
+	 *     @param 	string		$action      	   	Action
+	 *	   @param  	array		$formquestion	   	An array with complementary inputs to add into forms: array(array('label'=> ,'type'=> , ))
+	 * 	   @param  	string		$selectedchoice  	"" or "no" or "yes"
+	 * 	   @param  	int			$useajax		   	0=No, 1=Yes, 2=Yes but submit page with &confirm=no if choice is No, 'xxx'=Yes and preoutput confirm box with div id=dialog-confirm-xxx
+	 *     @param  	int			$height          	Force height of box
+	 *     @param	int			$width				Force width of box ('999' or '90%'). Ignored and forced to 90% on smartphones.
+	 *     @param	int			$post				Send by form POST.
+	 *     @param	int			$post				Resizable box (0=no, 1=yes).
+	 *     @param	int			$disableformtag		1=Disable form tag. Can be used if we are already inside a <form> section.
+	 *     @return 	string      	    			HTML ajax code if a confirm ajax popup is required, Pure HTML code if it's an html form
+	 */
+	public function formconfirm($page, $title, $question, $action, $formquestion=array(), $selectedchoice="", $useajax=0, $height=200, $width=500, $post=0, $resizable=0, $disableformtag = 0)
+	{
+		global $langs, $conf, $form;
 
-        if (!is_object($form)) {
-            require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-            $form = new Form($this->db);
-        }
+		if (!is_object($form)) {
+			require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+			$form = new Form($this->db);
+		}
 
-        $more = '';
-        $formconfirm = '';
-        $inputok = array();
-        $inputko = array();
+		$more = '<!-- formconfirm before calling page='.dol_escape_htmltag($page).' -->';
+		$formconfirm = '';
+		$inputok = array();
+		$inputko = array();
 
-        // Clean parameters
-        $newselectedchoice = empty($selectedchoice) ? "no" : $selectedchoice;
-        if ($conf->browser->layout == 'phone') $width = '95%';
+		// Clean parameters
+		$newselectedchoice = empty($selectedchoice) ? "no" : $selectedchoice;
+		if ($conf->browser->layout == 'phone') {
+			$width = '95%';
+		}
 
-        if (is_array($formquestion) && !empty($formquestion)) {
-            if ($post) {
-                $more .= '<form id="form_dialog_confirm" name="form_dialog_confirm" action="'.$page.'" method="POST" enctype="multipart/form-data">';
-                $more .= '<input type="hidden" id="confirm" name="confirm" value="yes">' . "\n";
-                $more .= '<input type="hidden" id="action" name="action" value="'.$action.'">' . "\n";
-            }
-            // First add hidden fields and value
-            foreach ($formquestion as $key => $input) {
-                if (is_array($input) && !empty($input)) {
-                    if ($post && ($input['name'] == "confirm" || $input['name'] == "action")) continue;
-                    if ($input['type'] == 'hidden') {
-                        $more .= '<input type="hidden" id="' . $input['name'] . '" name="' . $input['name'] . '" value="' . dol_escape_htmltag($input['value'], 1, 1) . '">' . "\n";
-                    }
-                }
-            }
+		// Set height automatically if not defined
+		if (empty($height)) {
+			$height = 220;
+			if (is_array($formquestion) && count($formquestion) > 2) {
+				$height += ((count($formquestion) - 2) * 24);
+			}
+		}
 
-            // Now add questions
-            $more .= '<table class="paddingtopbottomonly" width="100%">' . "\n";
-            $more .= '<tr><td colspan="3">' . (!empty($formquestion['text']) ? $formquestion['text'] : '') . '</td></tr>' . "\n";
-            foreach ($formquestion as $key => $input) {
-                if (is_array($input) && !empty($input)) {
-                    $size = (!empty($input['size']) ? ' size="' . $input['size'] . '"' : '');
+		if (is_array($formquestion) && !empty($formquestion)) {
+			if ($post) {
+				$more .= '<form id="form_dialog_confirm" name="form_dialog_confirm" action="'.$page.'" method="POST" enctype="multipart/form-data">';
+				$more .= '<input type="hidden" id="confirm" name="confirm" value="yes">' . "\n";
+				$more .= '<input type="hidden" id="action" name="action" value="'.$action.'">' . "\n";
+				$more .= '<input type="hidden" id="token" name="token" value="'.newToken().'">' . "\n";
+			}
+			// First add hidden fields and value
+			foreach ($formquestion as $key => $input) {
+				if (is_array($input) && !empty($input)) {
+					if ($post && ($input['name'] == "confirm" || $input['name'] == "action")) continue;
+					if ($input['type'] == 'hidden') {
+						$more .= '<input type="hidden" id="' . $input['name'] . '" name="' . $input['name'] . '" value="' . dol_escape_htmltag($input['value'], 1, 1) . '">' . "\n";
+					}
+				}
+			}
 
-                    if ($input['type'] == 'text') {
-                        $more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td><td colspan="2" align="left"><input type="text" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"' . $size . ' value="' . $input['value'] . '" /></td></tr>' . "\n";
-                    } else if ($input['type'] == 'password') {
-                        $more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td><td colspan="2" align="left"><input type="password" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"' . $size . ' value="' . $input['value'] . '" /></td></tr>' . "\n";
-                    } else if ($input['type'] == 'select') {
-                        $more .= '<tr class="oddeven"><td class="titlefield">';
-                        if (!empty($input['label'])) $more .= $input['label'] . '</td><td valign="top" colspan="2" align="left">';
-                        $more .= $form->selectarray($input['name'], $input['values'], $input['default'], 1);
-                        $more .= '</td></tr>' . "\n";
-                    } else if ($input['type'] == 'checkbox') {
-                        $more .= '<tr class="oddeven">';
-                        $more .= '<td class="titlefield">' . $input['label'] . ' </td><td align="left">';
-                        $more .= '<input type="checkbox" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"';
-                        if (!is_bool($input['value']) && $input['value'] != 'false') $more .= ' checked';
-                        if (is_bool($input['value']) && $input['value']) $more .= ' checked';
-                        if (isset($input['disabled'])) $more .= ' disabled';
-                        $more .= ' /></td>';
-                        $more .= '<td align="left">&nbsp;</td>';
-                        $more .= '</tr>' . "\n";
-                    } else if ($input['type'] == 'radio') {
-                        $i = 0;
-                        foreach ($input['values'] as $selkey => $selval) {
-                            $more .= '<tr class="oddeven">';
-                            if ($i == 0) $more .= '<td class="tdtop titlefield">' . $input['label'] . '</td>';
-                            else $more .= '<td>&nbsp;</td>';
-                            $more .= '<td width="20"><input type="radio" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '" value="' . $selkey . '"';
-                            if ($input['disabled']) $more .= ' disabled';
-                            $more .= ' /></td>';
-                            $more .= '<td align="left">';
-                            $more .= $selval;
-                            $more .= '</td></tr>' . "\n";
-                            $i++;
-                        }
-                    } else if ($input['type'] == 'date') {
-                        $more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td>';
-                        $more .= '<td colspan="2" align="left">';
-                        $more .= $form->select_date($input['value'], $input['name'], $input['hour'] ? 1 : 0, $input['minute'] ? 1 : 0, 0, '', 1, $input['addnowlink'] ? 1 : 0, 1);
-                        $more .= '</td></tr>' . "\n";
-                        $formquestion[] = array('name' => $input['name'] . 'day');
-                        $formquestion[] = array('name' => $input['name'] . 'month');
-                        $formquestion[] = array('name' => $input['name'] . 'year');
-                        $formquestion[] = array('name' => $input['name'] . 'hour');
-                        $formquestion[] = array('name' => $input['name'] . 'min');
-                    } else if ($input['type'] == 'other') {
-                        $more .= '<tr class="oddeven"><td class="titlefield">';
-                        if (!empty($input['label'])) $more .= $input['label'] . '</td><td colspan="2" align="left">';
-                        $more .= $input['value'];
-                        $more .= '</td></tr>' . "\n";
-                    } else if ($input['type'] == 'onecolumn') {
-                        $more .= '<tr class="oddeven"><td class="titlefield" colspan="3" align="left">';
-                        $more .= $input['value'];
-                        $more .= '</td></tr>' . "\n";
-                    }
-                }
-            }
-            $more .= '</table>' . "\n";
-            if ($post) $more .= '</form>';
-        }
+			// Now add questions
+			$more .= '<table class="paddingtopbottomonly centpercent noborderspacing">' . "\n";
+			$more .= '<tr><td colspan="3">' . (!empty($formquestion['text']) ? $formquestion['text'] : '') . '</td></tr>' . "\n";
+			foreach ($formquestion as $key => $input) {
+				if (is_array($input) && !empty($input)) {
+					$size = (!empty($input['size']) ? ' size="' . $input['size'] . '"' : '');
 
-        // JQUI method dialog is broken with jmobile, we use standard HTML.
-        // Note: When using dol_use_jmobile or no js, you must also check code for button use a GET url with action=xxx and check that you also output the confirm code when action=xxx
-        // See page product/card.php for example
-        if (!empty($conf->dol_use_jmobile)) $useajax = 0;
-        if (empty($conf->use_javascript_ajax)) $useajax = 0;
+					if ($input['type'] == 'text') {
+						$more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td><td colspan="2" align="left"><input type="text" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"' . $size . ' value="' . $input['value'] . '" /></td></tr>' . "\n";
+					} else if ($input['type'] == 'password') {
+						$more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td><td colspan="2" align="left"><input type="password" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"' . $size . ' value="' . $input['value'] . '" /></td></tr>' . "\n";
+					} else if ($input['type'] == 'select') {
+						$more .= '<tr class="oddeven"><td class="titlefield">';
+						if (!empty($input['label'])) $more .= $input['label'] . '</td><td valign="top" colspan="2" align="left">';
+						$more .= $form->selectarray($input['name'], $input['values'], $input['default'], 1);
+						$more .= '</td></tr>' . "\n";
+					} else if ($input['type'] == 'checkbox') {
+						$more .= '<tr class="oddeven">';
+						$more .= '<td class="titlefield">' . $input['label'] . ' </td><td align="left">';
+						$more .= '<input type="checkbox" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"';
+						if (!is_bool($input['value']) && $input['value'] != 'false') $more .= ' checked';
+						if (is_bool($input['value']) && $input['value']) $more .= ' checked';
+						if (isset($input['disabled'])) $more .= ' disabled';
+						$more .= ' /></td>';
+						$more .= '<td align="left">&nbsp;</td>';
+						$more .= '</tr>' . "\n";
+					} else if ($input['type'] == 'radio') {
+						$i = 0;
+						foreach ($input['values'] as $selkey => $selval) {
+							$more .= '<tr class="oddeven">';
+							if ($i == 0) $more .= '<td class="tdtop titlefield">' . $input['label'] . '</td>';
+							else $more .= '<td>&nbsp;</td>';
+							$more .= '<td width="20"><input type="radio" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '" value="' . $selkey . '"';
+							if ($input['disabled']) $more .= ' disabled';
+							$more .= ' /></td>';
+							$more .= '<td align="left">';
+							$more .= $selval;
+							$more .= '</td></tr>' . "\n";
+							$i++;
+						}
+					} else if ($input['type'] == 'date') {
+						$more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td>';
+						$more .= '<td colspan="2" align="left">';
+						$more .= $form->select_date($input['value'], $input['name'], $input['hour'] ? 1 : 0, $input['minute'] ? 1 : 0, 0, '', 1, $input['addnowlink'] ? 1 : 0, 1);
+						$more .= '</td></tr>' . "\n";
+						$formquestion[] = array('name' => $input['name'] . 'day');
+						$formquestion[] = array('name' => $input['name'] . 'month');
+						$formquestion[] = array('name' => $input['name'] . 'year');
+						$formquestion[] = array('name' => $input['name'] . 'hour');
+						$formquestion[] = array('name' => $input['name'] . 'min');
+					} else if ($input['type'] == 'other') {
+						$more .= '<tr class="oddeven"><td class="titlefield">';
+						if (!empty($input['label'])) $more .= $input['label'] . '</td><td colspan="2" align="left">';
+						$more .= $input['value'];
+						$more .= '</td></tr>' . "\n";
+					} else if ($input['type'] == 'onecolumn') {
+						$more .= '<tr class="oddeven"><td class="titlefield" colspan="3" align="left">';
+						$more .= $input['value'];
+						$more .= '</td></tr>' . "\n";
+					}
+				}
+			}
+			$more .= '</table>' . "\n";
+			if ($post) $more .= '</form>';
+		}
 
-        if ($useajax) {
-            $autoOpen = true;
-            $dialogconfirm = 'dialog-confirm';
-            $button = '';
-            if (!is_numeric($useajax)) {
-                $button = $useajax;
-                $useajax = 1;
-                $autoOpen = false;
-                $dialogconfirm .= '-' . $button;
-            }
-            $pageyes = $page . (preg_match('/\?/', $page) ? '&' : '?') . 'action=' . $action . '&confirm=yes';
-            $pageno = ($useajax == 2 ? $page . (preg_match('/\?/', $page) ? '&' : '?') . 'action=' . $action . '&confirm=no' : '');
-            // Add input fields into list of fields to read during submit (inputok and inputko)
-            if (is_array($formquestion)) {
-                foreach ($formquestion as $key => $input) {
-                    //print "xx ".$key." rr ".is_array($input)."<br>\n";
-                    if (is_array($input) && isset($input['name'])) {
-                        // Modification Open-DSI - Begin
-                        if (is_array($input['name'])) $inputok = array_merge($inputok, $input['name']);
-                        else array_push($inputok, $input['name']);
-                        // Modification Open-DSI - End
-                    }
-                    if (isset($input['inputko']) && $input['inputko'] == 1) array_push($inputko, $input['name']);
-                }
-            }
-            // Show JQuery confirm box. Note that global var $useglobalvars is used inside this template
-            $formconfirm .= '<div id="' . $dialogconfirm . '" title="' . dol_escape_htmltag($title) . '" style="display: none;">';
-            if (!empty($more)) {
-                $formconfirm .= '<div class="confirmquestions">' . $more . '</div>';
-            }
-            $formconfirm .= ($question ? '<div class="confirmmessage">' . img_help('', '') . ' ' . $question . '</div>' : '');
-            $formconfirm .= '</div>' . "\n";
+		// JQUERY method dialog is broken with smartphone, we use standard HTML.
+		// Note: When using dol_use_jmobile or no js, you must also check code for button use a GET url with action=xxx and check that you also output the confirm code when action=xxx
+		// See page product/card.php for example
+		if (!empty($conf->dol_use_jmobile)) {
+			$useajax = 0;
+		}
+		if (empty($conf->use_javascript_ajax)) {
+			$useajax = 0;
+		}
 
-            $formconfirm .= "\n<!-- begin ajax form_confirm page=" . $page . " -->\n";
-            $formconfirm .= '<script type="text/javascript">' . "\n";
-            $formconfirm .= 'jQuery(document).ready(function() {
+		if ($useajax) {
+			$autoOpen = true;
+			$dialogconfirm = 'dialog-confirm';
+			$button = '';
+			if (!is_numeric($useajax)) {
+				$button = $useajax;
+				$useajax = 1;
+				$autoOpen = false;
+				$dialogconfirm .= '-' . $button;
+			}
+			$pageyes = $page . (preg_match('/\?/', $page) ? '&' : '?') . 'action=' . $action . '&confirm=yes';
+			$pageno = ($useajax == 2 ? $page . (preg_match('/\?/', $page) ? '&' : '?') . 'action=' . $action . '&confirm=no' : '');
+			// Add input fields into list of fields to read during submit (inputok and inputko)
+			if (is_array($formquestion)) {
+				foreach ($formquestion as $key => $input) {
+					//print "xx ".$key." rr ".is_array($input)."<br>\n";
+					// Add name of fields to propagate with the GET when submitting the form with button OK.
+					if (is_array($input) && isset($input['name'])) {
+						// Modification Open-DSI - Begin
+						if (is_array($input['name'])) $inputok = array_merge($inputok, $input['name']);
+						else array_push($inputok, $input['name']);
+						// Modification Open-DSI - End
+					}
+					if (isset($input['inputko']) && $input['inputko'] == 1) array_push($inputko, $input['name']);
+				}
+			}
+
+			// Show JQuery confirm box.
+			$formconfirm .= '<div id="' . $dialogconfirm . '" title="' . dol_escape_htmltag($title) . '" style="display: none;">';
+			if (!empty($more)) {
+				$formconfirm .= '<div class="confirmquestions">'.$more.'</div>'."\n";
+			}
+			$formconfirm .= ($question ? '<div class="confirmmessage">' . img_help('', '') . ' ' . $question . '</div>' : '');
+			$formconfirm .= '</div>' . "\n";
+
+			$formconfirm .= "\n<!-- begin code of popup for formconfirm page=".$page." -->\n";
+			$formconfirm .= '<script type="text/javascript">' . "\n";
+			$formconfirm .= "/* Code for the jQuery('#dialogforpopup').dialog() */\n";
+			$formconfirm .= 'jQuery(document).ready(function() {
             $(function() {
             	$( "#' . $dialogconfirm . '" ).dialog(
             	{
                     autoOpen: ' . ($autoOpen ? "true" : "false") . ',';
-            if ($newselectedchoice == 'no') {
-                $formconfirm .= '
+			if ($newselectedchoice == 'no') {
+				$formconfirm .= '
 						open: function() {
             				$(this).parent().find("button.ui-button:eq(2)").focus();
 						},';
-            }
-            if ($post) {
-                $formconfirm .= '
+			}
+			if ($post) {
+				$formconfirm .= '
                     resizable: ' . ($resizable ? 'true' : 'false') . ',
                     height: "' . $height . '",
                     width: "' . $width . '",
@@ -602,8 +620,8 @@ class FormDictionary
             });
             });
             </script>';
-            } else {
-                $formconfirm .= '
+			} else {
+				$formconfirm .= '
                     resizable: false,
                     height: "' . $height . '",
                     width: "' . $width . '",
@@ -611,27 +629,31 @@ class FormDictionary
                     closeOnEscape: false,
                     buttons: {
                         "' . dol_escape_js($langs->transnoentities("Yes")) . '": function() {
-                        	var options="";
-                        	var inputok = ' . json_encode($inputok) . ';
+                        	var options = "&token='.urlencode(newToken()).'";
+                        	var inputok = '.json_encode($inputok).';	/* List of fields into form */
                          	var pageyes = "' . dol_escape_js(!empty($pageyes) ? $pageyes : '') . '";
                          	if (inputok.length>0) {
                          		$.each(inputok, function(i, inputname) {
                          			var more = "";
+									var inputvalue;
+                         			if ($("input[name=\'" + inputname + "\']").attr("type") == "radio") {
+										inputvalue = $("input[name=\'" + inputname + "\']:checked").val();
+									} else {
                          			if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
-                         		    if ($("#" + inputname).attr("type") == "radio") { more = ":checked"; }
-                         			var inputvalue = $("#" + inputname + more).val();
+                         				inputvalue = $("#" + inputname + more).val();
+									}
                          			if (typeof inputvalue == "undefined") { inputvalue=""; }
-                         			options += "&" + inputname + "=" + urlencode(inputvalue);
+									console.log("formconfirm check inputname="+inputname+" inputvalue="+inputvalue);
+                         			options += "&" + inputname + "=" + encodeURIComponent(inputvalue);
                          		});
                          	}
                          	var urljump = pageyes + (pageyes.indexOf("?") < 0 ? "?" : "") + options;
-                         	//alert(urljump);
             				if (pageyes.length > 0) { location.href = urljump; }
                             $(this).dialog("close");
                         },
                         "' . dol_escape_js($langs->transnoentities("No")) . '": function() {
-                        	var options = "";
-                         	var inputko = ' . json_encode($inputko) . ';
+                        	var options = "&token='.urlencode(newToken()).'";
+                         	var inputko = '.json_encode($inputko).';	/* List of fields into form */
                          	var pageno="' . dol_escape_js(!empty($pageno) ? $pageno : '') . '";
                          	if (inputko.length>0) {
                          		$.each(inputko, function(i, inputname) {
@@ -639,7 +661,7 @@ class FormDictionary
                          			if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
                          			var inputvalue = $("#" + inputname + more).val();
                          			if (typeof inputvalue == "undefined") { inputvalue=""; }
-                         			options += "&" + inputname + "=" + urlencode(inputvalue);
+                         			options += "&" + inputname + "=" + encodeURIComponent(inputvalue);
                          		});
                          	}
                          	var urljump=pageno + (pageno.indexOf("?") < 0 ? "?" : "") + options;
@@ -660,46 +682,75 @@ class FormDictionary
             });
             });
             </script>';
-            }
-            $formconfirm .= "<!-- end ajax form_confirm -->\n";
-        } else {
-            $formconfirm .= "\n<!-- begin form_confirm page=" . $page . " -->\n";
+			}
+			$formconfirm .= "<!-- end ajax formconfirm -->\n";
+		} else {
+			$formconfirm .= "\n<!-- begin formconfirm page=".dol_escape_htmltag($page)." -->\n";
 
-            $formconfirm .= '<form method="POST" action="' . $page . '" class="notoptoleftroright">' . "\n";
-            $formconfirm .= '<input type="hidden" name="action" value="' . $action . '">' . "\n";
-            $formconfirm .= '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">' . "\n";
+			if (empty($disableformtag)) {
+				$formconfirm .= '<form method="POST" action="' . $page . '" class="notoptoleftroright">' . "\n";
+			}
 
-            $formconfirm .= '<table width="100%" class="valid">' . "\n";
+			$formconfirm .= '<input type="hidden" name="action" value="' . $action . '">' . "\n";
+			$formconfirm .= '<input type="hidden" name="token" value="'.newToken().'">'."\n";
 
-            // Line title
-            $formconfirm .= '<tr class="validtitre"><td class="validtitre" colspan="3">' . img_picto('', 'recent') . ' ' . $title . '</td></tr>' . "\n";
+			$formconfirm .= '<table class="valid centpercent">'."\n";
 
-            // Line form fields
-            if ($more) {
-                $formconfirm .= '<tr class="valid"><td class="valid" colspan="3">' . "\n";
-                $formconfirm .= $more;
-                $formconfirm .= '</td></tr>' . "\n";
-            }
+			// Line title
+			$formconfirm .= '<tr class="validtitre"><td class="validtitre" colspan="2">';
+			$formconfirm .= img_picto('', 'recent').' '.$title;
+			$formconfirm .= '</td></tr>'."\n";
 
-            // Line with question
-            $formconfirm .= '<tr class="valid">';
-            $formconfirm .= '<td class="valid">' . $question . '</td>';
-            $formconfirm .= '<td class="valid">';
-            $formconfirm .= $form->selectyesno("confirm", $newselectedchoice);
-            $formconfirm .= '</td>';
-            $formconfirm .= '<td class="valid" align="center"><input class="button valignmiddle" type="submit" value="' . $langs->trans("Validate") . '"></td>';
-            $formconfirm .= '</tr>' . "\n";
+			// Line text
+			if (is_array($formquestion) && !empty($formquestion['text'])) {
+				$formconfirm .= '<tr class="valid"><td class="valid" colspan="2">'.$formquestion['text'].'</td></tr>'."\n";
+			}
 
-            $formconfirm .= '</table>' . "\n";
+			// Line form fields
+			if ($more) {
+				$formconfirm .= '<tr class="valid"><td class="valid" colspan="2">'."\n";
+				$formconfirm .= $more;
+				$formconfirm .= '</td></tr>' . "\n";
+			}
 
-            $formconfirm .= "</form>\n";
-            $formconfirm .= '<br>';
+			// Line with question
+			$formconfirm .= '<tr class="valid">';
+			$formconfirm .= '<td class="valid">' . $question . '</td>';
+			$formconfirm .= '<td class="valid center">';
+			$formconfirm .= $this->selectyesno("confirm", $newselectedchoice, 0, false, 0, 0, 'marginleftonly marginrightonly');
+			$formconfirm .= '<input class="button valignmiddle confirmvalidatebutton small" type="submit" value="'.$langs->trans("Validate").'">';
+			$formconfirm .= '</td>';
+			$formconfirm .= '</tr>' . "\n";
 
-            $formconfirm .= "<!-- end form_confirm -->\n";
-        }
+			$formconfirm .= '</table>' . "\n";
 
-        return $formconfirm;
-    }
+			if (empty($disableformtag)) {
+				$formconfirm .= "</form>\n";
+			}
+			$formconfirm .= '<br>';
+
+			if (!empty($conf->use_javascript_ajax)) {
+				$formconfirm .= '<!-- code to disable button to avoid double clic -->';
+				$formconfirm .= '<script type="text/javascript">'."\n";
+				$formconfirm .= '
+				$(document).ready(function () {
+					$(".confirmvalidatebutton").on("click", function() {
+						console.log("We click on button");
+						$(this).attr("disabled", "disabled");
+						setTimeout(\'$(".confirmvalidatebutton").removeAttr("disabled")\', 3000);
+						//console.log($(this).closest("form"));
+						$(this).closest("form").submit();
+					});
+				});
+				';
+				$formconfirm .= '</script>'."\n";
+			}
+
+			$formconfirm .= "<!-- end formconfirm -->\n";
+		}
+
+		return $formconfirm;
+	}
 
 	/**
 	 *	Show a multiselect form from an array.
