@@ -45,7 +45,7 @@ AdvanceDictionariesConfirmMassModifyEntityQuestion  = Are you sure you want to m
 #######################################################################
 AdvanceDictionariesErrorFieldNotDefined                 = Error : Field "%s" not defined.
 AdvanceDictionariesErrorIndexNotDefined                 = Error : Index "%s" not defined.
-AdvanceDictionariesErrorUsedInDolibarr                  = Ne peut être supprimée car elle est utilisée dans Dolibarr.
-AdvanceDictionariesErrorValueUsedInDolibarr             = Ne peut être supprimée car une des valeurs de la colonne "%s" est utilisée dans Dolibarr.
-AdvanceDictionariesErrorValueMustBeGreaterOrEqualThan   = La valeur doit être supérieure à %s
-AdvanceDictionariesErrorValueMustBeLesserOrEqualThan    = La valeur doit être inférieur à %s
+AdvanceDictionariesErrorUsedInDolibarr                  = Cannot be deleted because it is used in Dolibarr.
+AdvanceDictionariesErrorValueUsedInDolibarr             = Cannot be deleted because one of the values of the column "%s" is used in Dolibarr.
+AdvanceDictionariesErrorValueMustBeGreaterOrEqualThan   = Value must be greater than %s
+AdvanceDictionariesErrorValueMustBeLesserOrEqualThan    = Value must be less than %s
