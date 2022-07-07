@@ -2,6 +2,8 @@
 Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.com/fr/1.0.0/).
 
 ## [Non Distribué]
+## [4.0.49] - 11-05-2022
+- Correction de l'affichage de l'entrée dans le menu 'configuration'
 
 ## [4.0.48] - 11-05-2022
 - Compatibilité dolibarr v15
