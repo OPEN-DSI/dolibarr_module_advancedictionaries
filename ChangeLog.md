@@ -2,6 +2,10 @@
 Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.com/fr/1.0.0/).
 
 ## [Non Distribué]
+
+## [4.0.50] - 12-07-2022
+- Correction de l'enregistrement d'une ligne lorsqu'il n'y a qu'un champs a multiple selection à mettre à jour
+
 ## [4.0.49] - 11-05-2022
 - Correction de l'affichage de l'entrée dans le menu 'configuration'
 

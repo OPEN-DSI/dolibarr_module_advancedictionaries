@@ -66,7 +66,7 @@ function advanced_dictionaries_watch_input(dictionary_module, dictionary_name, d
 function advanced_dictionaries_update_list_values(dictionary_module, dictionary_name, dictionary_root_path, default_values, field_updated, fields_to_watch, key_prefix, key_suffix) {
 	var data_send = {
 		dictionary_module: dictionary_module, dictionary_name: dictionary_name, dictionary_root_path: dictionary_root_path,
-		field_updated: field_updated, key_prefix: key_prefix, key_suffix: key_suffix
+		field_updated: field_updated, key_prefix: key_prefix, key_suffix: key_suffix, token: '<?php print currentToken() ?>'
 	};
 	$.map(fields_to_watch, function (field_name) {
 		data_send = advanced_dictionaries_update_data_send(data_send, field_name, key_prefix, key_suffix);
