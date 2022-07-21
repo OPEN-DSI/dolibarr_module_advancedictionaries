@@ -977,7 +977,7 @@ class Dictionary extends CommonObject
 								}
 								break;
 							case 'u':
-								if (!isset($this->fields[$field_name])) {
+								if (isset($this->fields[$field_name])) {
 									// Update column of dictionary table
 									$instructionSQL = $this->definitionTableFieldInstructionSQL($this->fields[$field_name]);
 									if (!empty($instructionSQL)) {
