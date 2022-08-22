@@ -2023,7 +2023,7 @@ class Dictionary extends CommonObject
                 $form = new Form($this->db);
             }
 
-			$size = $field['show_search_input']['size'];
+			$size = @$field['show_search_input']['size'];
 			if (empty($size)) {
 				switch ($type) {
 					case 'varchar':
@@ -2050,10 +2050,10 @@ class Dictionary extends CommonObject
 			}
 			$size = !empty($size) ? ' size="' . $size . '"' : '';
 
-			$moreClasses = trim($field['show_search_input']['moreClasses']);
+			$moreClasses = trim(@$field['show_search_input']['moreClasses']);
 			$moreClasses = !empty($moreClasses) ? ' ' . $moreClasses : '';
 
-			$moreAttributes = trim($field['show_search_input']['moreAttributes']);
+			$moreAttributes = trim(@$field['show_search_input']['moreAttributes']);
 			$moreAttributes = !empty($moreAttributes) ? ' ' . $moreAttributes : '';
 
 			$dictionaryLine = $this->getNewDictionaryLine();
@@ -2071,7 +2071,7 @@ class Dictionary extends CommonObject
 				case 'double':
 				case 'price':
 					return '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '"' . $size .
-						' value="' . dol_escape_htmltag($search_filters[$fieldName]) . '"' . $moreAttributes . '>';
+						' value="' . dol_escape_htmltag(@$search_filters[$fieldName]) . '"' . $moreAttributes . '>';
                 case 'date':
                 case 'datetime':
                     $hm = $type == 'datetime' ? 1 : 0;
@@ -2089,7 +2089,7 @@ class Dictionary extends CommonObject
 				case 'checkbox':
 					$old_type = $this->fields[$fieldName]['type'];
 					$this->fields[$fieldName]['type'] = 'select';
-					$out = $dictionaryLine->showInputFieldAD($fieldName, is_array($search_filters[$fieldName]) ? $search_filters[$fieldName][0] : '', 'search_');
+					$out = $dictionaryLine->showInputFieldAD($fieldName, is_array(@$search_filters[$fieldName]) ? $search_filters[$fieldName][0] : '', 'search_');
 					$this->fields[$fieldName]['type'] = $old_type;
 					return $out;
 				case 'sellist':
@@ -2101,7 +2101,7 @@ class Dictionary extends CommonObject
 					$this->fields[$fieldName]['type'] = $old_type;
 					return $out;
 				case 'boolean':
-					return $form->selectyesno($fieldHtmlName, $search_filters[$fieldName], 1, false, 1);
+					return $form->selectyesno($fieldHtmlName, @$search_filters[$fieldName], 1, false, 1);
 				case 'custom':
 					return $this->showInputSearchCustomField($fieldName);
 				default: // unknown
@@ -2286,7 +2286,7 @@ class Dictionary extends CommonObject
 
         // Get fields
         foreach ($this->fields as $fieldName => $field) {
-			if (!$field['is_not_searchable']) {
+            if (!@$field['is_not_searchable']) {
 				$fieldHtmlName = 'search_' . $fieldName;
 
 				switch ($field['type']) {
@@ -4449,12 +4449,12 @@ class DictionaryLine extends CommonObjectLine
             if ($value === null) $value = $this->fields[$fieldName];
 
             $type = $field['type'];
-            $size = $field['database']['length'];
+            $size = @$field['database']['length'];
             $required = !empty($field['is_require']);
 
             $fieldHtmlName = $keyprefix . $fieldName . $keysuffix;
 
-            $moreClasses = trim($field['show_input']['moreClasses']);
+            $moreClasses = trim(@$field['show_input']['moreClasses']);
             if (empty($moreClasses)) {
                 if ($type == 'date') {
                     $moreClasses = ' minwidth100imp';
@@ -4473,7 +4473,7 @@ class DictionaryLine extends CommonObjectLine
                 $moreClasses = ' ' . $moreClasses;
             }
 
-            $moreAttributes = trim($field['show_input']['moreAttributes']);
+            $moreAttributes = trim(@$field['show_input']['moreAttributes']);
 	        if (empty($moreAttributes)) {
 		        if (in_array($type, array('checkbox', 'chkbxlst', 'chkbxlstwithorder'))) {
 			        $moreAttributes = ' style="width:100%;"';

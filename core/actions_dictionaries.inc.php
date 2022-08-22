@@ -42,8 +42,12 @@ $langs->load("advancedictionaries@advancedictionaries");
 
 if (!$canRead) accessforbidden();
 
-// Select current dictionary informations
+// Select current dictionary information
 $dictionary = null;
+
+$module = !empty($module) ? $module : '';
+$name = !empty($name) ? $name : '';
+$rootPath = !empty($rootPath) ? $rootPath : '';
 if ($id > 0 || (!empty($module) && !empty($name))) {
     // Select the dictionary
     $dictionary = Dictionary::getDictionary($db, $module, $name, $id, $rootPath);
@@ -63,10 +67,10 @@ $page = GETPOST('page', 'int');
 if (empty($page) || $page == -1 || !empty($search_btn) || !empty($search_remove_btn) || (empty($toselect) && $massaction === '0')) { $page = 0; }     // If $page is not defined, or '' or -1
 $order_by = array();
 if (empty($sortfield)) {
-    $orders = explode(',', $dictionary->listSort);
+    $orders = explode(',', @$dictionary->listSort);
     foreach ($orders as $order) {
         $tmp = explode(' ', trim($order));
-        $order_by[$tmp[0]] = $tmp[1];
+        if (isset($tmp[1])) $order_by[$tmp[0]] = $tmp[1];
     }
     $sortfield = implode(',', array_keys($order_by));
     $sortorder = implode(',', array_values($order_by));

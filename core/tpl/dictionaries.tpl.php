@@ -32,7 +32,8 @@ $form = new Form($db);
 dol_include_once('/advancedictionaries/class/html.formdictionary.class.php');
 $formdictionary = new FormDictionary($db);
 
-if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
+
+if (@$dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && !empty($conf->multicompany->enabled)) {
 	require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
 	dol_include_once('/multicompany/class/dao_multicompany.class.php', 'DaoMulticompany');
 	dol_include_once('/multicompany/lib/multicompany.lib.php');
@@ -192,7 +193,7 @@ if (isset($dictionary)) {
 
             $addButton = '';
             if ($dictionary->lineCanBeAdded && $canCreate) {
-                $addButton = '<a href="' . $_SERVER['PHP_SELF'] . '?' . ltrim($param3, '&') . '&action=add_line&module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name) . '&'.$now.'="' . ((float)DOL_VERSION >= 8.0 ? 'class=" butActionNew"' : '') . '>';
+                $addButton = '<a href="' . $_SERVER['PHP_SELF'] . '?' . ltrim($param3, '&') . '&token=' . newToken() . '&action=add_line&module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name) . '&'.$now.'="' . ((float)DOL_VERSION >= 8.0 ? 'class=" butActionNew"' : '') . '>';
                 $addButton .= $langs->trans("Add");
                 if ((float)DOL_VERSION >= 8.0) $addButton .= '<span class="'.$class_fa.' fa-plus-circle valignmiddle"></span>';
                 $addButton .= '</a>';
@@ -203,7 +204,7 @@ if (isset($dictionary)) {
             // List of mass actions available
             $arrayofmassactions = array();
             if ($dictionary->lineCanBeDeleted && $canDelete) $arrayofmassactions['predelete'] = $langs->trans("Delete");
-			if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled && $dictionary->lineCanBeUpdated && $canUpdate) $arrayofmassactions['premodifyentity'] = $langs->trans("AdvanceDictionariesModifyEntity");
+			if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && !empty($conf->multicompany->enabled) && $dictionary->lineCanBeUpdated && $canUpdate) $arrayofmassactions['premodifyentity'] = $langs->trans("AdvanceDictionariesModifyEntity");
             if (in_array($massaction, array('predelete', 'premodifyentity'))) $arrayofmassactions = array();
             $massactionbutton = $form->selectMassAction('', $arrayofmassactions);
 
@@ -266,7 +267,7 @@ if (isset($dictionary)) {
                     $align = !empty($field['td_search']['align']) ? $field['td_search']['align'] : $dictionary->getAlignFlagForField($fieldName);
 
                     print '<td align="' . $align . '" class="liste_titre' . $moreClasses . '"' . $moreAttributes . '>';
-                    if (!$field['is_not_searchable']) {
+                    if (!@$field['is_not_searchable']) {
                         print $dictionary->showInputSearchField($fieldName, $search_filters);
                     }
                     print '</td>';
@@ -276,7 +277,8 @@ if (isset($dictionary)) {
             $parameters = array('arrayfields' => $arrayfields);
             $reshook = $hookmanager->executeHooks('printFieldListOption', $parameters, $dictionary, $action);
             print $hookmanager->resPrint;
-			if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
+
+			if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && !empty($conf->multicompany->enabled)) {
 				print '<td class="liste_titre maxwidthonsmartphone center">';
 				print $actionsmulticompany->select_entities($search_entity,'search_entity','',false,false,true, false, '', 'minwidth150imp', false);
 				print "</td>";
@@ -284,7 +286,7 @@ if (isset($dictionary)) {
 			print '<td class="liste_titre maxwidthonsmartphone center">';
             print $form->selectyesno('search_' . $dictionary->active_field, $search_active, 1, false, 1);
             print '</td>';
-            print '<td class="liste_titre" align="right">';
+            print '<td class="liste_titre right">';
             print $form->showFilterButtons();
             print '</td>';
             print '</tr>';
@@ -299,7 +301,7 @@ if (isset($dictionary)) {
                     $align = !empty($field['td_title']['align']) ? $field['td_title']['align'] : $dictionary->getAlignFlagForField($fieldName);
                     $moreAttributes .= ' align="' . $align . '"';
 
-                    print_liste_field_titre($arrayfields[$fieldName]['label'], $_SERVER["PHP_SELF"], $field['is_not_sortable'] ? '' : $fieldName, '', '&' . ltrim($param2, '&'), $moreAttributes, $sortfield, $sortorder);
+                    print_liste_field_titre($arrayfields[$fieldName]['label'], $_SERVER["PHP_SELF"], @$field['is_not_sortable'] ? '' : $fieldName, '', '&' . ltrim($param2, '&'), $moreAttributes, $sortfield, $sortorder);
                     print '</td>';
                 }
             }
@@ -307,7 +309,9 @@ if (isset($dictionary)) {
             $parameters = array('arrayfields' => $arrayfields, 'param' => $param2, 'sortfield' => $sortfield, 'sortorder' => $sortorder);
             $reshook = $hookmanager->executeHooks('printFieldListTitle', $parameters, $dictionary, $action);
             print $hookmanager->resPrint;
-            if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) print_liste_field_titre($langs->trans("Entity"), $_SERVER["PHP_SELF"], $dictionary->entity_field, "", '&' . ltrim($param2, '&'), 'align="center"', $sortfield, $sortorder);
+            if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && !empty($conf->multicompany->enabled)) {
+                print_liste_field_titre($langs->trans("Entity"), $_SERVER["PHP_SELF"], $dictionary->entity_field, "", '&' . ltrim($param2, '&'), 'align="center"', $sortfield, $sortorder);
+            }
             print_liste_field_titre($langs->trans("Status"), $_SERVER["PHP_SELF"], $dictionary->active_field, "", '&' . ltrim($param2, '&'), 'width="10%" align="center"', $sortfield, $sortorder);
             print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', 'align="center"', $sortfield, $sortorder, 'maxwidthsearch ');
             print '</tr>';
@@ -418,7 +422,7 @@ if (isset($dictionary)) {
 	 */
 
 	print '<div class="div-table-responsive-no-min">';
-	print '<table class="noborder" width="100%">';
+	print '<table class="noborder centpercent">';
 	print '<tr class="liste_titre">';
 	if (empty($hide_module_column)) {
 		print '<td width="10px">';
@@ -428,6 +432,9 @@ if (isset($dictionary)) {
 	print '<td>' . $langs->trans("Table") . '</td>';
 	print '</tr>';
 
+    $moduleFilter = !empty($moduleFilter) ? $moduleFilter : '';
+    $familyFilter = !empty($familyFilter) ? $familyFilter : '';
+    $rootPath = !empty($rootPath) ? $rootPath : '';
 	$dictionaries = Dictionary::fetchAllDictionaries($db, $moduleFilter, $familyFilter, $rootPath);
 
 	$lastfamily = '';
