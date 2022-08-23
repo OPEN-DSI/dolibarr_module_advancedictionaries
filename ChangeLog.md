@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.52] - 11-05-2022
+- Correction de l'affichage de l'entrée dans le menu 'configuration'
+  
 ## [4.0.51] - 21-07-2022
 - Correction de la mise à jour d'un champs du dictionnaire lors d'une montée de version du dictionnaire
 ## [4.0.50] - 12-07-2022
