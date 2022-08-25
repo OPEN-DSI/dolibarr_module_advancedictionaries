@@ -32,7 +32,7 @@ $form = new Form($db);
 dol_include_once('/advancedictionaries/class/html.formdictionary.class.php');
 $formdictionary = new FormDictionary($db);
 
-if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
+if (isset($dictionary) && $dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
 	require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
 	dol_include_once('/multicompany/class/dao_multicompany.class.php', 'DaoMulticompany');
 	dol_include_once('/multicompany/lib/multicompany.lib.php');
@@ -428,7 +428,7 @@ if (isset($dictionary)) {
 	print '<td>' . $langs->trans("Table") . '</td>';
 	print '</tr>';
 
-	$dictionaries = Dictionary::fetchAllDictionaries($db, $moduleFilter, $familyFilter, $rootPath);
+	$dictionaries = Dictionary::fetchAllDictionaries($db, $moduleFilter, $familyFilter, $rootPath ?? '');
 
 	$lastfamily = '';
 	foreach ($dictionaries as $dictionary) {

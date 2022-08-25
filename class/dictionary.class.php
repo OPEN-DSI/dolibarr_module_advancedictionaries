@@ -1204,7 +1204,7 @@ class Dictionary extends CommonObject
         if (empty($root_path)) {
 			if (empty($module)) {
 				$dirmodels = array('/');
-				if (is_array($conf->modules_parts['dictionaries'])) {
+				if (isset($conf->modules_parts['dictionaries']) && is_array($conf->modules_parts['dictionaries'])) {
 					foreach ($conf->modules_parts['dictionaries'] as $path) {
 						$dirmodels[] = str_replace('/core/modules/dictionaries/', '/', $path);
 					}
