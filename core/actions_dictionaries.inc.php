@@ -46,7 +46,7 @@ if (!$canRead) accessforbidden();
 $dictionary = null;
 if ($id > 0 || (!empty($module) && !empty($name))) {
     // Select the dictionary
-    $dictionary = Dictionary::getDictionary($db, $module, $name, $id, $rootPath);
+    $dictionary = Dictionary::getDictionary($db, $module, $name, $id, $rootPath ?? '');
 }
 
 $massaction = GETPOST('massaction','alpha');
