@@ -72,7 +72,7 @@ class modAdvanceDictionaries extends DolibarrModules
 		$this->editor_url = 'http://www.open-dsi.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '4.0.49';
+		$this->version = '4.0.52';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
@@ -245,7 +245,7 @@ class modAdvanceDictionaries extends DolibarrModules
             'url' => '/advancedictionaries/admin/dictionaries.php',
             'langs' => 'advancedictionaries@advancedictionaries', // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
             'position' => 100,
-            'enabled' => '($leftmenu == setup)',// Define condition to show or hide menu entry. Use '$conf->monmodule->enabled' if entry must be visible if module is enabled.
+            'enabled' => '($conf->advancedictionaries->enabled && $leftmenu == \'setup\')',// Define condition to show or hide menu entry. Use '$conf->monmodule->enabled' if entry must be visible if module is enabled.
             'perms' => '$user->rights->advancedictionaries->read', // Use 'perms'=>'$user->rights->monmodule->level1->level2' if you want your menu with a permission rules
             'target' => '',
             'user' => 0

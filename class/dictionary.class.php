@@ -977,7 +977,7 @@ class Dictionary extends CommonObject
 								}
 								break;
 							case 'u':
-								if (!isset($this->fields[$field_name])) {
+								if (isset($this->fields[$field_name])) {
 									// Update column of dictionary table
 									$instructionSQL = $this->definitionTableFieldInstructionSQL($this->fields[$field_name]);
 									if (!empty($instructionSQL)) {
@@ -3485,12 +3485,14 @@ class DictionaryLine extends CommonObjectLine
             $sql .= ' WHERE ' . $cq . $this->dictionary->rowid_field . $cq . ' = ' . $this->id;
 
             dol_syslog(__METHOD__, LOG_DEBUG);
-            $resql = $this->db->query($sql);
-            if (!$resql) {
-                dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
-                $error++;
-                $errors[] = $this->db->lasterror();
-            }
+            if (!empty($set_statement)) {
+				$resql = $this->db->query($sql);
+				if (!$resql) {
+					dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
+					$error++;
+					$errors[] = $this->db->lasterror();
+				}
+			}
 
             // Update post line of dictionary table
             if (!$error) {
