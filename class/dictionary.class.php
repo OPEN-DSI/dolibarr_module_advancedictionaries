@@ -343,9 +343,11 @@ class Dictionary extends CommonObject
         }
         $this->name = strtolower(substr(get_class($this), 0, -10));
         $module = $this->module;
-        $this->enabled = $conf->$module->enabled;
+        $this->enabled = !empty($conf->$module->enabled);
 
         $this->initialize();
+        // ICI
+        // force_field -> initialiser à des valeurs par défaut
     }
 
     /**
@@ -1015,7 +1017,7 @@ class Dictionary extends CommonObject
 					}
 				}
 				// Delete fields
-				if (is_array($datas['delete_fields'])) {
+				if (isset($datas['delete_fields']) && is_array($datas['delete_fields'])) {
 					foreach ($datas['delete_fields'] as $field_name => $field) {
 						// Delete column of dictionary table
 						$instructionSQL = $this->definitionTableFieldInstructionSQL($field);
@@ -1038,7 +1040,7 @@ class Dictionary extends CommonObject
 				}
 
 				// Indexes
-				if (is_array($datas['indexes'])) {
+				if (isset($datas['indexes']) && is_array($datas['indexes'])) {
 					foreach ($datas['indexes'] as $idx_number => $type) {
 						switch ($type) {
 							//case 'a':
@@ -2079,11 +2081,11 @@ class Dictionary extends CommonObject
                     $hm = $type == 'datetime' ? 1 : 0;
                     $out = '<div class="nowrap">';
                     $out .= $langs->trans('From') . ' ';
-                    $out .= $form->selectDate($search_filters[$fieldName]['date_start']?$search_filters[$fieldName]['date_start']:-1, $fieldHtmlName . '_start_', $hm, $hm, 1);
+                    $out .= $form->selectDate(!empty($search_filters[$fieldName]['date_start']) ? $search_filters[$fieldName]['date_start'] : -1, $fieldHtmlName . '_start_', $hm, $hm, 1);
                     $out .= '</div>';
                     $out .= '<div class="nowrap">';
                     $out .= $langs->trans('to') . ' ';
-                    $out .= $form->selectDate($search_filters[$fieldName]['date_end']?$search_filters[$fieldName]['date_end']:-1, $fieldHtmlName . '_end_', $hm, $hm, 1);
+                    $out .= $form->selectDate( !empty($search_filters[$fieldName]['date_end']) ? $search_filters[$fieldName]['date_end'] : -1, $fieldHtmlName . '_end_', $hm, $hm, 1);
                     $out .= '</div>';
                     return $out;
 				case 'radio':
@@ -2103,7 +2105,7 @@ class Dictionary extends CommonObject
 					$this->fields[$fieldName]['type'] = $old_type;
 					return $out;
 				case 'boolean':
-					return $form->selectyesno($fieldHtmlName, $search_filters[$fieldName], 1, false, 1);
+					return $form->selectyesno($fieldHtmlName, !empty($search_filters[$fieldName]), 1, false, 1);
 				case 'custom':
 					return $this->showInputSearchCustomField($fieldName);
 				default: // unknown
@@ -3214,7 +3216,7 @@ class DictionaryLine extends CommonObjectLine
 
 		$check = true;
 		foreach ($this->dictionary->fields as $fieldName => $field) {
-			if ($field['is_require']) {
+			if (!empty($field['is_require'])) {
 				$checkField = true;
 				if (isset($fieldsValue[$fieldName])) {
 					$value = $fieldsValue[$fieldName];
@@ -4007,7 +4009,7 @@ class DictionaryLine extends CommonObjectLine
     {
         if (isset($this->dictionary->fields[$name])) {
             $field = $this->dictionary->fields[$name];
-            $unselect_values = is_array($field['unselected_values']) ? $field['unselected_values'] : array(-1);
+            $unselect_values = (isset($field['unselected_values']) && is_array($field['unselected_values'])) ? $field['unselected_values'] : array(-1);
 
             switch ($field['type']) {
                 case 'varchar':
@@ -4023,18 +4025,18 @@ class DictionaryLine extends CommonObjectLine
                 case 'double':
                 case 'price':
                 case 'link':
-                    return $field['is_require'] || (isset($value) && $value !== '') ? "'" . $this->db->escape($value) . "'" : 'NULL';
+                    return !empty($field['is_require']) || (isset($value) && $value !== '') ? "'" . $this->db->escape($value) . "'" : 'NULL';
                 case 'select':
                 case 'sellist':
-                    return $field['is_require'] || (isset($value) && $value !== '' && !in_array($value, $unselect_values)) ? "'" . $this->db->escape($value) . "'" : 'NULL';
+                    return !empty($field['is_require']) || (isset($value) && $value !== '' && !in_array($value, $unselect_values)) ? "'" . $this->db->escape($value) . "'" : 'NULL';
                 case 'chkbxlst':
 				case 'chkbxlstwithorder':
                     return null;
                 case 'date':
                 case 'datetime':
-                    return $field['is_require'] || (isset($value) && $value !== '') ? "'" . $this->db->idate($value) . "'" : 'NULL';
+                    return !empty($field['is_require']) || (isset($value) && $value !== '') ? "'" . $this->db->idate($value) . "'" : 'NULL';
                 case 'boolean':
-                    return $field['is_require'] || (isset($value) && $value !== '') ? (!empty($value) ? 1 : 0) : 'NULL';
+                    return !empty($field['is_require']) || (isset($value) && $value !== '') ? (!empty($value) ? 1 : 0) : 'NULL';
                 case 'custom':
                     return $this->formatCustomFieldValueForSQL($name, $value);
                 default: // unknown
@@ -4109,9 +4111,13 @@ class DictionaryLine extends CommonObjectLine
         if (isset($this->dictionary->fields[$fieldName])) {
             $field = $this->dictionary->fields[$fieldName];
 
+            // set some default values
+            $field['translate_prefix'] = $field['translate_prefix'] ?? '';
+            $field['translate_suffix'] = $field['translate_suffix'] ?? '';
+
             if ($value === null) $value = $this->fields[$fieldName];
 
-            $moreAttributes = trim($field['show_output']['moreAttributes']);
+            if (isset($field['show_output']['moreAttributes'])) $moreAttributes = trim($field['show_output']['moreAttributes']);
             $moreAttributes = !empty($moreAttributes) ? ' ' . $moreAttributes : '';
 
             switch ($field['type']) {
@@ -4344,7 +4350,7 @@ class DictionaryLine extends CommonObjectLine
                                         $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
                                         $labelstoshow = array();
                                         foreach ($fieldList as $field_toshow) {
-                                            $translabel = $langs->trans($field['translate_prefix'] . $obj->$field_toshow . $field['translate_prefix']);
+                                            $translabel = $langs->trans($field['translate_prefix']. $obj->$field_toshow . $field['translate_suffix']);
                                             if ($translabel != $obj->$field_toshow) {
                                                 $labelstoshow[] = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
                                             } else {
@@ -4448,7 +4454,11 @@ class DictionaryLine extends CommonObjectLine
         if (isset($this->dictionary->fields[$fieldName])) {
             $field = $this->dictionary->fields[$fieldName];
 
-            if ($value === null) $value = $this->fields[$fieldName];
+            // set some default values
+            $field['translate_prefix'] = $field['translate_prefix'] ?? '';
+            $field['translate_suffix'] = $field['translate_suffix'] ?? '';
+
+            if ($value === null) $value = $this->fields[$fieldName] ?? '';
 
             $type = $field['type'];
             $size = $field['database']['length'];
@@ -5060,4 +5070,17 @@ class DictionaryLine extends CommonObjectLine
     {
         return $this->dictionary->getDestinationColumnAssociationTableName($field);
     }
+
+    /**
+     * Set values to default
+     */
+    // public function setDefaultFieldValues(&$field) {
+    //     $strings = array(
+    //         'translateprefix',
+    //         'translatesuffix',
+
+    //     )
+
+    //     // integers
+    // }
 }

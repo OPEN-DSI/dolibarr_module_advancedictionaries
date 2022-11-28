@@ -101,6 +101,7 @@ if (isset($dictionary) && $dictionary->enabled) {
 		$dictionary_line = $dictionary->getNewDictionaryLine();
 		if ($action == 'edit_line') $dictionary_line->fetch($rowid);
 		if ($error) $fieldsValue = $dictionary->getFieldsValueFromForm($action == 'edit_line' ? 'edit_' : 'add_', '', $action == 'edit_line' ? 1 : 0);
+        $fieldsValue = $fieldsValue ?? '';
 
 		// Add input fields
 		foreach ($dictionary->fields as $fieldName => $field) {
@@ -138,7 +139,7 @@ SCRIPT;
 				$input_label .= ' *</span>';
 			}
 
-			if (is_array($field['add_params_in_add_edit'])) {
+			if (isset($field['add_params_in_add_edit']) && is_array($field['add_params_in_add_edit'])) {
 				foreach ($field['add_params_in_add_edit'] as $name) {
 					$formquestion[] = array('name' => $name);
 				}
@@ -192,7 +193,7 @@ if (isset($dictionary)) {
 
             $addButton = '';
             if ($dictionary->lineCanBeAdded && $canCreate) {
-                $addButton = '<a href="' . $_SERVER['PHP_SELF'] . '?' . ltrim($param3, '&') . '&action=add_line&module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name) . '&'.$now.'="' . ((float)DOL_VERSION >= 8.0 ? 'class=" butActionNew"' : '') . '>';
+                $addButton = '<a href="' . $_SERVER['PHP_SELF'] . '?' . ltrim($param3, '&') . '&action=add_line&module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name) . '&token='. newToken() .'&'.$now.'="' . ((float)DOL_VERSION >= 8.0 ? 'class=" butActionNew"' : '') . '>';
                 $addButton .= $langs->trans("Add");
                 if ((float)DOL_VERSION >= 8.0) $addButton .= '<span class="'.$class_fa.' fa-plus-circle valignmiddle"></span>';
                 $addButton .= '</a>';
@@ -347,7 +348,7 @@ if (isset($dictionary)) {
                 print $hookmanager->resPrint;
 
 				// Entity
-				if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
+				if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && !empty($conf->multicompany->enabled)) {
 					print '<td align="center" class="nowrap">';
 					if (!isset($entity_cached[$line->entity])) {
 						$result = $daomulticompany->fetch($line->entity);
@@ -385,7 +386,7 @@ if (isset($dictionary)) {
                 if ($dictionary->lineCanBeUpdated && $canUpdate && $isLineCanBeUpdated) print '<a class="reposition" href="' . $_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $line->id . '&action=edit_line&'.$now.'=#rowid-' . $line->id . '">' . img_edit() . '</a>';
                 // Delete link
 				$isLineCanBeDeleted = $dictionary->isLineCanBeDeleted($line);
-                if ($dictionary->lineCanBeDeleted && $canDelete && $isLineCanBeDeleted) print '<a href="' . $_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $line->id . '&prevrowid=' . $last_rowid . '&action=delete_line&'.$now.'=#rowid-' . $line->id . '">' . img_delete() . '</a>';
+                if ($dictionary->lineCanBeDeleted && $canDelete && $isLineCanBeDeleted) print '<a href="' . $_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $line->id . '&prevrowid=' . $last_rowid . '&action=delete_line&'. '&token='. newToken() .'&'.$now.'=#rowid-' . $line->id . '">' . img_delete() . '</a>';
                 if ($massactionbutton || $massaction) {   // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
                     $selected = 0;
                     if (in_array($line->id, $arrayofselected)) $selected = 1;
