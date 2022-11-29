@@ -32,7 +32,7 @@ $form = new Form($db);
 dol_include_once('/advancedictionaries/class/html.formdictionary.class.php');
 $formdictionary = new FormDictionary($db);
 
-if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
+if (isset($dictionary) && $dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && !empty($conf->multicompany->enabled)) {
 	require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
 	dol_include_once('/multicompany/class/dao_multicompany.class.php', 'DaoMulticompany');
 	dol_include_once('/multicompany/lib/multicompany.lib.php');
@@ -101,6 +101,7 @@ if (isset($dictionary) && $dictionary->enabled) {
 		$dictionary_line = $dictionary->getNewDictionaryLine();
 		if ($action == 'edit_line') $dictionary_line->fetch($rowid);
 		if ($error) $fieldsValue = $dictionary->getFieldsValueFromForm($action == 'edit_line' ? 'edit_' : 'add_', '', $action == 'edit_line' ? 1 : 0);
+        $fieldsValue = $fieldsValue ?? '';
 
 		// Add input fields
 		foreach ($dictionary->fields as $fieldName => $field) {
@@ -138,7 +139,7 @@ SCRIPT;
 				$input_label .= ' *</span>';
 			}
 
-			if (is_array($field['add_params_in_add_edit'])) {
+			if (isset($field['add_params_in_add_edit']) && is_array($field['add_params_in_add_edit'])) {
 				foreach ($field['add_params_in_add_edit'] as $name) {
 					$formquestion[] = array('name' => $name);
 				}
@@ -192,7 +193,7 @@ if (isset($dictionary)) {
 
             $addButton = '';
             if ($dictionary->lineCanBeAdded && $canCreate) {
-                $addButton = '<a href="' . $_SERVER['PHP_SELF'] . '?' . ltrim($param3, '&') . '&action=add_line&module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name) . '&'.$now.'="' . ((float)DOL_VERSION >= 8.0 ? 'class=" butActionNew"' : '') . '>';
+                $addButton = '<a href="' . $_SERVER['PHP_SELF'] . '?' . ltrim($param3, '&') . '&action=add_line&module=' . urlencode($dictionary->module) . '&name=' . urlencode($dictionary->name) . '&token='. newToken() .'&'.$now.'="' . ((float)DOL_VERSION >= 8.0 ? 'class=" butActionNew"' : '') . '>';
                 $addButton .= $langs->trans("Add");
                 if ((float)DOL_VERSION >= 8.0) $addButton .= '<span class="'.$class_fa.' fa-plus-circle valignmiddle"></span>';
                 $addButton .= '</a>';
@@ -203,7 +204,7 @@ if (isset($dictionary)) {
             // List of mass actions available
             $arrayofmassactions = array();
             if ($dictionary->lineCanBeDeleted && $canDelete) $arrayofmassactions['predelete'] = $langs->trans("Delete");
-			if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled && $dictionary->lineCanBeUpdated && $canUpdate) $arrayofmassactions['premodifyentity'] = $langs->trans("AdvanceDictionariesModifyEntity");
+			if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && !empty($conf->multicompany->enabled) && $dictionary->lineCanBeUpdated && $canUpdate) $arrayofmassactions['premodifyentity'] = $langs->trans("AdvanceDictionariesModifyEntity");
             if (in_array($massaction, array('predelete', 'premodifyentity'))) $arrayofmassactions = array();
             $massactionbutton = $form->selectMassAction('', $arrayofmassactions);
 
@@ -266,7 +267,7 @@ if (isset($dictionary)) {
                     $align = !empty($field['td_search']['align']) ? $field['td_search']['align'] : $dictionary->getAlignFlagForField($fieldName);
 
                     print '<td align="' . $align . '" class="liste_titre' . $moreClasses . '"' . $moreAttributes . '>';
-                    if (!$field['is_not_searchable']) {
+                    if (empty($field['is_not_searchable']) || !$field['is_not_searchable']) {
                         print $dictionary->showInputSearchField($fieldName, $search_filters);
                     }
                     print '</td>';
@@ -276,7 +277,7 @@ if (isset($dictionary)) {
             $parameters = array('arrayfields' => $arrayfields);
             $reshook = $hookmanager->executeHooks('printFieldListOption', $parameters, $dictionary, $action);
             print $hookmanager->resPrint;
-			if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
+			if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && !empty($conf->multicompany->enabled)) {
 				print '<td class="liste_titre maxwidthonsmartphone center">';
 				print $actionsmulticompany->select_entities($search_entity,'search_entity','',false,false,true, false, '', 'minwidth150imp', false);
 				print "</td>";
@@ -299,6 +300,7 @@ if (isset($dictionary)) {
                     $align = !empty($field['td_title']['align']) ? $field['td_title']['align'] : $dictionary->getAlignFlagForField($fieldName);
                     $moreAttributes .= ' align="' . $align . '"';
 
+                    $field['is_not_sortable'] = $field['is_not_sortable'] ?? 0;
                     print_liste_field_titre($arrayfields[$fieldName]['label'], $_SERVER["PHP_SELF"], $field['is_not_sortable'] ? '' : $fieldName, '', '&' . ltrim($param2, '&'), $moreAttributes, $sortfield, $sortorder);
                     print '</td>';
                 }
@@ -307,7 +309,7 @@ if (isset($dictionary)) {
             $parameters = array('arrayfields' => $arrayfields, 'param' => $param2, 'sortfield' => $sortfield, 'sortorder' => $sortorder);
             $reshook = $hookmanager->executeHooks('printFieldListTitle', $parameters, $dictionary, $action);
             print $hookmanager->resPrint;
-            if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) print_liste_field_titre($langs->trans("Entity"), $_SERVER["PHP_SELF"], $dictionary->entity_field, "", '&' . ltrim($param2, '&'), 'align="center"', $sortfield, $sortorder);
+            if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && !empty($conf->multicompany->enabled)) print_liste_field_titre($langs->trans("Entity"), $_SERVER["PHP_SELF"], $dictionary->entity_field, "", '&' . ltrim($param2, '&'), 'align="center"', $sortfield, $sortorder);
             print_liste_field_titre($langs->trans("Status"), $_SERVER["PHP_SELF"], $dictionary->active_field, "", '&' . ltrim($param2, '&'), 'width="10%" align="center"', $sortfield, $sortorder);
             print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', 'align="center"', $sortfield, $sortorder, 'maxwidthsearch ');
             print '</tr>';
@@ -346,7 +348,7 @@ if (isset($dictionary)) {
                 print $hookmanager->resPrint;
 
 				// Entity
-				if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && $conf->multicompany->enabled) {
+				if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && !empty($conf->multicompany->enabled)) {
 					print '<td align="center" class="nowrap">';
 					if (!isset($entity_cached[$line->entity])) {
 						$result = $daomulticompany->fetch($line->entity);
@@ -384,7 +386,7 @@ if (isset($dictionary)) {
                 if ($dictionary->lineCanBeUpdated && $canUpdate && $isLineCanBeUpdated) print '<a class="reposition" href="' . $_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $line->id . '&action=edit_line&'.$now.'=#rowid-' . $line->id . '">' . img_edit() . '</a>';
                 // Delete link
 				$isLineCanBeDeleted = $dictionary->isLineCanBeDeleted($line);
-                if ($dictionary->lineCanBeDeleted && $canDelete && $isLineCanBeDeleted) print '<a href="' . $_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $line->id . '&prevrowid=' . $last_rowid . '&action=delete_line&'.$now.'=#rowid-' . $line->id . '">' . img_delete() . '</a>';
+                if ($dictionary->lineCanBeDeleted && $canDelete && $isLineCanBeDeleted) print '<a href="' . $_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $line->id . '&prevrowid=' . $last_rowid . '&action=delete_line&'. '&token='. newToken() .'&'.$now.'=#rowid-' . $line->id . '">' . img_delete() . '</a>';
                 if ($massactionbutton || $massaction) {   // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
                     $selected = 0;
                     if (in_array($line->id, $arrayofselected)) $selected = 1;
@@ -428,7 +430,7 @@ if (isset($dictionary)) {
 	print '<td>' . $langs->trans("Table") . '</td>';
 	print '</tr>';
 
-	$dictionaries = Dictionary::fetchAllDictionaries($db, $moduleFilter, $familyFilter, $rootPath);
+	$dictionaries = Dictionary::fetchAllDictionaries($db, $moduleFilter, $familyFilter, $rootPath ?? '');
 
 	$lastfamily = '';
 	foreach ($dictionaries as $dictionary) {
