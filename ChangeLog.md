@@ -3,14 +3,17 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 ## [4.0.53] - 29-11-2022
-- Compatibilité PHP8
-## [4.0.52] - 11-05-2022
+- Compatibilité PHP8.1
+- Compatibilité Dolibarr v17-beta
+
+## [4.0.52] - 14-09-2022
 - Correction de l'affichage de l'entrée dans le menu 'configuration'
-  
+
 ## [4.0.51] - 21-07-2022
-- Correction de la mise à jour d'un champs du dictionnaire lors d'une montée de version du dictionnaire
+- Correction de la mise à jour d'un champ du dictionnaire lors d'une montée de version du dictionnaire
+
 ## [4.0.50] - 12-07-2022
-- Correction de l'enregistrement d'une ligne lorsqu'il n'y a qu'un champs a multiple selection à mettre à jour
+- Correction de l'enregistrement d'une ligne lorsqu'il n'y a qu'un champ à multiple selection à mettre à jour
 
 ## [4.0.49] - 11-05-2022
 - Correction de l'affichage de l'entrée dans le menu 'configuration'
@@ -29,20 +32,20 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 - Correction de l'emplacement d'execution de la hook 'formConfirm'
 
 ## [4.0.44] - 15-12-2021
-- Ajout l'acces au web browser pour selectionner les fichiers documents depuis le bouton image d'un champ de type text
+- Ajout l'accès au web browser pour sélectionner les fichiers documents depuis le bouton image d'un champ de type text
 
 ## [4.0.43] - 29-10-2021
-- Ignore les "erreurs" (table/colonne existe deja, index supprimé n'exist pas, ...) non blocante lors de la creation/maj des dictionnaires
+- Ignorer les "erreurs" (table/colonne existe deja, index supprimé n'existe pas, ...) non bloquante lors de la creation/maj des dictionnaires
 
 ## [4.0.42] - 28-09-2021
-- Passe les colonnes non definies lors de la creation
-- Corrections mise à jour de la version du dictionnaire sur l'entité 0 et non l'entité actuelle (avais disparue entre temps)
+- Passe les colonnes non définies lors de la creation
+- Corrections mise à jour de la version du dictionnaire sur l'entité 0 et non l'entité actuelle (avait disparue entre temps)
 
 ## [4.0.41] - 27-09-2021
 - Ajout la gestion de l'update d'une colonne de type sellist vers chkbxlst (rajoute les valeurs existantes dans la table de liaison et supprime la colonne)
 
 ## [4.0.40] - 22-07-2021
-- Corrections mise a jour de la version du dictionnaire sur l'entité 0 et non l'entité actuelle
+- Corrections mises à jour de la version du dictionnaire sur l'entité 0 et non l'entité actuelle
 - Remise des fonctions isLineCanBeUpdated() et isLineCanBeDeleted()
 - Ajout du type de champ 'chkbxlstwithorder' par AlexisLaurier
 - Ajout de l'option 'association_table' par AlexisLaurier
@@ -56,7 +59,7 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 - Mise en standard des recherches de dates (filtre date : array('key' => array('date_start' => int, 'date_end' => int)))
 
 ## [4.0.38] - 22-06-2021
-- Compatibilité de l'API avec les version 12+ de Dolibarr
+- Compatibilité de l'API avec les versions 12+ de Dolibarr
 
 ## [4.0.37] - 28-04-2021
 - Correction de l'auto incrementation de la clé primaire lors de la creation d'une table
@@ -67,7 +70,7 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 - Correction mineures
 
 ## [4.0.35] - 28-04-2021
-- Correction mineures
+- Correction mineure
 
 ## [4.0.34] - 31-03-2021
 - Correction lors de la création du dictionnaire (il n'applique plus les mises à jour de monter de version)
@@ -218,7 +221,12 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.48...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.53...HEAD
+[4.0.53]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.53
+[4.0.52]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.52
+[4.0.51]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.51
+[4.0.50]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.50
+[4.0.49]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.49
 [4.0.48]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.48
 [4.0.47]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.47
 [4.0.46]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.46
