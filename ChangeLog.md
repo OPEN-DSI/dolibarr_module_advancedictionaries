@@ -2,7 +2,8 @@
 Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.com/fr/1.0.0/).
 
 ## [Non Distribué]
-
+## [4.0.53] - 29-11-2022
+- Compatibilité PHP8
 ## [4.0.52] - 11-05-2022
 - Correction de l'affichage de l'entrée dans le menu 'configuration'
   
