@@ -2,6 +2,10 @@
 Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.com/fr/1.0.0/).
 
 ## [Non Distribué]
+
+## [4.0.54] - 19-12-2022
+- Compatibilité newToken() des versions recentes de dolibarr
+
 ## [4.0.53] - 29-11-2022
 - Compatibilité PHP8.1
 - Compatibilité Dolibarr v17-beta
@@ -221,7 +225,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.53...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.54...HEAD
+[4.0.54]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.54
 [4.0.53]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.53
 [4.0.52]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.52
 [4.0.51]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.51

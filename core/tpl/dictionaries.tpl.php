@@ -83,7 +83,7 @@ if (isset($dictionary) && $dictionary->enabled) {
 		$formquestion = array('text' => '<i>* ' . $langs->trans("AdvanceDictionariesFieldRequired") . '</i>');
 
 		// Add hidden input
-		/*            $formquestion[] = array('type' => 'hidden', 'name' => 'token', 'value' => $_SESSION['newtoken']);
+		/*            $formquestion[] = array('type' => 'hidden', 'name' => 'token', 'value' => newToken());
 					if (!empty($sortfield)) $formquestion[] = array('type' => 'hidden', 'name' => 'sortfield', 'value' => $sortfield);
 					if (!empty($sortorder)) $formquestion[] = array('type' => 'hidden', 'name' => 'sortorder', 'value' => $sortorder);
 					if (!empty($page)) $formquestion[] = array('type' => 'hidden', 'name' => 'page', 'value' => $page);
@@ -209,7 +209,7 @@ if (isset($dictionary)) {
             $massactionbutton = $form->selectMassAction('', $arrayofmassactions);
 
             print '<form id="searchFormList" action="' . $_SERVER['PHP_SELF'] . '?' . ltrim($param0, '&') . '" method="POST">';
-            print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
+            print '<input type="hidden" name="token" value="' . newToken() . '">';
             print '<input type="hidden" name="formfilteraction" id="formfilteraction" value="list">';
             print '<input type="hidden" name="action" value="list">';
             if (!empty($sortfield)) print '<input type="hidden" name="sortfield" value="' . dol_escape_htmltag($sortfield) . '">';
