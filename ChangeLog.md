@@ -3,6 +3,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.55] - 03-02-2022
+- correction de l'affichage de AdvanceDictionary dans le menu setup
 ## [4.0.54] - 19-12-2022
 - Compatibilité newToken() des versions recentes de dolibarr
 
