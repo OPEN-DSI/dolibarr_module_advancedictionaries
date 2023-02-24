@@ -666,7 +666,33 @@ class Dictionary extends CommonObject
 				$error++;
 			}
 		} elseif ($this->is_rowid_auto_increment) {
-			$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' MODIFY ' . $cq . $this->rowid_field . $cq . ' INTEGER NOT NULL AUTO_INCREMENT';
+			if ($this->db->type != 'pgsql') {
+				$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' MODIFY ' . $cq . $this->rowid_field . $cq . ' INTEGER NOT NULL AUTO_INCREMENT';
+				$resql = $this->db->query($sql);
+				if (!$resql) {
+					$this->error = $this->db->lasterror();
+					$error++;
+				}
+			} else {
+				$sql = 'CREATE SEQUENCE ' . MAIN_DB_PREFIX . $this->table_name .'_rowid_seq OWNED BY '.MAIN_DB_PREFIX . $this->table_name.'.'.$this->rowid_field;
+				$resql = $this->db->query($sql);
+				if (!$resql) {
+					$this->error = $this->db->lasterror();
+					$error++;
+				}
+				$sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name .' ALTER COLUMN '.$cq.$this->rowid_field.$cq.' SET DEFAULT nextval(\''.MAIN_DB_PREFIX . $this->table_name .'_rowid_seq\')';
+				$resql = $this->db->query($sql);
+				if (!$resql) {
+					$this->error = $this->db->lasterror();
+					$error++;
+				}
+				$sql = 'SELECT setval(\'' . MAIN_DB_PREFIX . $this->table_name .'_rowid_seq\', MAX('.$cq.$this->rowid_field.$cq.')) FROM '. MAIN_DB_PREFIX . $this->table_name;
+				$resql = $this->db->query($sql);
+				if (!$resql) {
+					$this->error = $this->db->lasterror();
+					$error++;
+				}
+			}
 			$resql = $this->db->query($sql);
 			if (!$resql) {
 				$this->error = $this->db->lasterror();
