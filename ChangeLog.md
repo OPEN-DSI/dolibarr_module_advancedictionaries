@@ -3,8 +3,12 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.56] - 10-03-2023
+- correction de l'enregistrement des balise HTML des type text avec WYSIWYG
+
 ## [4.0.55] - 03-02-2022
 - correction de l'affichage de AdvanceDictionary dans le menu setup
+
 ## [4.0.54] - 19-12-2022
 - Compatibilité newToken() des versions recentes de dolibarr
 
@@ -227,7 +231,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.54...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.56...HEAD
+[4.0.56]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.56
 [4.0.54]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.54
 [4.0.53]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.53
 [4.0.52]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.52
