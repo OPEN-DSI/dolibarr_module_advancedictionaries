@@ -2204,7 +2204,7 @@ class Dictionary extends CommonObject
                         $value_key = GETPOST($fieldHtmlName, 'alpha');
                         break;
                     case 'text':
-                        $value_key = GETPOST($fieldHtmlName);
+						$value_key = GETPOST($fieldHtmlName, $field['no_wysiwyg'] ? 'alphanohtml' : 'restricthtml');
                         break;
                     case 'checkbox':
                     case 'chkbxlst':
@@ -2305,10 +2305,6 @@ class Dictionary extends CommonObject
 					case 'double':
 					case 'price':
 						$value_key = GETPOST($fieldHtmlName, 'alpha');
-						if ($value_key === '') $value_key = null;
-						break;
-					case 'text':
-						$value_key = GETPOST($fieldHtmlName, $field['no_wysiwyg'] ? 'alphanohtml' : 'restricthtml');
 						if ($value_key === '') $value_key = null;
 						break;
 					case 'date':
