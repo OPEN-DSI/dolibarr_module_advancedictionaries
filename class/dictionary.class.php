@@ -4460,7 +4460,7 @@ class DictionaryLine extends CommonObjectLine
             if ($value === null) $value = $this->fields[$fieldName] ?? '';
 
             $type = $field['type'];
-            $size = $field['database']['length'];
+            $size = empty($field['database']['length']) ? '' : $field['database']['length'];
             $required = !empty($field['is_require']);
 
             $fieldHtmlName = $keyprefix . $fieldName . $keysuffix;
