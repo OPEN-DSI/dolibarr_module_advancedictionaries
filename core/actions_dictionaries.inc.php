@@ -148,7 +148,7 @@ if (isset($dictionary) && $dictionary->enabled) {
 			if (isset($filter['date_start'])) $param .= '&search_' . $fieldName . '_start=' . urlencode($filter['date_start']);
 			if (isset($filter['date_end'])) $param .= '&search_' . $fieldName . '_end=' . urlencode($filter['date_end']);
 		} else {
-			$param .= '&search_' . $fieldName . '=' . urlencode(is_array($filter) ? $filter[0] : $filter);
+			$param .= '&search_' . $fieldName . '=' . urlencode(is_array($filter) ? (is_array($filter[0]) ? $filter[0][0] : $filter[0]) : $filter);
 		}
 	}
     if ($search_entity !== '') $param .= '&search_' . $dictionary->entity_field . '=' . urlencode($search_entity);
