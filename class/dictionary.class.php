@@ -1229,26 +1229,28 @@ class Dictionary extends CommonObject
             $dirroot = $reldir . (empty($root_path) ? "core/dictionaries/" : '');
             $dir = dol_buildpath($dirroot);
 
-            $handle = @opendir($dir);
-            if (is_resource($handle)) {
-                while (($file = readdir($handle)) !== false) {
-                    if (preg_match('/\.dictionary\.php$/i', $file)) {
-                        $classname = substr($file, 0, dol_strlen($file) - 15) . 'Dictionary';
+            if (is_dir($dir)) {
+                $handle = @opendir($dir);
+                if (is_resource($handle)) {
+                    while (($file = readdir($handle)) !== false) {
+                        if (preg_match('/\.dictionary\.php$/i', $file)) {
+                            $classname = substr($file, 0, dol_strlen($file) - 15) . 'Dictionary';
 
-                        try {
-                            dol_include_once($dirroot . $file);
-                        } catch (Exception $e) {
-                            dol_syslog($e->getMessage(), LOG_ERR);
-                        }
+                            try {
+                                dol_include_once($dirroot . $file);
+                            } catch (Exception $e) {
+                                dol_syslog($e->getMessage(), LOG_ERR);
+                            }
 
-                        $dictionary = new $classname($db);
+                            $dictionary = new $classname($db);
 
-                        if (empty($family) || $family == $dictionary->family) {
-                            $dictionaries[] = $dictionary;
+                            if (empty($family) || $family == $dictionary->family) {
+                                $dictionaries[] = $dictionary;
+                            }
                         }
                     }
+                    closedir($handle);
                 }
-                closedir($handle);
             }
         }
 
@@ -1927,7 +1929,7 @@ class Dictionary extends CommonObject
                 case 'chkbxlstwithorder':
                     if (is_array($value)) {
                         if (count($value) > 0) {
-                            return natural_search('cbl_' . $field['name'] . '.' . $this->getDestinationColumnAssociationTableName($field), implode(',', $value), 2, 1);
+                            return natural_search('cbl_' . $field['name'] . '.' . $this->getDestinationColumnAssociationTableName($field), implode(',', is_array($value[0])?$value[0]:$value), 2, 1);
                         } else {
                             return '';
                         }
@@ -4460,7 +4462,7 @@ class DictionaryLine extends CommonObjectLine
             if ($value === null) $value = $this->fields[$fieldName] ?? '';
 
             $type = $field['type'];
-            $size = $field['database']['length'];
+            $size = empty($field['database']['length']) ? '' : $field['database']['length'];
             $required = !empty($field['is_require']);
 
             $fieldHtmlName = $keyprefix . $fieldName . $keysuffix;
