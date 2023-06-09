@@ -153,6 +153,7 @@ class Dictionary extends CommonObject
 	 *																	5 : ObjectName
 	 *																	6 : classPath
 	 *																	7 : lang (can use | for multiple field with lang file to load, can use 'AS', example: t1.lang AS t1_lang|t2.lang AS t2_lang)
+	 *   'empty_options'          => array,        				// List of value who is considered as empty (for select, sellist, radio, checkbox, chkbxlst, chkbxlstwithorder)
 	 *   'association_table'      => array (                    // Options on fields with an association table (type "chkbxlst" and "chkbxlstwithorder")
 	 *      'name'                => string                     // Custom association table name given here
 	 *      'fk_line_name'        => string                     // Custom column name for line's id of this dictionary
@@ -2374,7 +2375,7 @@ class Dictionary extends CommonObject
 					case 'chkbxlst':
                     case 'chkbxlstwithorder':
 						$value_key = GETPOST($fieldHtmlName, 'alpha');
-						if ($value_key === '') $value_key = null;
+						if ($value_key === '' || (is_array($field['empty_options']) && in_array($value_key, $field['empty_options']))) $value_key = null;
 						else $value_key = array($value_key);
 						break;
 					case 'boolean':
