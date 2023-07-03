@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.58] - 03-07-2023
+- Ajout de paramètres pour compléter le filtre WHERE et le HAVING dans la récupération des lignes
+
 ## [4.0.57] - 08-06-2023
 - Ajout d'une nouvelle option de champ 'empty_options'
 
@@ -234,7 +237,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.57...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.58...HEAD
+[4.0.58]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.58
 [4.0.57]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.57
 [4.0.56]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.56
 [4.0.54]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.54
