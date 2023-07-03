@@ -1613,7 +1613,6 @@ class Dictionary extends CommonObject
    	 */
 	public function fetch_lines($filter_active=-1, $filters=array(), $orders=array(), $offset=0, $limit=0, $nb_lines=false, $return_array=false, $additionalWhereStatement='', $additionalHavingStatement='', $filter_entity = '')
     {
-        // TODO $additionalWhereStatement, $additionalHavingStatement to make
         global $conf, $hookmanager;
 
         $hookmanager2 = clone $hookmanager; // Génère des erreurs de resultat disparaissant si appelé dans une autre hooks donc on copie la hook
@@ -1650,6 +1649,9 @@ class Dictionary extends CommonObject
                 $where[] = natural_search('d.' . $fieldName, empty($value) ? '-1' : implode(',', $value), 2, 1);
             }
         }
+		// TODO to complete substitution
+		if (!empty($additionalWhereStatement)) $where[] = $additionalWhereStatement;
+		if (!empty($additionalHavingStatement)) $having[] = $additionalHavingStatement;
         $sortfield = implode(',', array_keys($orders));
         $sortorder = implode(',', array_values($orders));
 
