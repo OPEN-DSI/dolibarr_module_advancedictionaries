@@ -39,12 +39,12 @@ function advancedictionaries_prepare_head()
     $h++;
 
     $head[$h][0] = dol_buildpath("/advancedictionaries/admin/dictionaries.php", 1);
-    $head[$h][1] = $langs->trans("Dictionaries");
+    $head[$h][1] = $langs->trans("AdvanceDictionaries");
     $head[$h][2] = 'dictionaries';
     $h++;
 
     $head[$h][0] = dol_buildpath("/advancedictionaries/admin/about.php", 1);
-    $head[$h][1] = $langs->trans("About");
+    $head[$h][1] = $langs->trans("About") . " / " . $langs->trans("Support");
     $head[$h][2] = 'about';
     $h++;
 
