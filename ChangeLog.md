@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.59] - 22-09-2023
+- Changement de marque Open-DSI > Easya Solutions
+
 ## [4.0.58] - 03-07-2023
 - Ajout de paramètres pour compléter le filtre WHERE et le HAVING dans la récupération des lignes
 
@@ -237,7 +240,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.58...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.59...HEAD
+[4.0.59]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.59
 [4.0.58]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.58
 [4.0.57]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.57
 [4.0.56]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.56

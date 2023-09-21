@@ -1,7 +1,7 @@
 # Dolibarr language file - fr_FR - advancedictionaries
 CHARSET=UTF-8
-Module163017Name = Advanced Dictionaries
-Module163017Desc = Module remplacant et étendant les dictionnaires
+Module163017Name = Dictionnaires avancés
+Module163017Desc = Module remplaçant et étendant les dictionnaires
 
 #######################################################################
 # Permission
@@ -19,7 +19,9 @@ AdvancedictionariesMenuTitle    = Dictionnaires avancés
 #######################################################################
 # Configuration admin
 #######################################################################
-AdvanceDictionariesSetup                        = Configuration du module Advanced Dictionaries
+AdvanceDictionariesSetup                        = Configuration du module Dictionnaires avancés
+
+AdvanceDictionaries                             = Dictionnaires
 
 AdvanceDictionariesReplaceOldDictionariesPage   = Remplace l'ancienne page des dictionnaires
 

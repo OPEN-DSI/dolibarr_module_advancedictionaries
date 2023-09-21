@@ -108,21 +108,18 @@ print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
 print '<input type="hidden" name="token" value="'.newToken().'">';
 print '<input type="hidden" name="action" value="set">';
 
-$var=true;
-
-print '<table class="noborder" width="100%">';
+print '<table class="noborder centpercent">';
 print '<tr class="liste_titre">';
 print '<td>'.$langs->trans("Parameters").'</td>'."\n";
-print '<td align="center">&nbsp;</td>'."\n";
-print '<td align="right">'.$langs->trans("Value").'</td>'."\n";
+print '<td class="center">&nbsp;</td>'."\n";
+print '<td class="right">'.$langs->trans("Value").'</td>'."\n";
 print "</tr>\n";
 
 // ADVANCEDICTIONARIES_REPLACE_OLD_DICTIONARIES
-$var = !$var;
-print '<tr ' . $bc[$var] . '>' . "\n";
+print '<tr class="oddeven">' . "\n";
 print '<td>' . $langs->trans("AdvanceDictionariesReplaceOldDictionariesPage") . '</td>' . "\n";
-print '<td align="center">&nbsp;</td>' . "\n";
-print '<td align="right">' . "\n";
+print '<td class="center">&nbsp;</td>' . "\n";
+print '<td class="right">' . "\n";
 if (!empty($conf->use_javascript_ajax)) {
     print ajax_constantonoff('ADVANCEDICTIONARIES_REPLACE_OLD_DICTIONARIES_PAGE');
 } else {
@@ -137,7 +134,7 @@ print '</td></tr>' . "\n";
 print '</table>';
 
 print '<br>';
-print '<div align="center">';
+print '<div class="center">';
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</div>';
 

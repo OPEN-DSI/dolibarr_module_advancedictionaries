@@ -29,6 +29,7 @@ if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main
 if (! $res) die("Include of main fails");
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 dol_include_once('/advancedictionaries/lib/advancedictionaries.lib.php');
+dol_include_once('/advancedictionaries/core/modules/modAdvanceDictionaries.class.php');
 
 $langs->load("admin");
 $langs->load("advancedictionaries@advancedictionaries");
@@ -52,10 +53,34 @@ $head=advancedictionaries_prepare_head();
 
 dol_fiche_head($head, 'about', $langs->trans("Module163017Name"), 0, 'action');
 
-print '<table width="100%"><tr>'."\n";
-print '<td width="310px"><img src="../img/opendsi_dolibarr_preferred_partner.png" /></td>'."\n";
-print '<td align="left" valign="top"><p>'.$langs->trans("OpenDsiAboutDesc").'</p></td>'."\n";
-print '</tr></table>'."\n";
+$modClass = new modAdvanceDictionaries($db);
+$constantLastVersion = !empty($modClass->getVersion()) ? $modClass->getVersion() : 'NC';
+$constantSireneVersion = !empty($conf->global->MODULE_SIRENE_VERSION) ? $conf->global->MODULE_SIRENE_VERSION : 'NC';
+
+$supportvalue = "/*****"."<br>";
+$supportvalue.= " * Module : AdvanceDictionaries"."<br>";
+$supportvalue.= " * Module version : ".$constantLastVersion."<br>";
+$supportvalue.= " * Dolibarr version : ".DOL_VERSION."<br>";
+$supportvalue.= " * Dolibarr version installation initiale : ".$conf->global->MAIN_VERSION_LAST_INSTALL."<br>";
+$supportvalue.= " *****/"."<br><br>";
+$supportvalue.= "Description de votre problème :"."<br>";
+
+// print '<div class="div-table-responsive-no-min">';
+print '<table class="centpercent">';
+
+//print '<tr class="liste_titre"><td colspan="2">' . $langs->trans("Authors") . '</td>';
+//print '</tr>'."\n";
+
+// Easya Solutions
+print '<tr>';
+print '<form id="ticket" method="POST" target="_blank" action="https://support.easya.solutions/create_ticket.php">';
+print '<input name=message type="hidden" value="'.$supportvalue.'" />';
+print '<input name=email type="hidden" value="'.$user->email.'" />';
+print '<td class="titlefield center"><img alt="Easya Solutions" src="../img/opendsi_dolibarr_preferred_partner.png" /></td>'."\n";
+print '<td class="left"><p>'.$langs->trans("OpenDsiAboutDesc1").' <button type="submit" >'.$langs->trans("OpenDsiAboutDesc2").'</button> '.$langs->trans("OpenDsiAboutDesc3").'</p></td>'."\n";
+print '</tr>'."\n";
+
+print '</table>'."\n";
 
 print dol_get_fiche_end();
 
