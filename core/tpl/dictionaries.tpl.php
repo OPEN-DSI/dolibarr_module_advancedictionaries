@@ -261,7 +261,7 @@ if (isset($dictionary)) {
             print '<tr class="liste_titre_filter">';
             if ($showTechnicalId) print '<td class="liste_titre"></td>';
             foreach ($dictionary->fields as $fieldName => $field) {
-                if ($arrayfields[$fieldName]['checked'] && empty($field['is_not_show'])) {
+                if (isset($arrayfields[$fieldName]) && $arrayfields[$fieldName]['checked'] && empty($field['is_not_show'])) {
                     $moreClasses = !empty($field['td_search']['moreClasses']) ? ' ' . $field['td_search']['moreClasses'] : '';
                     $moreAttributes = !empty($field['td_search']['moreAttributes']) ? ' ' . $field['td_search']['moreAttributes'] : '';
                     $align = !empty($field['td_search']['align']) ? $field['td_search']['align'] : $dictionary->getAlignFlagForField($fieldName);
