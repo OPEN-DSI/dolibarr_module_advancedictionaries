@@ -295,7 +295,7 @@ if (isset($dictionary)) {
             print '<tr class="liste_titre">';
             if ($showTechnicalId) print_liste_field_titre($langs->trans("TechnicalID"), $_SERVER["PHP_SELF"], $dictionary->rowid_field, "", '&' . ltrim($param2, '&'), 'width="5%"', $sortfield, $sortorder);
             foreach ($dictionary->fields as $fieldName => $field) {
-                if ($arrayfields[$fieldName]['checked'] && empty($field['is_not_show'])) {
+                if (isset($arrayfields[$fieldName]) && $arrayfields[$fieldName]['checked'] && empty($field['is_not_show'])) {
                     $moreAttributes = !empty($field['td_title']['moreAttributes']) ? ' ' . $field['td_title']['moreAttributes'] : '';
                     $align = !empty($field['td_title']['align']) ? $field['td_title']['align'] : $dictionary->getAlignFlagForField($fieldName);
                     $moreAttributes .= ' align="' . $align . '"';
@@ -331,7 +331,7 @@ if (isset($dictionary)) {
                 }
 
                 foreach ($dictionary->fields as $fieldName => $field) {
-                    if ($arrayfields[$fieldName]['checked'] && empty($field['is_not_show'])) {
+                    if (isset($arrayfields[$fieldName]) && $arrayfields[$fieldName]['checked'] && empty($field['is_not_show'])) {
                         $moreClasses = !empty($field['td_output']['moreClasses']) ? ' class="' . $field['td_output']['moreClasses'] . '"' : '';
                         $moreAttributes = !empty($field['td_output']['moreAttributes']) ? ' ' . $field['td_output']['moreAttributes'] : '';
                         $align = !empty($field['td_output']['align']) ? $field['td_output']['align'] : $dictionary->getAlignFlagForField($fieldName);
