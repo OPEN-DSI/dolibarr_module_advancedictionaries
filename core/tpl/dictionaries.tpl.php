@@ -153,11 +153,11 @@ SCRIPT;
 
 	// Confirmation de l'ajout d'une ligne
 	if ($action == 'add_line') {
-		$formconfirm = $formdictionary->formconfirm($_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&'), $langs->trans('AdvanceDictionariesAddLine'), $langs->trans('AdvanceDictionariesConfirmAddLine'), 'confirm_add_line', $formquestion, 0, 1, 800, '70%', 1, 1);
+		$formconfirm = $formdictionary->formconfirm($_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&'), $langs->trans('AdvanceDictionariesAddLine'), $langs->trans('AdvanceDictionariesConfirmAddLine'), 'confirm_add_line', $formquestion, 0, 1, '400', '70%', 1, 1);
 		$formconfirm .= $dictionary->showUpdateListValuesScript($fieldsValue, $action == 'edit_line' ? 'edit_' : 'add_');
 	} // Confirmation de l'edition d'une ligne
 	elseif ($action == 'edit_line') {
-		$formconfirm = $formdictionary->formconfirm($_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $rowid . '&prevrowid=' . $prevrowid, $langs->trans('AdvanceDictionariesEditLine'), $langs->trans('AdvanceDictionariesConfirmEditLine'), 'confirm_edit_line', $formquestion, 0, 1, 800, '70%', 1, 1);
+		$formconfirm = $formdictionary->formconfirm($_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $rowid . '&prevrowid=' . $prevrowid, $langs->trans('AdvanceDictionariesEditLine'), $langs->trans('AdvanceDictionariesConfirmEditLine'), 'confirm_edit_line', $formquestion, 0, 1, '400', '70%', 1, 1);
 		$formconfirm .= $dictionary->showUpdateListValuesScript($fieldsValue, $action == 'edit_line' ? 'edit_' : 'add_');
 	} // Confirmation de la suppression de la ligne
 	elseif ($action == 'delete_line') {
@@ -285,7 +285,7 @@ if (isset($dictionary)) {
 			print '<td class="liste_titre maxwidthonsmartphone center">';
             print $form->selectyesno('search_' . $dictionary->active_field, $search_active, 1, false, 1);
             print '</td>';
-            print '<td class="liste_titre" align="right">';
+            print '<td class="liste_titre right">';
             print $form->showFilterButtons();
             print '</td>';
             print '</tr>';
@@ -349,7 +349,7 @@ if (isset($dictionary)) {
 
 				// Entity
 				if ($dictionary->is_multi_entity && $dictionary->has_entity && $dictionary->show_entity_management && !empty($conf->multicompany->enabled)) {
-					print '<td align="center" class="nowrap">';
+					print '<td class="center nowrap">';
 					if (!isset($entity_cached[$line->entity])) {
 						$result = $daomulticompany->fetch($line->entity);
 						if ($result < 0) {
@@ -386,7 +386,7 @@ if (isset($dictionary)) {
                 if ($dictionary->lineCanBeUpdated && $canUpdate && $isLineCanBeUpdated) print '<a class="reposition" href="' . $_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $line->id . '&action=edit_line&'.$now.'=#rowid-' . $line->id . '">' . img_edit() . '</a>';
                 // Delete link
 				$isLineCanBeDeleted = $dictionary->isLineCanBeDeleted($line);
-                if ($dictionary->lineCanBeDeleted && $canDelete && $isLineCanBeDeleted) print '<a href="' . $_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $line->id . '&prevrowid=' . $last_rowid . '&action=delete_line&'. '&token='. newToken() .'&'.$now.'=#rowid-' . $line->id . '">' . img_delete() . '</a>';
+                if ($dictionary->lineCanBeDeleted && $canDelete && $isLineCanBeDeleted) print '<a href="' . $_SERVER["PHP_SELF"] . '?' . ltrim($param3, '&') . '&rowid=' . $line->id . '&prevrowid=' . $last_rowid . '&action=delete_line&'. '&token='. newToken() .'&'.$now.'=#rowid-' . $line->id . '">' . img_delete($langs->trans("Delete"), '', 'marginleftonly') . '</a>';
                 if ($massactionbutton || $massaction) {   // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
                     $selected = 0;
                     if (in_array($line->id, $arrayofselected)) $selected = 1;
