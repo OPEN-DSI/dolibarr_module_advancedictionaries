@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [14.0.1] - 26-02-2024
+- Changement de numérotation
+
 ## [4.0.59] - 22-09-2023
 - Changement de marque Open-DSI > Easya Solutions
 
@@ -240,7 +243,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/v4.0.59...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/14.0.1...HEAD
+[14.0.1]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.1
 [4.0.59]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.59
 [4.0.58]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.58
 [4.0.57]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.57
